@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>World Cricket Champs</title>
+  <link rel="stylesheet" href="cwc27.css">
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Trebuchet MS", "Century Gothic", Arial, sans-serif;
+      color: #17352d;
+      background: #fff;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      --green: #15945e;
+      --deep-green: #163828;
+      --gold: #f1c54b;
+    }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; min-height: 100%; margin: 0; }
+    body { min-height: 100svh; overflow: hidden; background: #f3f6f4; isolation: isolate; }
+    #page-bg {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+      pointer-events: none;
+      background-color: #f3f6f4;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      opacity: .12;
+      filter: grayscale(100%) sepia(22%) hue-rotate(95deg) saturate(135%) contrast(85%);
+    }
+    button { font: inherit; }
+    .screen {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      background: #fff;
+    }
+    #splash[hidden] { display: none; }
+    .splash {
+      isolation: isolate;
+      transition: opacity .35s ease, transform .45s ease;
+    }
+    .brand {
+      position: relative;
+      z-index: 1;
+      width: min(90vw, 680px);
+      margin-top: -6vh;
+      text-align: center;
+      animation: arrive .8s cubic-bezier(.2,.8,.2,1) both;
+    }
+    .wordmark {
+      display: grid;
+      gap: .02em;
+      color: #000;
+      font-size: clamp(2.45rem, 8vw, 5.5rem);
+      font-weight: 1000;
+      letter-spacing: .085em;
+      line-height: .88;
+      text-transform: uppercase;
+      -webkit-text-stroke: 0;
+      text-shadow: none;
+    }
+    .script {
+      display: inline-block;
+      margin: 14px 0 0;
+      color: var(--green);
+      font-family: "Brush Script MT", "Segoe Script", "URW Chancery L", cursive;
+      font-size: clamp(3.4rem, 12vw, 6.2rem);
+      font-weight: 700;
+      line-height: .9;
+      transform: rotate(-6deg);
+      text-shadow: 0 3px 0 rgba(21,148,94,.16);
+    }
+    .start-hitbox {
+      position: absolute;
+      z-index: 10;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      padding: 0;
+      color: #fff;
+      background: transparent;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .start-ring {
+      position: absolute;
+      left: 50%;
+      bottom: 12%;
+      display: grid;
+      width: 48px;
+      height: 48px;
+      place-items: center;
+      border: 3px solid #1a1a1a;
+      border-radius: 50%;
+      background: transparent;
+      transform-origin: center center;
+      transform: translateX(-50%);
+      animation: breathe 1.5s ease-in-out infinite;
+      transition: transform .24s ease, opacity .24s ease;
+    }
+    .start-hitbox:focus-visible .start-ring, .menu-button:focus-visible, .mode:focus-visible {
+      outline: 3px solid #f1c54b;
+      outline-offset: 5px;
+    }
+    .menu-button {
+      position: absolute;
+      z-index: 20;
+      right: 24px;
+      bottom: 24px;
+      display: grid;
+      width: 40px;
+      height: 40px;
+      place-content: center;
+      gap: 4px;
+      border: 2px solid #1a1a1a;
+      border-radius: 50%;
+      color: #1a1a1a;
+      background: rgba(0, 0, 0, .05);
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+    }
+    .menu-button span { display: block; width: 15px; height: 2px; border-radius: 2px; background: currentColor; }
+    .menu-panel {
+      position: absolute;
+      z-index: 21;
+      right: max(20px, env(safe-area-inset-right));
+      bottom: max(82px, calc(env(safe-area-inset-bottom) + 72px));
+      width: 210px;
+      padding: 17px;
+      border: 1px solid rgba(255,255,255,.6);
+      border-radius: 18px;
+      color: #1a1a1a;
+      background: rgba(255,255,255,.97);
+      box-shadow: 0 12px 38px rgba(0,0,0,.17);
+    }
+    .menu-panel[hidden] { display: none; }
+    .menu-heading { margin: 0 0 12px; font-size: .67rem; letter-spacing: .18em; opacity: .7; text-transform: uppercase; }
+    .sound-toggle {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0;
+      border: 0;
+      color: inherit;
+      background: transparent;
+      cursor: pointer;
+      font-size: .9rem;
+    }
+    .switch { width: 38px; height: 23px; padding: 3px; border-radius: 20px; background: rgba(255,255,255,.25); transition: background .2s; }
+    .switch::after { content: ""; display: block; width: 17px; height: 17px; border-radius: 50%; background: white; transition: transform .2s; }
+    .switch[aria-checked="true"] { background: #36bb7e; }
+    .switch[aria-checked="true"]::after { transform: translateX(15px); }
+    .home { display: none; align-content: center; justify-items: center; gap: clamp(24px, 5vh, 46px); padding: 32px 24px max(32px, env(safe-area-inset-bottom)); background: transparent; overflow-y: auto; overscroll-behavior: contain; }
+    .home.is-active { display: grid; animation: home-in .52s cubic-bezier(.2,.8,.2,1) both; }
+    .home-heading { width: min(100%, 960px); }
+    .eyebrow { margin: 0 0 10px; color: var(--green); font-size: .72rem; font-weight: 900; letter-spacing: .26em; text-transform: uppercase; }
+    .home h1 { margin: 0; color: var(--deep-green); font-size: clamp(2.7rem, 8vw, 5.8rem); font-weight: 1000; letter-spacing: -.055em; line-height: .96; }
+    .home-note { margin: 14px 0 0; color: #73817c; font-size: 1rem; }
+    .modes { display: grid; width: min(100%, 960px); grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "cwc profile" "career trophy"; gap: clamp(14px, 3vw, 28px); }
+    .mode {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      min-height: clamp(180px, 29vh, 280px);
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: clamp(22px, 4vw, 38px);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      border-radius: 28px;
+      color: var(--deep-green);
+      text-align: left;
+      cursor: pointer;
+      box-shadow: 0 10px 28px rgba(22, 56, 40, 0.08);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .mode-art {
+      position: absolute;
+      z-index: 1;
+      right: 0;
+      bottom: 0;
+      width: auto;
+      max-width: 62%;
+      height: 100%;
+      object-fit: contain;
+      object-position: right bottom;
+      opacity: .22;
+      mix-blend-mode: multiply;
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 40%);
+      mask-image: linear-gradient(to right, transparent 0%, #000 40%);
+      pointer-events: none;
+    }
+    .mode:hover { transform: translateY(-5px); box-shadow: 0 17px 32px rgba(36,51,44,.11); }
+    .mode.red { background: #f9dadb; }
+    .mode.blue { background: #d4e8f9; }
+    .mode.mint { background: #ddefe4; }
+    .mode.gold { background: #fceccb; }
+    .mode.cwc { grid-area: cwc; }
+    .mode.career { grid-area: career; }
+    .mode.profile-mode { grid-area: profile; }
+    .mode.trophy { grid-area: trophy; }
+    .mode-kicker { position: relative; z-index: 2; color: rgba(23,59,49,.58); font-size: .68rem; font-weight: 900; letter-spacing: .2em; text-transform: uppercase; }
+    .mode-name { position: relative; z-index: 2; display: block; max-width: 100%; font-size: clamp(1.55rem, 4vw, 2.5rem); font-weight: 950; letter-spacing: -.045em; }
+    .mode-arrow { position: relative; z-index: 2; display: grid; width: 40px; height: 40px; place-items: center; border-radius: 50%; color: #fff; background: var(--deep-green); }
+    .mode-arrow::before { width: 17px; height: 2px; background: currentColor; content: ""; transform: rotate(-45deg); }
+    .mode-arrow::after { position: absolute; top: 11px; right: 11px; width: 8px; height: 8px; border-top: 2px solid currentColor; border-right: 2px solid currentColor; content: ""; }
+    .coming-soon { position: absolute; z-index: 2; right: 20px; top: 20px; padding: 7px 10px; border-radius: 20px; color: rgba(23,59,49,.72); background: rgba(255,255,255,.55); font-size: .62rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+    .toast {
+      position: absolute;
+      z-index: 6;
+      left: 50%;
+      bottom: max(24px, env(safe-area-inset-bottom));
+      padding: 12px 17px;
+      border-radius: 24px;
+      color: white;
+      background: var(--deep-green);
+      box-shadow: 0 8px 25px rgba(23,59,49,.18);
+      font-size: .84rem;
+      font-weight: 700;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 10px);
+      transition: opacity .2s, transform .2s;
+    }
+    .toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
+    .loading {
+      position: absolute;
+      z-index: 11;
+      left: 50%;
+      bottom: 12%;
+      width: 48px;
+      height: 48px;
+      border: 3px solid rgba(26,26,26,.2);
+      border-top-color: #1a1a1a;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      transform: translateX(-50%);
+    }
+    .loading[hidden] { display: none; }
+    @keyframes breathe {
+      0%, 100% { opacity: .5; transform: translateX(-50%) scale(.92); }
+      50% { opacity: 1; transform: translateX(-50%) scale(1.08); }
+    }
+    @keyframes spin { to { transform: translateX(-50%) rotate(360deg); } }
+    @keyframes arrive { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @keyframes home-in { from { opacity: 0; transform: translateY(12px) scale(.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    @media (max-width: 620px) {
+      .brand { margin-top: -10vh; }
+      .modes { grid-template-columns: 1fr; grid-template-areas: "cwc" "career" "profile" "trophy"; gap: 14px; }
+      .mode { min-height: 148px; border-radius: 22px; }
+      .home { align-content: start; justify-items: center; padding-top: max(15vh, 72px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="page-bg" aria-hidden="true"></div>
+  <main id="splash" class="screen splash" aria-label="World Cricket Champs start screen">
+    <section class="brand" aria-label="World Cricket Champs">
+      <div class="wordmark"><span>World</span><span>Cricket</span></div>
+      <p class="script">Champs</p>
+    </section>
+    <button id="start" class="start-hitbox" type="button" aria-label="Start World Cricket Champs">
+      <span class="start-ring" aria-hidden="true"></span>
+    </button>
+    <button id="menuButton" class="menu-button" type="button" aria-label="Open game menu" aria-expanded="false" aria-controls="menuPanel">
+      <span></span><span></span><span></span>
+    </button>
+    <section id="menuPanel" class="menu-panel" aria-label="Game settings" hidden>
+      <p class="menu-heading">Settings</p>
+      <button id="soundToggle" class="sound-toggle" type="button" role="switch" aria-checked="false">
+        <span>Music</span><span class="switch" aria-hidden="true"></span>
+      </button>
+    </section>
+    <div id="loading" class="loading" aria-label="Loading" role="status" hidden></div>
+  </main>
+
+  <main id="home" class="screen home" aria-label="Home">
+    <header class="home-heading">
+      <p class="eyebrow">World Cricket Champs</p>
+      <h1>Home</h1>
+      <p class="home-note">Choose how you want to play.</p>
+    </header>
+    <section class="modes" aria-label="Game modes">
+      <button class="mode red cwc" type="button" data-mode="CWC27">
+        <img class="mode-art" src="gallary/1.png" alt="" aria-hidden="true">
+        <span class="mode-kicker">Pick up and play</span>
+        <span class="mode-name">CWC27</span>
+        <span class="mode-arrow" aria-hidden="true"></span>
+      </button>
+      <button class="mode blue career" type="button" data-mode="Career">
+        <img class="mode-art" src="gallary/3.jpg" alt="" aria-hidden="true">
+        <span class="mode-kicker">Build your legacy</span>
+        <span class="mode-name">Career</span>
+        <span class="mode-arrow" aria-hidden="true"></span>
+        <span class="coming-soon">Coming soon</span>
+      </button>
+      <button class="mode mint profile-mode" type="button" data-mode="Profile &amp; Settings">
+        <img class="mode-art" src="gallary/2.jpg" alt="" aria-hidden="true">
+        <span class="mode-kicker">Your game, your way</span>
+        <span class="mode-name">Profile &amp; Settings</span>
+        <span class="mode-arrow" aria-hidden="true"></span>
+        <span class="coming-soon">Coming soon</span>
+      </button>
+      <button class="mode gold trophy" type="button" data-mode="Trophy &amp; Achievements">
+        <img class="mode-art" src="gallary/4.webp" alt="" aria-hidden="true">
+        <span class="mode-kicker">Celebrate your wins</span>
+        <span class="mode-name">Trophy &amp; Achievements</span>
+        <span class="mode-arrow" aria-hidden="true"></span>
+        <span class="coming-soon">Coming soon</span>
+      </button>
+    </section>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </main>
+  <main id="cwcApp" class="cwc-app" aria-label="CWC27 Tournament" hidden>
+    <section id="teamPicker" class="cwc-view team-picker" aria-labelledby="pickerTitle">
+      <header class="cwc-topbar">
+        <button id="pickerHome" class="cwc-back" type="button">← Home</button>
+        <div class="cwc-heading">
+          <p class="cwc-eyebrow">ICC Cricket World Cup 2027</p>
+          <h1 id="pickerTitle">Choose your team</h1>
+        </div>
+        <ol class="cwc-progress" aria-label="Tournament setup">
+          <li class="is-current"><span>1</span><b>Team</b></li>
+          <li><span>2</span><b>Groups</b></li>
+          <li><span>3</span><b>Super 7</b></li>
+          <li><span>4</span><b>Finals</b></li>
+        </ol>
+      </header>
+      <div class="picker-layout">
+        <section class="participant-panel" aria-labelledby="participantTitle">
+          <div class="cwc-panel-heading">
+            <div>
+              <h2 id="participantTitle">Participating teams</h2>
+              <p>10 direct qualifiers · 4 qualifier entrants</p>
+            </div>
+            <span class="team-count">14 teams</span>
+          </div>
+          <div id="teamGrid" class="team-grid" aria-label="Choose a participating team"></div>
+        </section>
+        <aside class="team-preview" aria-live="polite" aria-labelledby="previewName">
+          <div class="preview-topline"><span class="preview-dot"></span><span id="previewType">Select a team</span></div>
+          <div id="previewFlag" class="preview-flag" aria-hidden="true"></div>
+          <h2 id="previewName">Choose your country</h2>
+          <p id="previewDetails">Your selected team will be highlighted here.</p>
+          <div id="previewGroup" class="preview-group">14 teams · 57 matches</div>
+          <button id="enterTournament" class="cwc-primary" type="button" disabled>Continue to CWC27 <span aria-hidden="true">→</span></button>
+          <p class="preview-footnote">Qualifier entrant names will update after the 2027 Qualifier.</p>
+        </aside>
+      </div>
+    </section>
+
+    <section id="tournamentHub" class="cwc-view tournament-hub" aria-labelledby="hubTitle" hidden>
+      <header class="hub-header">
+        <button id="hubHome" class="cwc-back" type="button">← Home</button>
+        <div class="hub-title">
+          <p class="cwc-eyebrow">ICC Cricket World Cup 2027</p>
+          <h1 id="hubTitle">CWC27</h1>
+        </div>
+        <div class="hub-team"><span id="hubTeamFlag" aria-hidden="true"></span><span id="hubTeamName">Team</span></div>
+        <button id="changeTeam" class="cwc-secondary" type="button">Change team</button>
+      </header>
+      <section id="cwcDashboard" class="cwc-dashboard" aria-label="CWC27 menu">
+        <button id="myFixturesCard" class="dashboard-card next-fixture-card" type="button">
+          <span class="dashboard-card-kicker">My fixtures</span>
+          <span id="nextFixtureStage" class="next-fixture-stage">Round 1 · Date TBA</span>
+          <span id="nextFixtureTeams" class="next-fixture-teams"></span>
+          <span class="dashboard-card-action">Next fixture · Open bracket <span aria-hidden="true">→</span></span>
+        </button>
+        <div class="dashboard-card stats-card" aria-label="Tournament statistics coming soon">
+          <span class="dashboard-card-kicker">Tournament statistics</span>
+          <span class="stats-illustration" aria-hidden="true">—</span>
+          <span class="stats-coming-soon">Coming soon</span>
+        </div>
+      </section>
+      <section id="fixtureChoices" class="fixture-choices" aria-labelledby="fixtureChoicesTitle" hidden>
+        <header class="fixture-page-header">
+          <button id="backToDashboard" class="cwc-back" type="button">← CWC27</button>
+          <div><p class="cwc-eyebrow">Choose your fixture view</p><h2 id="fixtureChoicesTitle">Fixtures</h2></div>
+        </header>
+        <div class="fixture-choice-grid">
+          <button id="openMyFixtures" class="dashboard-card fixture-choice-card" type="button">
+            <span class="dashboard-card-kicker">My fixtures</span>
+            <span class="fixture-choice-flag" id="myFixtureFlag" aria-hidden="true"></span>
+            <span class="fixture-choice-copy">Matches featuring <strong id="myFixtureTeam">your selected team</strong></span>
+            <span class="dashboard-card-action">View my fixtures <span aria-hidden="true">→</span></span>
+          </button>
+          <button id="openAllFixtures" class="dashboard-card fixture-choice-card" type="button">
+            <span class="dashboard-card-kicker">All fixtures</span>
+            <span class="all-fixtures-total">57</span>
+            <span class="all-fixtures-caption">Tournament matches</span>
+            <span class="dashboard-card-action">View all fixtures <span aria-hidden="true">→</span></span>
+          </button>
+        </div>
+      </section>
+      <section id="fixturePage" class="fixture-page" aria-labelledby="fixturesTitle" hidden>
+        <header class="fixture-page-header">
+          <button id="backToFixtureChoices" class="cwc-back" type="button">← Fixtures</button>
+          <div><p class="cwc-eyebrow">Selected team: <span id="fixturesTeamName"></span></p><h2 id="fixturesTitle">Fixtures</h2></div>
+        </header>
+        <div class="fixture-controls">
+          <div class="fixture-control-group" aria-label="Choose layout">
+            <button class="fixture-control is-active" type="button" data-fixture-view="bracket" aria-pressed="true">Bracket</button>
+            <button class="fixture-control" type="button" data-fixture-view="list" aria-pressed="false">List</button>
+          </div>
+          <label class="fixture-stage-select">Stage
+            <select id="fixtureStageSelect">
+              <option value="all">All stages</option>
+              <option value="Super Series">Super Series</option>
+              <option value="Group Stage">Group Stage</option>
+              <option value="Super 7">Super 7</option>
+              <option value="Knockouts">Knockouts</option>
+            </select>
+          </label>
+        </div>
+        <div id="fixturePager" class="fixture-pager" hidden>
+          <button id="previousFixturePage" class="fixture-page-button" type="button" aria-label="Previous fixture page">←</button>
+          <span id="fixturePageLabel"></span>
+          <button id="nextFixturePage" class="fixture-page-button" type="button" aria-label="Next fixture page">→</button>
+        </div>
+        <section id="fixturesDisplay" class="fixtures-display" aria-live="polite"></section>
+      </section>
+    </section>
+  </main>
+  <audio id="music" preload="auto"></audio>
+
+  <script src="cwc27.js"></script>
+  <script>
+    const splash = document.querySelector("#splash");
+    const home = document.querySelector("#home");
+    const bgImages = [
+      "gallary/land1.jpg",
+      "gallary/land2.jpg",
+      "gallary/land3.jpg",
+      "gallary/land4.webp",
+      "gallary/land5.webp",
+      "gallary/land6.webp",
+      "gallary/land7.jpg"
+    ];
+    document.addEventListener("DOMContentLoaded", () => {
+      const pageBg = document.querySelector("#page-bg");
+      const bgStorageKey = "world-cricket-champs-last-bg-index";
+      let lastIndex = -1;
+      try {
+        const savedIndex = sessionStorage.getItem(bgStorageKey);
+        if (savedIndex !== null) {
+          const storedIndex = Number(savedIndex);
+          if (Number.isInteger(storedIndex) && storedIndex >= 0 && storedIndex < bgImages.length) lastIndex = storedIndex;
+        }
+      } catch (_) { /* Session storage may be unavailable. */ }
+      const choices = bgImages.map((_, index) => index).filter((index) => index !== lastIndex);
+      const selectedIndex = choices[Math.floor(Math.random() * choices.length)];
+      pageBg.style.backgroundImage = `url('${bgImages[selectedIndex]}')`;
+      try { sessionStorage.setItem(bgStorageKey, String(selectedIndex)); } catch (_) { /* Session storage may be unavailable. */ }
+    });
+    const start = document.querySelector("#start");
+    const loading = document.querySelector("#loading");
+    const music = document.querySelector("#music");
+    const nextMusic = new Audio();
+    nextMusic.preload = "auto";
+    nextMusic.volume = 0;
+    const musicTracks = [
+      "music/2-01. Music - Aggrolites.mp3",
+      "music/2-05. Music - Makuma.mp3",
+      "music/2-07. Music - Pluto.mp3"
+    ];
+    const trackStorageKey = "world-cricket-champs-recent-tracks";
+    const musicVolume = 0.4;
+    let recentTracks = [];
+    try {
+      const savedTracks = JSON.parse(localStorage.getItem(trackStorageKey) || "[]");
+      if (Array.isArray(savedTracks)) recentTracks = savedTracks.filter((track) => musicTracks.includes(track)).slice(-2);
+    } catch (_) { /* Storage may be unavailable. */ }
+    function selectRandomTrack() {
+      const trackChoices = musicTracks.filter((track) => !recentTracks.includes(track));
+      const selectedTrack = trackChoices[Math.floor(Math.random() * trackChoices.length)] || musicTracks[0];
+      recentTracks = [...recentTracks, selectedTrack].slice(-2);
+      try { localStorage.setItem(trackStorageKey, JSON.stringify(recentTracks)); } catch (_) { /* Storage may be unavailable. */ }
+      return selectedTrack;
+    }
+    let activeMusic = music;
+    let standbyMusic = nextMusic;
+    let crossfadeStarted = false;
+    activeMusic.src = selectRandomTrack();
+    standbyMusic.src = selectRandomTrack();
+    standbyMusic.load();
+    const menuButton = document.querySelector("#menuButton");
+    const menuPanel = document.querySelector("#menuPanel");
+    const soundToggle = document.querySelector("#soundToggle");
+    const toast = document.querySelector("#toast");
+    music.preload = "auto";
+    music.volume = musicVolume;
+    let musicEnabled = true;
+    let startPending = false;
+    let toastTimer;
+    soundToggle.setAttribute("aria-checked", "true");
+
+    function playConfirmation() {
+      try {
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        oscillator.type = "sine";
+        oscillator.frequency.setValueAtTime(740, audioContext.currentTime);
+        oscillator.frequency.exponentialRampToValueAtTime(1050, audioContext.currentTime + 0.09);
+        gain.gain.setValueAtTime(0.0001, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.12, audioContext.currentTime + 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.19);
+        oscillator.connect(gain).connect(audioContext.destination);
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.2);
+        oscillator.onended = () => audioContext.close();
+      } catch (_) { /* Sound remains optional when the browser blocks audio. */ }
+    }
+
+    async function setMusic(enabled) {
+      musicEnabled = enabled;
+      soundToggle.setAttribute("aria-checked", String(enabled));
+      if (enabled) {
+        try { activeMusic.volume = musicVolume; await activeMusic.play(); }
+        catch (_) { musicEnabled = false; soundToggle.setAttribute("aria-checked", "false"); }
+      } else {
+        music.pause();
+        nextMusic.pause();
+      }
+    }
+
+    function prepareNextTrack() {
+      standbyMusic.src = selectRandomTrack();
+      standbyMusic.load();
+    }
+
+    async function crossfadeToNextTrack(fadeDuration = 1800) {
+      if (crossfadeStarted || !musicEnabled) return;
+      crossfadeStarted = true;
+      const outgoing = activeMusic;
+      const incoming = standbyMusic;
+      incoming.currentTime = 0;
+      incoming.volume = 0;
+      try { await incoming.play(); }
+      catch (_) { crossfadeStarted = false; return; }
+
+      const fadeStartedAt = performance.now();
+      function fadeFrame(now) {
+        if (!musicEnabled) {
+          outgoing.pause();
+          incoming.pause();
+          outgoing.volume = musicVolume;
+          incoming.volume = 0;
+          incoming.currentTime = 0;
+          crossfadeStarted = false;
+          return;
+        }
+        const progress = Math.min(1, (now - fadeStartedAt) / fadeDuration);
+        outgoing.volume = musicVolume * (1 - progress);
+        incoming.volume = musicVolume * progress;
+        if (progress < 1) {
+          requestAnimationFrame(fadeFrame);
+          return;
+        }
+        outgoing.pause();
+        outgoing.currentTime = 0;
+        outgoing.volume = musicVolume;
+        activeMusic = incoming;
+        standbyMusic = outgoing;
+        crossfadeStarted = false;
+        prepareNextTrack();
+      }
+      requestAnimationFrame(fadeFrame);
+    }
+
+    [music, nextMusic].forEach((player) => {
+      player.addEventListener("timeupdate", () => {
+        if (player !== activeMusic || crossfadeStarted || !musicEnabled || !Number.isFinite(player.duration)) return;
+        if (player.duration - player.currentTime <= 2.3) void crossfadeToNextTrack();
+      });
+      player.addEventListener("ended", () => {
+        if (player === activeMusic && !crossfadeStarted && musicEnabled) void crossfadeToNextTrack(180);
+      });
+    });
+
+    start.addEventListener("click", async () => {
+      if (startPending) return;
+      startPending = true;
+      start.disabled = true;
+      playConfirmation();
+      start.classList.add("is-activating");
+      start.querySelector(".start-ring").style.animation = "none";
+      start.querySelector(".start-ring").style.transform = "translateX(-50%) scale(1.45)";
+      start.querySelector(".start-ring").style.opacity = "0";
+      loading.hidden = false;
+      if (musicEnabled) void setMusic(true);
+      window.setTimeout(() => {
+        splash.style.opacity = "0";
+        splash.style.transform = "scale(1.015)";
+        window.setTimeout(() => {
+          splash.hidden = true;
+          home.classList.add("is-active");
+          home.setAttribute("aria-hidden", "false");
+          document.title = "Home | World Cricket Champs";
+          startPending = false;
+        }, 360);
+      }, 500);
+    });
+
+    menuButton.addEventListener("click", () => {
+      const opening = menuPanel.hidden;
+      menuPanel.hidden = !opening;
+      menuButton.setAttribute("aria-expanded", String(opening));
+    });
+
+    soundToggle.addEventListener("click", () => setMusic(!musicEnabled));
+
+    document.querySelectorAll(".mode").forEach((button) => {
+      button.addEventListener("click", () => {
+        if (button.dataset.mode === "CWC27") {
+          window.CWC27.open();
+          return;
+        }
+        toast.textContent = `${button.dataset.mode} is coming soon.`;
+        toast.classList.add("is-visible");
+        window.clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(() => toast.classList.remove("is-visible"), 2200);
+      });
+    });
+
+  </script>
+</body>
+</html>
