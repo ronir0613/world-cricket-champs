@@ -340,7 +340,8 @@
           <li class="is-current"><span>1</span><b>Team</b></li>
           <li><span>2</span><b>Groups</b></li>
           <li><span>3</span><b>Super 7</b></li>
-          <li><span>4</span><b>Finals</b></li>
+          <li><span>4</span><b>Semi-Finals</b></li>
+          <li><span>5</span><b>Finals</b></li>
         </ol>
       </header>
       <div class="picker-layout">
@@ -374,66 +375,20 @@
           <h1 id="hubTitle">CWC27</h1>
         </div>
         <div class="hub-team"><span id="hubTeamFlag" aria-hidden="true"></span><span id="hubTeamName">Team</span></div>
-        <button id="changeTeam" class="cwc-secondary" type="button">Change team</button>
       </header>
-      <section id="cwcDashboard" class="cwc-dashboard" aria-label="CWC27 menu">
-        <button id="myFixturesCard" class="dashboard-card next-fixture-card" type="button">
-          <span class="dashboard-card-kicker">My fixtures</span>
-          <span id="nextFixtureStage" class="next-fixture-stage">Round 1 · Date TBA</span>
-          <span id="nextFixtureTeams" class="next-fixture-teams"></span>
-          <span class="dashboard-card-action">Next fixture · Open bracket <span aria-hidden="true">→</span></span>
-        </button>
-        <div class="dashboard-card stats-card" aria-label="Tournament statistics coming soon">
-          <span class="dashboard-card-kicker">Tournament statistics</span>
-          <span class="stats-illustration" aria-hidden="true">—</span>
-          <span class="stats-coming-soon">Coming soon</span>
-        </div>
-      </section>
-      <section id="fixtureChoices" class="fixture-choices" aria-labelledby="fixtureChoicesTitle" hidden>
-        <header class="fixture-page-header">
-          <button id="backToDashboard" class="cwc-back" type="button">← CWC27</button>
-          <div><p class="cwc-eyebrow">Choose your fixture view</p><h2 id="fixtureChoicesTitle">Fixtures</h2></div>
-        </header>
-        <div class="fixture-choice-grid">
-          <button id="openMyFixtures" class="dashboard-card fixture-choice-card" type="button">
-            <span class="dashboard-card-kicker">My fixtures</span>
-            <span class="fixture-choice-flag" id="myFixtureFlag" aria-hidden="true"></span>
-            <span class="fixture-choice-copy">Matches featuring <strong id="myFixtureTeam">your selected team</strong></span>
-            <span class="dashboard-card-action">View my fixtures <span aria-hidden="true">→</span></span>
-          </button>
-          <button id="openAllFixtures" class="dashboard-card fixture-choice-card" type="button">
-            <span class="dashboard-card-kicker">All fixtures</span>
-            <span class="all-fixtures-total">57</span>
-            <span class="all-fixtures-caption">Tournament matches</span>
-            <span class="dashboard-card-action">View all fixtures <span aria-hidden="true">→</span></span>
-          </button>
-        </div>
-      </section>
+      <nav class="stage-navigation" aria-label="Tournament stages">
+        <a data-stage-link="team" href="#/cwc27/team"><span>1</span><b>Team</b></a>
+        <a data-stage-link="groups" href="#/cwc27/groups"><span>2</span><b>Groups</b></a>
+        <a data-stage-link="super7" href="#/cwc27/super7"><span>3</span><b>Super 7</b></a>
+        <a data-stage-link="semi-finals" href="#/cwc27/semi-finals"><span>4</span><b>Semi-Finals</b></a>
+        <a data-stage-link="finals" href="#/cwc27/finals"><span>5</span><b>Finals</b></a>
+      </nav>
+      <section id="stageView" class="stage-view" aria-live="polite"></section>
       <section id="fixturePage" class="fixture-page" aria-labelledby="fixturesTitle" hidden>
         <header class="fixture-page-header">
-          <button id="backToFixtureChoices" class="cwc-back" type="button">← Fixtures</button>
-          <div><p class="cwc-eyebrow">Selected team: <span id="fixturesTeamName"></span></p><h2 id="fixturesTitle">Fixtures</h2></div>
+          <button id="backToStage" class="cwc-back" type="button">← Back to stage</button>
+          <div><p class="cwc-eyebrow">Selected team: <span id="fixturesTeamName"></span></p><h2 id="fixturesTitle">My Fixtures</h2></div>
         </header>
-        <div class="fixture-controls">
-          <div class="fixture-control-group" aria-label="Choose layout">
-            <button class="fixture-control is-active" type="button" data-fixture-view="bracket" aria-pressed="true">Bracket</button>
-            <button class="fixture-control" type="button" data-fixture-view="list" aria-pressed="false">List</button>
-          </div>
-          <label class="fixture-stage-select">Stage
-            <select id="fixtureStageSelect">
-              <option value="all">All stages</option>
-              <option value="Super Series">Super Series</option>
-              <option value="Group Stage">Group Stage</option>
-              <option value="Super 7">Super 7</option>
-              <option value="Knockouts">Knockouts</option>
-            </select>
-          </label>
-        </div>
-        <div id="fixturePager" class="fixture-pager" hidden>
-          <button id="previousFixturePage" class="fixture-page-button" type="button" aria-label="Previous fixture page">←</button>
-          <span id="fixturePageLabel"></span>
-          <button id="nextFixturePage" class="fixture-page-button" type="button" aria-label="Next fixture page">→</button>
-        </div>
         <section id="fixturesDisplay" class="fixtures-display" aria-live="polite"></section>
       </section>
     </section>

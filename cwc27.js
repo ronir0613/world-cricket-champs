@@ -28,6 +28,7 @@
     { code: "B3", teamCode: "SL", seededFor: "Sri Lanka" },
     { code: "AB4", teamCode: "ENG", seededFor: "England" }
   ];
+
   const storageKey = "world-cricket-champs-selected-cwc27-team";
   const cwcApp = document.querySelector("#cwcApp");
   const teamPicker = document.querySelector("#teamPicker");
@@ -41,31 +42,23 @@
   const enterTournament = document.querySelector("#enterTournament");
   const hubTeamFlag = document.querySelector("#hubTeamFlag");
   const hubTeamName = document.querySelector("#hubTeamName");
-  const dashboard = document.querySelector("#cwcDashboard");
-  const fixtureChoices = document.querySelector("#fixtureChoices");
+  const stageView = document.querySelector("#stageView");
   const fixturePage = document.querySelector("#fixturePage");
   const fixturesTeamName = document.querySelector("#fixturesTeamName");
-  const fixturesTitle = document.querySelector("#fixturesTitle");
-  const myFixtureTeam = document.querySelector("#myFixtureTeam");
-  const myFixtureFlag = document.querySelector("#myFixtureFlag");
-  const nextFixtureStage = document.querySelector("#nextFixtureStage");
-  const nextFixtureTeams = document.querySelector("#nextFixtureTeams");
   const fixturesDisplay = document.querySelector("#fixturesDisplay");
-  const fixtureStageSelect = document.querySelector("#fixtureStageSelect");
-  const fixturePager = document.querySelector("#fixturePager");
-  const fixturePageLabel = document.querySelector("#fixturePageLabel");
-  const previousFixturePage = document.querySelector("#previousFixturePage");
-  const nextFixturePage = document.querySelector("#nextFixturePage");
+  const backToStage = document.querySelector("#backToStage");
 
   let selectedTeam = null;
-  let fixtureScope = "my";
-  let fixtureView = "bracket";
-  let fixturePageIndex = 0;
-  const pageSize = 6;
+  let fixtureReturnStage = "groups";
 
   function readSavedTeam() {
     try { return byCode.get(localStorage.getItem(storageKey)) || null; }
     catch (_) { return null; }
+  }
+
+  function flagContent(team) {
+    if (team.flag) return `<img src="assets/flags/${team.flag}" alt="" draggable="false" loading="lazy" decoding="async">`;
+    return `<span class="flag-fallback" aria-hidden="true">${team.code}</span>`;
   }
 
   function renderTeamGrid() {
@@ -114,60 +107,56 @@
     previewName.textContent = selectedTeam.name;
     previewGroup.textContent = selectedTeam.group;
     previewDetails.textContent = selectedTeam.code.startsWith("QF")
-      ? "Starts in the Super Series; the winner advances to Group B as Q-B."
+      ? "Starts in the Super Series; group placement is pending."
       : selectedTeam.code === "Q-A"
         ? "The Qualifier Champion enters Group A. Country to be confirmed after the 2027 Qualifier."
         : `${selectedTeam.type} · ${selectedTeam.group}`;
   }
 
-  function renderTeamPicker() {
-    tournamentHub.hidden = true;
-    teamPicker.hidden = false;
-    renderTeamGrid();
-    renderTeamPreview();
-    document.title = "Choose your team | CWC27";
+  function setAppActive(active) {
+    cwcApp.classList.toggle("is-active", active);
+    cwcApp.hidden = !active;
+    document.querySelector("#home").classList.toggle("is-active", !active);
+    document.querySelector("#home").setAttribute("aria-hidden", String(active));
   }
 
   function closeCwc() {
-    cwcApp.classList.remove("is-active");
-    cwcApp.hidden = true;
-    document.querySelector("#home").classList.add("is-active");
-    document.querySelector("#home").setAttribute("aria-hidden", "false");
+    setAppActive(false);
+    if (window.location.hash.startsWith("#/cwc27/")) window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
     document.title = "Home | World Cricket Champs";
   }
 
-  function openHub() {
-    if (!selectedTeam) return;
-    try { localStorage.setItem(storageKey, selectedTeam.code); } catch (_) { /* Storage may be unavailable. */ }
-    teamPicker.hidden = true;
-    tournamentHub.hidden = false;
-    dashboard.hidden = false;
-    fixtureChoices.hidden = true;
-    fixturePage.hidden = true;
-    hubTeamFlag.innerHTML = flagContent(selectedTeam);
-    hubTeamName.textContent = selectedTeam.name;
-    document.title = "CWC27 | World Cricket Champs";
-    renderNextFixture();
+  function navigate(route, replace = false) {
+    const nextHash = `#/cwc27/${route}`;
+    if (replace) {
+      window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${nextHash}`);
+      renderRoute();
+    } else if (window.location.hash === nextHash) {
+      renderRoute();
+    } else {
+      window.location.hash = nextHash;
+    }
+  }
+
+  function parseRoute() {
+    const raw = window.location.hash.replace(/^#/, "");
+    const match = raw.match(/^\/cwc27\/(team|groups|super7|semi-finals|finals|fixtures)(?:\?from=(groups|super7))?$/);
+    if (!match) return null;
+    return { page: match[1], from: match[2] || "groups" };
   }
 
   function teamInfo(code) {
     if (byCode.has(code)) return byCode.get(code);
-    if (code === "Q-B") return { code, name: "Super Series winner", flag: "" };
     const slot = super7Slots.find((item) => item.code === code);
-    if (slot) return byCode.get(slot.teamCode);
+    if (slot) return { code: slot.teamCode, name: slot.seededFor, flag: byCode.get(slot.teamCode).flag };
+    if (code === "Q-B") return { code, name: "Super Series winner", flag: "" };
     return { code, name: code, flag: "" };
-  }
-
-  function flagContent(team) {
-    if (team.flag) return `<img src="assets/flags/${team.flag}" alt="" draggable="false" loading="lazy" decoding="async">`;
-    return `<span class="flag-fallback" aria-hidden="true">${team.code}</span>`;
   }
 
   function teamInline(code, highlight = false) {
     const team = teamInfo(code);
-    const name = highlight ? `<strong>${team.name}</strong>` : team.name;
     const qualifier = team.code.startsWith("Q") ? " is-qualifier" : "";
-    return `<span class="fixture-team${highlight ? " is-selected-team" : ""}"><span class="fixture-flag${qualifier}" aria-hidden="true">${flagContent(team)}</span><span>${name}</span></span>`;
+    return `<span class="fixture-team${highlight ? " is-selected-team" : ""}"><span class="fixture-flag${qualifier}" aria-hidden="true">${flagContent(team)}</span><span${highlight ? " class=\"fixture-team-name\"" : ""}>${team.name}</span></span>`;
   }
 
   function roundRobin(codes) {
@@ -207,178 +196,190 @@
     }
     roundRobin(super7Slots.map((slot) => slot.code)).forEach((pairings, index) => addRound("Super 7", index + 1, pairings));
     matches.push(
-      { number: matches.length + 1, stage: "Knockouts", round: "Semi-Final 1", home: "Super 7 1st place", away: "Super 7 4th place", group: "", venue: "" },
-      { number: matches.length + 2, stage: "Knockouts", round: "Semi-Final 2", home: "Super 7 2nd place", away: "Super 7 3rd place", group: "", venue: "" },
-      { number: matches.length + 3, stage: "Knockouts", round: "Final", home: "Winner SF1", away: "Winner SF2", group: "", venue: "" }
+      { number: matches.length + 1, stage: "Semi-Finals", round: "Semi-Final 1", home: "Super 7 1st place", away: "Super 7 4th place", group: "", venue: "" },
+      { number: matches.length + 2, stage: "Semi-Finals", round: "Semi-Final 2", home: "Super 7 2nd place", away: "Super 7 3rd place", group: "", venue: "" },
+      { number: matches.length + 3, stage: "Finals", round: "Final", home: "Winner SF1", away: "Winner SF2", group: "", venue: "" }
     );
     return matches;
   }
 
   const fixtures = buildFixtures();
 
-  function renderNextFixture() {
-    const match = fixtures.find((fixture) => fixture.home === selectedTeam.code || fixture.away === selectedTeam.code);
-    if (!match) {
-      nextFixtureStage.textContent = "Schedule to be announced";
-      nextFixtureTeams.innerHTML = teamInline(selectedTeam.code, true);
-      return;
+  function groupNameForSelectedTeam() {
+    return selectedTeam.group === "Group A" || selectedTeam.group === "Group B" ? selectedTeam.group : "";
+  }
+
+  function fixturesForSelectedTeam(stage) {
+    const groupCode = selectedTeam.code;
+    if (stage === "groups") {
+      return selectedTeam.group === "Group A" || selectedTeam.group === "Group B"
+        ? fixtures.filter((match) => match.stage === "Group Stage" && (match.home === groupCode || match.away === groupCode))
+        : [];
     }
-    nextFixtureStage.textContent = `${match.stage}${typeof match.round === "number" ? ` · Round ${match.round}` : ` · ${match.round}`} · Date TBA`;
-    nextFixtureTeams.innerHTML = `${teamInline(match.home, match.home === selectedTeam.code)}<span class="next-fixture-vs">VS</span>${teamInline(match.away, match.away === selectedTeam.code)}`;
+    const slot = super7Slots.find((entry) => entry.teamCode === groupCode);
+    return slot
+      ? fixtures.filter((match) => match.stage === "Super 7" && (match.home === slot.code || match.away === slot.code))
+      : [];
   }
 
-  function openFixtureChoices() {
-    dashboard.hidden = true;
-    fixtureChoices.hidden = false;
-    fixturePage.hidden = true;
-    myFixtureTeam.textContent = selectedTeam.name;
-    myFixtureFlag.innerHTML = flagContent(selectedTeam);
+  function matchCard(match, index) {
+    const selectedCode = selectedTeam.code;
+    const homeInfo = teamInfo(match.home);
+    const awayInfo = teamInfo(match.away);
+    const homeSelected = match.home === selectedCode || homeInfo.code === selectedCode;
+    const awaySelected = match.away === selectedCode || awayInfo.code === selectedCode;
+    return `<article class="team-fixture-match"><span class="team-fixture-index">${String(index + 1).padStart(2, "0")}</span><span class="team-fixture-stage">${match.stage}${match.group ? ` · ${match.group}` : ""} · Round ${match.round}</span><div class="team-fixture-pair">${teamInline(match.home, homeSelected)}<span class="fixture-vs">VS</span>${teamInline(match.away, awaySelected)}</div><span class="team-fixture-date">Date TBA</span></article>`;
   }
 
-  function openFixtures(scope = "my") {
-    fixtureChoices.hidden = true;
+  function renderFixturePage(from) {
+    fixtureReturnStage = from === "super7" ? "super7" : "groups";
+    stageView.hidden = true;
     fixturePage.hidden = false;
     fixturesTeamName.textContent = selectedTeam.name;
-    fixturesTitle.textContent = scope === "all" ? "All Fixtures" : "My Fixtures";
-    fixtureScope = scope;
-    fixtureView = "bracket";
-    fixturePageIndex = 0;
-    fixtureStageSelect.value = "all";
-    updateFixtureControls();
-    renderFixturesPage();
+    backToStage.setAttribute("aria-label", `Back to ${fixtureReturnStage === "super7" ? "Super 7" : "Groups"}`);
+    const teamFixtures = fixturesForSelectedTeam(fixtureReturnStage);
+    if (!teamFixtures.length) {
+      const message = fixtureReturnStage === "groups"
+        ? `${selectedTeam.name} is awaiting a group assignment.`
+        : `${selectedTeam.name} does not have a confirmed Super 7 seed yet.`;
+      fixturesDisplay.innerHTML = `<div class="fixture-empty"><h3>No fixtures assigned yet</h3><p>${message}</p></div>`;
+      return;
+    }
+    const sectionName = fixtureReturnStage === "groups" ? selectedTeam.group : `Super 7 · ${super7Slots.find((slot) => slot.teamCode === selectedTeam.code).code} seeded route`;
+    const note = fixtureReturnStage === "super7" ? `<p class="fixture-section-note">Potential schedule based on the current pre-seed. Participation depends on group results.</p>` : "";
+    const sections = `<section class="team-fixture-section"><header><h3>${sectionName}</h3><span>${teamFixtures.length} fixtures</span></header>${note}<div class="team-fixture-bracket">${teamFixtures.map((match, index) => matchCard(match, index)).join("")}</div></section>`;
+    fixturesDisplay.innerHTML = `<div class="fixture-board-heading"><div><p class="cwc-eyebrow">CWC27 · Team schedule</p><h2>${selectedTeam.name} fixtures</h2></div><span class="fixture-total">${teamFixtures.length} MATCHES</span></div>${sections}`;
   }
 
-  function updateFixtureControls() {
-    document.querySelectorAll("[data-fixture-view]").forEach((button) => {
-      const active = button.dataset.fixtureView === fixtureView;
-      button.classList.toggle("is-active", active);
-      button.setAttribute("aria-pressed", String(active));
-    });
-    fixtureStageSelect.disabled = fixtureView === "bracket";
+  const stageDetails = {
+    groups: { title: "Groups", matchCount: 30, teamCount: 12, format: "Five group matches per team", next: "super7", nextLabel: "Continue to Super 7" },
+    super7: { title: "Super 7", matchCount: 21, teamCount: 7, format: "Six round-robin matches per team", next: "semi-finals", nextLabel: "Continue to Semi-Finals" },
+    "semi-finals": { title: "Semi-Finals", matchCount: 2, teamCount: 4, format: "Top four teams play for a place in the final", next: "finals", nextLabel: "Continue to Finals" },
+    finals: { title: "Finals", matchCount: 1, teamCount: 2, format: "One match decides the champion", next: "", nextLabel: "" }
+  };
+
+  function statsMarkup(stage) {
+    const details = stageDetails[stage];
+    return `<aside class="stats-card" aria-label="Tournament statistics"><div class="stats-card-header"><span class="dashboard-card-kicker">Tournament stats</span><span class="stats-status">Results pending</span></div><div class="stats-metrics"><div class="stat-tile"><strong>${details.matchCount}</strong><span>Stage matches</span></div><div class="stat-tile"><strong>${details.teamCount}</strong><span>Teams or slots</span></div><div class="stat-tile"><strong>57</strong><span>Tournament matches</span></div><div class="stat-tile"><strong>—</strong><span>Matches completed</span></div></div><p class="stats-note">${details.format}. Results and player stats will appear here after matches are entered.</p></aside>`;
+  }
+
+  function fixtureCard(stage) {
+    const group = groupNameForSelectedTeam();
+    const qualifierNote = !group && stage === "groups" ? "Group assignment pending" : group;
+    const count = stage === "groups"
+      ? fixtures.filter((match) => match.stage === "Group Stage" && (match.home === selectedTeam.code || match.away === selectedTeam.code)).length
+      : super7Slots.some((slot) => slot.teamCode === selectedTeam.code) ? 6 : 0;
+    const meta = stage === "groups" ? (qualifierNote || "Your group is yet to be assigned") : count ? `${count} potential seeded fixtures` : "Seed and fixtures to be determined";
+    return `<button class="dashboard-card fixtures-card" type="button" data-open-fixtures><span class="dashboard-card-kicker">My fixtures</span><span class="fixtures-card-main">${selectedTeam.name}</span><span class="fixtures-card-meta">${meta}</span><span class="dashboard-card-action">Open full-page bracket <span aria-hidden="true">→</span></span></button>`;
   }
 
   function bracketFlag(code, label = "") {
     const team = teamInfo(code);
-    const isSelected = selectedTeam && team.code === selectedTeam.code;
-    const isQualifier = team.code.startsWith("Q");
-    return `<span class="bracket-flag${isSelected ? " is-selected" : ""}${isQualifier ? " is-qualifier" : ""}" title="${label || team.name}" aria-label="${label || team.name}">${flagContent(team)}</span>`;
+    const selected = team.code === selectedTeam.code || code === selectedTeam.code;
+    const qualifier = team.code.startsWith("Q") ? " is-qualifier" : "";
+    return `<span class="bracket-flag${selected ? " is-selected" : ""}${qualifier}" title="${label || team.name}" aria-label="${label || team.name}">${flagContent(team)}</span>`;
   }
 
-  function renderBracket() {
-    const groupFlags = (codes) => codes.map((code) => `<div class="bracket-team-node" title="${teamInfo(code).name}">${bracketFlag(code)}</div>`).join("");
-    const slotNodes = (slots) => slots.map((slot) => `<div class="bracket-slot"><span>${slot.code}</span>${bracketFlag(slot.teamCode, `${slot.code} · ${slot.seededFor} seed`)}</div>`).join("");
-    const placeholderMatch = (name, first, second) => `<article class="bracket-match"><h3>${name}</h3><div class="bracket-match-flags">${bracketFlag(first, `${name} first place slot`)}${bracketFlag(second, `${name} second place slot`)}</div></article>`;
-    const selectedCallout = selectedTeam ? `<p class="bracket-selected">Gold outline marks ${selectedTeam.name}.</p>` : "";
-    const trophy = `<svg class="trophy-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M9 4h14v5c0 6-3 9-7 9s-7-3-7-9V4Zm7 14v6m-6 3h12M6 7H3v3c0 4 2 6 6 6m17-9h3v3c0 4-2 6-6 6M11 27l-2 3h14l-2-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-    return `<div class="bracket-heading"><div><p class="cwc-eyebrow">CWC27 · Symmetrical tournament bracket</p><h2>Road to the Final</h2></div><span class="bracket-total">57 MATCHES</span></div>
-      <div class="bracket-board" aria-label="CWC27 tournament bracket">
-        <section class="bracket-column group-column group-a-column"><h3>Group A</h3>${groupFlags(groupA)}</section>
-        <section class="bracket-column super-column super-a-column"><h3>Super 7</h3>${slotNodes(super7Slots.slice(0, 3))}<p>A1–A3</p></section>
-        <section class="bracket-center">
-          <div class="bracket-semifinals">${placeholderMatch("Semi-Final 1", "Super 7 1st place", "Super 7 4th place")}${placeholderMatch("Semi-Final 2", "Super 7 2nd place", "Super 7 3rd place")}</div>
-          <div class="champion-badge">${trophy}<b>WORLD CHAMPION · TBD</b></div>
-          ${placeholderMatch("Final", "Winner SF1", "Winner SF2")}
-          <div class="bracket-trophy" aria-label="Cricket World Cup trophy">${trophy}</div>
-          <div class="wildcard-slot"><span>AB4 · WILDCARD</span>${bracketFlag("ENG", "Wildcard pre-seed · England")}</div>
-        </section>
-        <section class="bracket-column super-column super-b-column"><h3>Super 7</h3>${slotNodes(super7Slots.slice(3, 6))}<p>B1–B3</p></section>
-        <section class="bracket-column group-column group-b-column"><h3>Group B</h3>${groupFlags(groupB)}</section>
-      </div>
-      ${selectedCallout}<p class="bracket-footnote">Super Series winner enters Group B as Q-B. Top three from each group and the better fourth-place team advance. Flags remain active until results are entered.</p>`;
+  function knockoutMatch(title, first, second) {
+    return `<article class="bracket-match"><h3>${title}</h3><div class="bracket-contenders"><div>${bracketFlag(first, `${title}: ${first}`)}<span>${first}</span></div><div>${bracketFlag(second, `${title}: ${second}`)}<span>${second}</span></div></div></article>`;
   }
 
-  function filteredFixtures() {
-    const selectedStage = fixtureStageSelect.value;
-    return fixtures.filter((fixture) => {
-      const inStage = selectedStage === "all" || fixture.stage === selectedStage;
-      const includesTeam = fixture.home === selectedTeam.code || fixture.away === selectedTeam.code;
-      return inStage && (fixtureScope === "all" || includesTeam);
+  function knockoutMarkup(stage) {
+    if (stage === "semi-finals") {
+      return `<div class="knockout-bracket"><div class="knockout-round"><h3>Semi-Finals</h3>${knockoutMatch("Semi-Final 1", "Super 7 1st place", "Super 7 4th place")}${knockoutMatch("Semi-Final 2", "Super 7 2nd place", "Super 7 3rd place")}</div><div class="knockout-connector" aria-hidden="true">→</div><div class="knockout-round knockout-next"><h3>Next</h3>${knockoutMatch("Final", "Winner SF1", "Winner SF2")}</div></div>`;
+    }
+    return `<div class="knockout-bracket final-bracket"><div class="knockout-round"><h3>Final</h3>${knockoutMatch("World Cup Final", "Winner SF1", "Winner SF2")}<div class="champion-badge"><span aria-hidden="true">🏆</span><b>Champion · TBD</b></div></div></div>`;
+  }
+
+  function renderStage(stage) {
+    const details = stageDetails[stage];
+    const group = groupNameForSelectedTeam();
+    const subheading = stage === "groups"
+      ? group || "Group assignment pending"
+      : stage === "super7"
+        ? (super7Slots.find((slot) => slot.teamCode === selectedTeam.code)?.code || "Seed to be determined")
+        : "Road to the trophy";
+    const layout = stage === "groups" || stage === "super7"
+      ? `<div class="stage-card-grid">${fixtureCard(stage)}${statsMarkup(stage)}</div>`
+      : `<div class="knockout-layout"><section class="knockout-panel" aria-label="${details.title} bracket">${knockoutMarkup(stage)}</section>${statsMarkup(stage)}</div>`;
+    stageView.hidden = false;
+    fixturePage.hidden = true;
+    const nextAction = details.next
+      ? `<button class="cwc-primary stage-next" type="button" data-next-stage="${details.next}">${details.nextLabel}<span aria-hidden="true">→</span></button>`
+      : `<span class="stage-complete">Tournament final · Champion TBD</span>`;
+    stageView.innerHTML = `<header class="stage-heading"><div><p class="cwc-eyebrow">ICC Cricket World Cup 2027 · ${selectedTeam.name}</p><h2>${details.title}</h2><p class="stage-subtitle">${subheading}</p></div><span class="stage-unlocked">Test build · Stage unlocked</span></header>${layout}<footer class="stage-footer"><span>All stages are available in this test build.</span>${nextAction}</footer>`;
+  }
+
+  function renderRoute() {
+    const route = parseRoute();
+    if (!route) {
+      if (window.location.hash.startsWith("#/cwc27/")) navigate("team", true);
+      return;
+    }
+    setAppActive(true);
+    selectedTeam = selectedTeam || readSavedTeam();
+    if (route.page !== "team" && !selectedTeam) {
+      navigate("team", true);
+      return;
+    }
+    if (route.page === "team") {
+      teamPicker.hidden = false;
+      tournamentHub.hidden = true;
+      renderTeamGrid();
+      renderTeamPreview();
+      document.title = "Choose your team | CWC27";
+      return;
+    }
+
+    teamPicker.hidden = true;
+    tournamentHub.hidden = false;
+    hubTeamFlag.innerHTML = flagContent(selectedTeam);
+    hubTeamName.textContent = selectedTeam.name;
+    document.querySelectorAll("[data-stage-link]").forEach((link) => {
+      const active = link.dataset.stageLink === route.page || (route.page === "fixtures" && link.dataset.stageLink === route.from);
+      link.classList.toggle("is-current", active);
+      if (active) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
     });
-  }
-
-  function renderFixtureList() {
-    const matches = filteredFixtures();
-    const pageCount = Math.max(1, Math.ceil(matches.length / pageSize));
-    fixturePageIndex = Math.min(fixturePageIndex, pageCount - 1);
-    const pageMatches = matches.slice(fixturePageIndex * pageSize, (fixturePageIndex + 1) * pageSize);
-    fixturePager.hidden = pageCount <= 1;
-    fixturePageLabel.textContent = `${fixturePageIndex + 1} / ${pageCount} · ${matches.length} fixtures`;
-    previousFixturePage.disabled = fixturePageIndex === 0;
-    nextFixturePage.disabled = fixturePageIndex >= pageCount - 1;
-    if (matches.length === 0) {
-      fixturesDisplay.innerHTML = `<div class="fixture-empty">No fixtures for this team in the selected stage.</div>`;
-      return;
+    if (route.page === "fixtures") {
+      renderFixturePage(route.from);
+      document.title = `My fixtures · ${selectedTeam.name} | CWC27`;
+    } else {
+      renderStage(route.page);
+      document.title = `${stageDetails[route.page].title} | CWC27`;
     }
-    fixturesDisplay.innerHTML = `<div class="fixture-list">${pageMatches.map((match) => {
-      const detail = `${match.stage}${typeof match.round === "number" ? ` · Round ${match.round}` : ` · ${match.round}`}${match.group ? ` · ${match.group}` : ""}`;
-      const venue = match.venue || "Date & venue TBA";
-      return `<article class="fixture-row"><div class="fixture-meta">Match ${String(match.number).padStart(2, "0")}<span>${detail}</span></div><div class="fixture-pair">${teamInline(match.home, match.home === selectedTeam.code)}<span class="fixture-vs">VS</span>${teamInline(match.away, match.away === selectedTeam.code)}</div><span class="fixture-venue">${venue} · Date TBA</span></article>`;
-    }).join("")}</div>`;
   }
 
-  function renderFixturesPage() {
-    updateFixtureControls();
-    fixturePager.hidden = true;
-    if (fixtureView === "bracket") {
-      fixturesDisplay.innerHTML = renderBracket();
-      return;
-    }
-    renderFixtureList();
-  }
+  enterTournament.addEventListener("click", () => {
+    if (!selectedTeam) return;
+    try { localStorage.setItem(storageKey, selectedTeam.code); } catch (_) { /* Storage may be unavailable. */ }
+    navigate("groups");
+  });
 
-  function setToggle(buttons, value, key) {
-    const target = buttons.find((button) => button.dataset[key] === value);
-    if (!target) return;
-    if (key === "fixtureView") fixtureView = value;
-    fixturePageIndex = 0;
-    renderFixturesPage();
-  }
-
-  enterTournament.addEventListener("click", openHub);
   document.querySelector("#pickerHome").addEventListener("click", closeCwc);
   document.querySelector("#hubHome").addEventListener("click", closeCwc);
-  document.querySelector("#changeTeam").addEventListener("click", () => {
-    tournamentHub.hidden = true;
-    teamPicker.hidden = false;
-    renderTeamPicker();
-  });
-  document.querySelector("#myFixturesCard").addEventListener("click", openFixtureChoices);
-  document.querySelector("#openMyFixtures").addEventListener("click", () => openFixtures("my"));
-  document.querySelector("#openAllFixtures").addEventListener("click", () => openFixtures("all"));
-  document.querySelector("#backToDashboard").addEventListener("click", () => {
-    fixtureChoices.hidden = true;
-    fixturePage.hidden = true;
-    dashboard.hidden = false;
-  });
-  document.querySelector("#backToFixtureChoices").addEventListener("click", () => {
-    fixturePage.hidden = true;
-    fixtureChoices.hidden = false;
-  });
-  fixtureStageSelect.addEventListener("change", () => {
-    fixturePageIndex = 0;
-    renderFixturesPage();
-  });
-  previousFixturePage.addEventListener("click", () => {
-    fixturePageIndex = Math.max(0, fixturePageIndex - 1);
-    renderFixturesPage();
-  });
-  nextFixturePage.addEventListener("click", () => {
-    fixturePageIndex += 1;
-    renderFixturesPage();
-  });
-  document.querySelectorAll("[data-fixture-view]").forEach((button) => button.addEventListener("click", () => {
-    const buttons = [...document.querySelectorAll("[data-fixture-view]")];
-    setToggle(buttons, button.dataset.fixtureView, "fixtureView");
-  }));
+  backToStage.addEventListener("click", () => navigate(fixtureReturnStage));
 
+  stageView.addEventListener("click", (event) => {
+    const fixturesButton = event.target.closest("[data-open-fixtures]");
+    if (fixturesButton) {
+      const currentStage = parseRoute()?.page === "super7" ? "super7" : "groups";
+      navigate(`fixtures?from=${currentStage}`);
+      return;
+    }
+    const nextButton = event.target.closest("[data-next-stage]");
+    if (nextButton) navigate(nextButton.dataset.nextStage);
+  });
+
+  window.addEventListener("hashchange", renderRoute);
   window.CWC27 = {
     open() {
-      document.querySelector("#home").classList.remove("is-active");
-      document.querySelector("#home").setAttribute("aria-hidden", "true");
-      cwcApp.hidden = false;
-      cwcApp.classList.add("is-active");
       selectedTeam = readSavedTeam();
-      renderTeamPicker();
+      setAppActive(true);
+      if (!parseRoute()) navigate("team", true);
+      else renderRoute();
     }
   };
+
+  if (window.location.hash.startsWith("#/cwc27/")) window.CWC27.open();
 })();
