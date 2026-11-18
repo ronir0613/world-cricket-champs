@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#ffffff">
   <title>World Cricket Champs</title>
-  <link rel="stylesheet" href="cwc27.css">
+  <link rel="stylesheet" href="cwc27.css?v=story-selection-6">
   <style>
     :root {
       color-scheme: light;
@@ -165,6 +165,8 @@
     .switch[aria-checked="true"]::after { transform: translateX(15px); }
     .home { display: none; align-content: center; justify-items: center; gap: clamp(24px, 5vh, 46px); padding: 32px 24px max(32px, env(safe-area-inset-bottom)); background: transparent; overflow-y: auto; overscroll-behavior: contain; }
     .home.is-active { display: grid; animation: home-in .52s cubic-bezier(.2,.8,.2,1) both; }
+    .home-menu { display: grid; width: min(100%, 960px); justify-items: center; gap: clamp(24px, 5vh, 46px); }
+    .home-menu[hidden], .career-modes-page[hidden], .profile-settings-page[hidden] { display: none !important; }
     .home-heading { width: min(100%, 960px); }
     .eyebrow { margin: 0 0 10px; color: var(--green); font-size: .72rem; font-weight: 900; letter-spacing: .26em; text-transform: uppercase; }
     .home h1 { margin: 0; color: var(--deep-green); font-size: clamp(2.7rem, 8vw, 5.8rem); font-weight: 1000; letter-spacing: -.055em; line-height: .96; }
@@ -213,6 +215,50 @@
     .mode.career { grid-area: career; }
     .mode.profile-mode { grid-area: profile; }
     .mode.trophy { grid-area: trophy; }
+    .career-modes-page { position: absolute; inset: clamp(12px, 2.3vh, 24px) clamp(12px, 2vw, 24px); display: grid; min-width: 0; min-height: 0; grid-template-rows: auto minmax(0, 1fr); align-content: stretch; gap: clamp(12px, 2.2vh, 20px); }
+    .career-modes-header { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: clamp(14px, 3vw, 28px); }
+    .career-modes-header .eyebrow { margin-bottom: 5px; font-size: .62rem; }
+    .career-modes-header h2 { margin: 0; color: var(--deep-green); font-size: clamp(1.55rem, 4vw, 2.4rem); letter-spacing: -.04em; }
+    .career-mode-board { display: grid; width: 100%; min-width: 0; min-height: 0; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-template-rows: repeat(8, minmax(0, 1fr)); gap: clamp(9px, 1.5vw, 16px); }
+    .career-mode-card { position: relative; display: flex; min-width: 0; min-height: 0; flex-direction: column; align-items: flex-start; justify-content: space-between; overflow: hidden; padding: clamp(14px, 2vw, 24px); border: 1px solid rgba(230,196,112,.6); border-radius: 2px; color: #fff; background: linear-gradient(145deg, #1c3977, #101e45 80%); text-align: left; }
+    .career-mode-story { grid-area: 1 / 1 / 5 / 7; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(255,255,255,.05), 0 10px 24px rgba(10,21,46,.14); }
+    .career-mode-story:hover { border-color: #efd786; background: linear-gradient(145deg, #25478e, #12234e 80%); }
+    .career-mode-story[aria-pressed="true"] { border-color: #efd786; box-shadow: inset 0 0 0 1px rgba(239,215,134,.25), 0 10px 24px rgba(10,21,46,.14); }
+    .career-mode-story .mode-kicker { color: #e5cd8d; }
+    .career-mode-story .mode-name { color: #fff; font-size: clamp(1.65rem, 4vw, 2.8rem); }
+    .career-mode-story .mode-arrow { color: #162850; background: #e4c775; }
+    .career-mode-locked { justify-content: center; gap: 10px; border-color: rgba(230,196,112,.24); color: rgba(22,40,80,.58); background: linear-gradient(145deg, rgba(28,57,119,.19), rgba(16,30,69,.16)); text-align: center; }
+    .career-mode-locked span { width: 100%; font-size: clamp(.58rem, 1vw, .73rem); font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+    .career-mode-locked:nth-of-type(2) { grid-area: 1 / 7 / 4 / 11; }
+    .career-mode-locked:nth-of-type(3) { grid-area: 1 / 11 / 8 / 13; }
+    .career-mode-locked:nth-of-type(4) { grid-area: 5 / 1 / 9 / 4; }
+    .career-mode-locked:nth-of-type(5) { grid-area: 5 / 4 / 9 / 7; }
+    .career-mode-locked:nth-of-type(6) { grid-area: 4 / 7 / 9 / 11; }
+    .career-mode-card:focus-visible { outline: 3px solid #15945e; outline-offset: 3px; }
+    .profile-settings-page { display: grid; width: min(100%, 760px); max-height: 100%; align-content: center; gap: clamp(18px, 4vh, 32px); overflow-y: auto; overscroll-behavior: contain; }
+    .profile-settings-header { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: clamp(14px, 3vw, 28px); }
+    .profile-back { min-height: 42px; padding: 0 14px; border: 1px solid #d4dfd8; border-radius: 8px; color: var(--deep-green); background: #fff; cursor: pointer; font-weight: 800; }
+    .profile-back:hover { border-color: #15945e; background: #f4faf6; }
+    .profile-settings-header .eyebrow { margin-bottom: 5px; font-size: .62rem; }
+    .profile-settings-header h2 { margin: 0; color: var(--deep-green); font-size: clamp(1.55rem, 4vw, 2.4rem); letter-spacing: -.04em; }
+    .profile-settings-card { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: clamp(18px, 3vw, 30px); padding: clamp(20px, 4vw, 34px); border: 1px solid #dce7e0; border-radius: 20px; background: #fff; box-shadow: 0 16px 40px rgba(22,56,40,.08); }
+    .settings-section { display: grid; align-content: start; gap: 14px; }
+    .settings-section-label { margin: 0; color: #64766c; font-size: .67rem; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; }
+    .settings-field { display: grid; gap: 8px; color: #244335; font-size: .82rem; font-weight: 850; }
+    .settings-field input { width: 100%; min-height: 45px; padding: 0 12px; border: 1px solid #ccd9d0; border-radius: 8px; color: #17352d; background: #fff; font: inherit; font-weight: 650; }
+    .settings-field input:focus-visible, .volume-field input:focus-visible { outline: 3px solid rgba(21,148,94,.3); outline-offset: 2px; }
+    .nametag-preview-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: #64766c; font-size: .74rem; font-weight: 750; }
+    .nametag-preview { max-width: 58%; overflow: hidden; padding: 6px 10px; border: 1px solid #cfe0d4; border-radius: 5px; color: #214b32; background: #f2f8f3; font-size: .78rem; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
+    .settings-hint { margin: 0; color: #75847b; font-size: .66rem; line-height: 1.5; }
+    .settings-section:first-child { padding-right: clamp(18px, 3vw, 30px); border-right: 1px solid #e5ece7; }
+    .profile-music-toggle { display: flex; min-height: 38px; align-items: center; justify-content: space-between; padding: 0; border: 0; color: #244335; background: transparent; cursor: pointer; font-size: .84rem; font-weight: 850; }
+    .profile-music-toggle .switch { background: #c6d1ca; }
+    .sound-toggle[aria-checked="true"] .switch, .profile-music-toggle[aria-checked="true"] .switch { background: #36bb7e; }
+    .sound-toggle[aria-checked="true"] .switch::after, .profile-music-toggle[aria-checked="true"] .switch::after { transform: translateX(15px); }
+    .volume-field { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px; color: #244335; font-size: .78rem; font-weight: 850; }
+    .volume-field output { color: #64766c; font-size: .72rem; font-weight: 800; }
+    .volume-field input { width: 100%; grid-column: 1 / -1; accent-color: #15945e; cursor: pointer; }
+    .volume-field input:disabled { cursor: not-allowed; opacity: .45; }
     .mode-kicker { position: relative; z-index: 2; color: rgba(23,59,49,.58); font-size: .68rem; font-weight: 900; letter-spacing: .2em; text-transform: uppercase; }
     .mode-name { position: relative; z-index: 2; display: block; max-width: 100%; font-size: clamp(1.55rem, 4vw, 2.5rem); font-weight: 950; letter-spacing: -.045em; }
     .mode-arrow { position: relative; z-index: 2; display: grid; width: 40px; height: 40px; place-items: center; border-radius: 50%; color: #fff; background: var(--deep-green); }
@@ -260,8 +306,21 @@
     @keyframes home-in { from { opacity: 0; transform: translateY(12px) scale(.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
     @media (max-width: 620px) {
       .brand { margin-top: -10vh; }
+      .home-menu { gap: 20px; }
+      .profile-settings-page { align-content: start; }
+      .profile-settings-header { grid-template-columns: auto 1fr; gap: 10px; }
+      .profile-back { min-height: 36px; padding: 0 10px; font-size: .77rem; }
+      .profile-settings-card { grid-template-columns: 1fr; gap: 18px; padding: 18px; border-radius: 16px; }
+      .settings-section:first-child { padding-right: 0; padding-bottom: 18px; border-right: 0; border-bottom: 1px solid #e5ece7; }
       .modes { grid-template-columns: 1fr; grid-template-areas: "cwc" "career" "profile" "trophy"; gap: 14px; }
       .mode { min-height: 148px; border-radius: 22px; }
+      .career-modes-page { inset: 12px; align-content: start; grid-template-rows: auto auto; }
+      .career-modes-header { gap: 10px; }
+      .career-mode-board { height: auto; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto; gap: 10px; }
+      .career-mode-card { min-height: 112px; padding: 14px; }
+      .career-mode-story { min-height: 170px; grid-area: auto / span 2; }
+      .career-mode-locked:nth-of-type(n) { grid-area: auto; }
+      .career-mode-locked:last-child { grid-column: span 2; }
       .home { align-content: start; justify-items: center; padding-top: max(15vh, 72px); }
     }
     @media (prefers-reduced-motion: reduce) {
@@ -292,39 +351,133 @@
   </main>
 
   <main id="home" class="screen home" aria-label="Home">
-    <header class="home-heading">
-      <p class="eyebrow">World Cricket Champs</p>
-      <h1>Home</h1>
-      <p class="home-note">Choose how you want to play.</p>
-    </header>
-    <section class="modes" aria-label="Game modes">
-      <button class="mode red cwc" type="button" data-mode="CWC27">
-        <img class="mode-art" src="gallary/1.png" alt="" aria-hidden="true">
-        <span class="mode-kicker">Pick up and play</span>
-        <span class="mode-name">CWC27</span>
-        <span class="mode-arrow" aria-hidden="true"></span>
-      </button>
-      <button class="mode blue career" type="button" data-mode="Career">
-        <img class="mode-art" src="gallary/3.jpg" alt="" aria-hidden="true">
-        <span class="mode-kicker">Build your legacy</span>
-        <span class="mode-name">Career</span>
-        <span class="mode-arrow" aria-hidden="true"></span>
-        <span class="coming-soon">Coming soon</span>
-      </button>
-      <button class="mode mint profile-mode" type="button" data-mode="Profile &amp; Settings">
-        <img class="mode-art" src="gallary/2.jpg" alt="" aria-hidden="true">
-        <span class="mode-kicker">Your game, your way</span>
-        <span class="mode-name">Profile &amp; Settings</span>
-        <span class="mode-arrow" aria-hidden="true"></span>
-        <span class="coming-soon">Coming soon</span>
-      </button>
-      <button class="mode gold trophy" type="button" data-mode="Trophy &amp; Achievements">
-        <img class="mode-art" src="gallary/4.webp" alt="" aria-hidden="true">
-        <span class="mode-kicker">Celebrate your wins</span>
-        <span class="mode-name">Trophy &amp; Achievements</span>
-        <span class="mode-arrow" aria-hidden="true"></span>
-        <span class="coming-soon">Coming soon</span>
-      </button>
+    <section id="homeMenu" class="home-menu">
+      <header class="home-heading">
+        <p class="eyebrow">World Cricket Champs</p>
+        <h1>Home</h1>
+        <p class="home-note">Choose how you want to play.</p>
+      </header>
+      <section class="modes" aria-label="Game modes">
+        <button class="mode red cwc" type="button" data-mode="CWC27">
+          <img class="mode-art" src="gallary/1.png" alt="" aria-hidden="true">
+          <span class="mode-kicker">Pick up and play</span>
+          <span class="mode-name">CWC27</span>
+          <span class="mode-arrow" aria-hidden="true"></span>
+        </button>
+        <button class="mode blue career" type="button" data-mode="Career">
+          <img class="mode-art" src="gallary/3.jpg" alt="" aria-hidden="true">
+          <span class="mode-kicker">Build your legacy</span>
+          <span class="mode-name">Career</span>
+          <span class="mode-arrow" aria-hidden="true"></span>
+        </button>
+        <button class="mode mint profile-mode" type="button" data-mode="Profile &amp; Settings">
+          <img class="mode-art" src="gallary/2.jpg" alt="" aria-hidden="true">
+          <span class="mode-kicker">Your game, your way</span>
+          <span class="mode-name">Profile &amp; Settings</span>
+          <span class="mode-arrow" aria-hidden="true"></span>
+        </button>
+        <button class="mode gold trophy" type="button" data-mode="Trophy &amp; Achievements">
+          <img class="mode-art" src="gallary/4.webp" alt="" aria-hidden="true">
+          <span class="mode-kicker">Celebrate your wins</span>
+          <span class="mode-name">Trophy &amp; Achievements</span>
+          <span class="mode-arrow" aria-hidden="true"></span>
+          <span class="coming-soon">Coming soon</span>
+        </button>
+      </section>
+    </section>
+    <section id="careerModesPage" class="career-modes-page" aria-labelledby="careerModesTitle" hidden>
+      <header class="career-modes-header">
+        <button id="backFromCareer" class="profile-back" type="button">← Home</button>
+        <div>
+          <p class="eyebrow">World Cricket Champs</p>
+          <h2 id="careerModesTitle">Career</h2>
+        </div>
+      </header>
+      <section class="career-mode-board" aria-label="Career modes">
+        <button class="career-mode-card career-mode-story" type="button" aria-pressed="true" aria-label="Story Mode, selected">
+          <span class="mode-kicker">Build your legacy</span>
+          <span class="mode-name">Story Mode</span>
+          <span class="mode-arrow" aria-hidden="true"></span>
+        </button>
+        <button class="career-mode-card career-mode-locked" type="button" disabled aria-label="Coming soon"><span>Coming Soon</span></button>
+        <button class="career-mode-card career-mode-locked" type="button" disabled aria-label="Coming soon"><span>Coming Soon</span></button>
+        <button class="career-mode-card career-mode-locked" type="button" disabled aria-label="Coming soon"><span>Coming Soon</span></button>
+        <button class="career-mode-card career-mode-locked" type="button" disabled aria-label="Coming soon"><span>Coming Soon</span></button>
+        <button class="career-mode-card career-mode-locked" type="button" disabled aria-label="Coming soon"><span>Coming Soon</span></button>
+      </section>
+    </section>
+    <section id="storyTeamSelectPage" class="story-team-select-page" aria-labelledby="storyTeamTitle" hidden>
+      <header class="story-team-header">
+        <button id="backFromStoryMode" class="cwc-back" type="button">← Career</button>
+        <div>
+          <p class="cwc-eyebrow">Career · Story Mode</p>
+          <h1 id="storyTeamTitle">Choose your country</h1>
+        </div>
+      </header>
+      <div class="story-team-layout">
+        <aside class="story-country-panel" aria-labelledby="storyCountryTitle">
+          <header class="cwc-panel-heading">
+            <div>
+              <h2 id="storyCountryTitle">Choose your team</h2>
+              <p>Pick from eligible cricket nations.</p>
+            </div>
+            <span class="team-count" id="storyCountryCount">32 NATIONS</span>
+          </header>
+          <div id="storyCountryGroups" class="story-country-groups" aria-label="Countries grouped by continent"></div>
+        </aside>
+        <section class="story-map-panel" aria-labelledby="storyMapTitle">
+          <header class="story-map-header">
+            <div>
+              <p class="cwc-eyebrow">STORY MODE</p>
+              <h2 id="storyMapTitle">Explore the world</h2>
+            </div>
+            <div class="story-map-controls" aria-label="Map controls">
+              <button id="storyMapZoomOut" type="button" aria-label="Zoom out">−</button>
+              <button id="storyMapReset" type="button" aria-label="Show whole map">WORLD</button>
+              <button id="storyMapZoomIn" type="button" aria-label="Zoom in">+</button>
+            </div>
+          </header>
+          <div id="storyMapMount" class="story-map-stage" aria-label="Interactive world map">
+            <p class="story-map-status" role="status">Loading world map…</p>
+          </div>
+          <footer class="story-map-footer">
+            <div class="story-map-legend" aria-label="Map legend">
+              <span><i class="story-map-swatch is-eligible" aria-hidden="true"></i>Eligible</span>
+              <span><i class="story-map-swatch is-other" aria-hidden="true"></i>Other countries</span>
+            </div>
+            <p class="story-map-hint">Select a country on the map or from the list.</p>
+          </footer>
+        </section>
+      </div>
+    </section>
+    <section id="profileSettingsPage" class="profile-settings-page" aria-labelledby="profileSettingsTitle" hidden>
+      <header class="profile-settings-header">
+        <button id="backToHome" class="profile-back" type="button">← Home</button>
+        <div>
+          <p class="eyebrow">World Cricket Champs</p>
+          <h2 id="profileSettingsTitle">Profile &amp; Settings</h2>
+        </div>
+      </header>
+      <section class="profile-settings-card" aria-label="Player profile and music settings">
+        <div class="settings-section">
+          <p class="settings-section-label">Player profile</p>
+          <label class="settings-field" for="nametagInput">Nametag
+            <input id="nametagInput" name="nametag" type="text" maxlength="20" autocomplete="nickname" placeholder="Enter your name">
+          </label>
+          <div class="nametag-preview-row"><span>Nametag preview</span><output id="nametagPreview" class="nametag-preview">Player</output></div>
+          <p class="settings-hint" id="nametagStatus" role="status" aria-live="polite">Saved on this device.</p>
+        </div>
+        <div class="settings-section">
+          <p class="settings-section-label">Music</p>
+          <button id="profileMusicToggle" class="profile-music-toggle" type="button" role="switch" aria-checked="true">
+            <span>Music</span><span class="switch" aria-hidden="true"></span>
+          </button>
+          <label class="volume-field" for="musicVolumeInput"><span>Music volume</span><output id="musicVolumeValue" for="musicVolumeInput">40%</output>
+            <input id="musicVolumeInput" type="range" min="0" max="100" step="5" value="40">
+          </label>
+          <p class="settings-hint">Changes apply to background music and are saved on this device.</p>
+        </div>
+      </section>
     </section>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
   </main>
@@ -396,9 +549,28 @@
   <audio id="music" preload="auto"></audio>
 
   <script src="cwc27.js"></script>
+  <script src="assets/vendor/d3-array.min.js"></script>
+  <script src="assets/vendor/d3-geo.min.js"></script>
+  <script src="assets/vendor/topojson-client.min.js"></script>
+  <script src="story-mode.js?v=5"></script>
   <script>
     const splash = document.querySelector("#splash");
     const home = document.querySelector("#home");
+    const homeMenu = document.querySelector("#homeMenu");
+    const careerModesPage = document.querySelector("#careerModesPage");
+    const storyTeamSelectPage = document.querySelector("#storyTeamSelectPage");
+    const careerModeButton = document.querySelector(".career");
+    const storyModeButton = document.querySelector(".career-mode-story");
+    const backFromStoryMode = document.querySelector("#backFromStoryMode");
+    const profileSettingsPage = document.querySelector("#profileSettingsPage");
+    const profileModeButton = document.querySelector(".profile-mode");
+    const nametagInput = document.querySelector("#nametagInput");
+    const nametagPreview = document.querySelector("#nametagPreview");
+    const nametagStatus = document.querySelector("#nametagStatus");
+    const profileMusicToggle = document.querySelector("#profileMusicToggle");
+    const musicVolumeInput = document.querySelector("#musicVolumeInput");
+    const musicVolumeValue = document.querySelector("#musicVolumeValue");
+    let storyMapComponent = null;
     const bgImages = [
       "gallary/land1.jpg",
       "gallary/land2.jpg",
@@ -436,7 +608,28 @@
       "music/2-07. Music - Pluto.mp3"
     ];
     const trackStorageKey = "world-cricket-champs-recent-tracks";
-    const musicVolume = 0.4;
+    const musicVolumeStorageKey = "world-cricket-champs-music-volume";
+    const musicEnabledStorageKey = "world-cricket-champs-music-enabled";
+    const nametagStorageKey = "world-cricket-champs-nametag";
+    function readStoredMusicVolume() {
+      try {
+        const saved = localStorage.getItem(musicVolumeStorageKey);
+        if (saved !== null && Number.isFinite(Number(saved))) return Math.max(0, Math.min(1, Number(saved)));
+      } catch (_) { /* Storage may be unavailable. */ }
+      return 0.4;
+    }
+    function readStoredMusicEnabled() {
+      try {
+        const saved = localStorage.getItem(musicEnabledStorageKey);
+        if (saved !== null) return saved === "true";
+      } catch (_) { /* Storage may be unavailable. */ }
+      return true;
+    }
+    function readStoredNametag() {
+      try { return localStorage.getItem(nametagStorageKey) || ""; }
+      catch (_) { return ""; }
+    }
+    let musicVolume = readStoredMusicVolume();
     let recentTracks = [];
     try {
       const savedTracks = JSON.parse(localStorage.getItem(trackStorageKey) || "[]");
@@ -461,10 +654,43 @@
     const toast = document.querySelector("#toast");
     music.preload = "auto";
     music.volume = musicVolume;
-    let musicEnabled = true;
+    let musicEnabled = readStoredMusicEnabled();
     let startPending = false;
     let toastTimer;
-    soundToggle.setAttribute("aria-checked", "true");
+    const initialNametag = readStoredNametag();
+    nametagInput.value = initialNametag;
+    nametagPreview.textContent = initialNametag || "Player";
+    musicVolumeInput.value = String(Math.round(musicVolume * 100));
+    musicVolumeValue.textContent = `${Math.round(musicVolume * 100)}%`;
+    soundToggle.setAttribute("aria-checked", String(musicEnabled));
+    profileMusicToggle.setAttribute("aria-checked", String(musicEnabled));
+
+    function syncMusicControls() {
+      const enabled = String(musicEnabled);
+      soundToggle.setAttribute("aria-checked", enabled);
+      profileMusicToggle.setAttribute("aria-checked", enabled);
+    }
+
+    function updateNametag() {
+      const name = nametagInput.value.trim().slice(0, 20);
+      nametagPreview.textContent = name || "Player";
+      try {
+        localStorage.setItem(nametagStorageKey, name);
+        nametagStatus.textContent = "Saved on this device.";
+      } catch (_) {
+        nametagStatus.textContent = "Could not save on this device.";
+      }
+    }
+
+    function updateMusicVolume() {
+      musicVolume = Math.max(0, Math.min(1, Number(musicVolumeInput.value) / 100));
+      musicVolumeValue.textContent = `${Math.round(musicVolume * 100)}%`;
+      try { localStorage.setItem(musicVolumeStorageKey, String(musicVolume)); } catch (_) { /* Storage may be unavailable. */ }
+      if (!crossfadeStarted) {
+        activeMusic.volume = musicVolume;
+        standbyMusic.volume = 0;
+      }
+    }
 
     function playConfirmation() {
       try {
@@ -486,10 +712,15 @@
 
     async function setMusic(enabled) {
       musicEnabled = enabled;
-      soundToggle.setAttribute("aria-checked", String(enabled));
+      try { localStorage.setItem(musicEnabledStorageKey, String(enabled)); } catch (_) { /* Storage may be unavailable. */ }
+      syncMusicControls();
       if (enabled) {
         try { activeMusic.volume = musicVolume; await activeMusic.play(); }
-        catch (_) { musicEnabled = false; soundToggle.setAttribute("aria-checked", "false"); }
+        catch (_) {
+          musicEnabled = false;
+          try { localStorage.setItem(musicEnabledStorageKey, "false"); } catch (_) { /* Storage may be unavailable. */ }
+          syncMusicControls();
+        }
       } else {
         music.pause();
         nextMusic.pause();
@@ -581,11 +812,66 @@
     });
 
     soundToggle.addEventListener("click", () => setMusic(!musicEnabled));
+    profileMusicToggle.addEventListener("click", () => setMusic(!musicEnabled));
+    musicVolumeInput.addEventListener("input", updateMusicVolume);
+    nametagInput.addEventListener("input", updateNametag);
+    document.querySelector("#backToHome").addEventListener("click", () => {
+      profileSettingsPage.hidden = true;
+      homeMenu.hidden = false;
+      document.title = "Home | World Cricket Champs";
+      profileModeButton.focus();
+    });
+
+    document.querySelector("#backFromCareer").addEventListener("click", () => {
+      careerModesPage.hidden = true;
+      homeMenu.hidden = false;
+      document.title = "Home | World Cricket Champs";
+      careerModeButton.focus();
+    });
+
+    backFromStoryMode.addEventListener("click", () => {
+      storyTeamSelectPage.hidden = true;
+      careerModesPage.hidden = false;
+      document.title = "Career | World Cricket Champs";
+      storyModeButton.focus();
+    });
+
+    storyModeButton.addEventListener("click", () => {
+      storyModeButton.setAttribute("aria-pressed", "true");
+      storyModeButton.setAttribute("aria-label", "Story Mode, selected");
+      careerModesPage.hidden = true;
+      storyTeamSelectPage.hidden = false;
+      document.title = "Choose your country | Story Mode";
+      if (!storyMapComponent) {
+        storyMapComponent = window.InteractiveWorldMap.mount({
+          mapRoot: document.querySelector("#storyMapMount"),
+          countryListRoot: document.querySelector("#storyCountryGroups"),
+          onSelectTeam(teamCode) {
+            storyTeamSelectPage.dataset.selectedTeam = teamCode;
+          }
+        });
+      }
+      backFromStoryMode.focus();
+    });
 
     document.querySelectorAll(".mode").forEach((button) => {
       button.addEventListener("click", () => {
         if (button.dataset.mode === "CWC27") {
           window.CWC27.open();
+          return;
+        }
+        if (button.dataset.mode === "Profile & Settings") {
+          homeMenu.hidden = true;
+          profileSettingsPage.hidden = false;
+          document.title = "Profile & Settings | World Cricket Champs";
+          nametagInput.focus();
+          return;
+        }
+        if (button.dataset.mode === "Career") {
+          homeMenu.hidden = true;
+          careerModesPage.hidden = false;
+          document.title = "Career | World Cricket Champs";
+          storyModeButton.focus();
           return;
         }
         toast.textContent = `${button.dataset.mode} is coming soon.`;
