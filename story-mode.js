@@ -347,5 +347,10 @@
     };
   }
 
-  window.InteractiveWorldMap = Object.freeze({ mount, countries: COUNTRIES.map((country) => ({ ...country })) });
+  function flagFor(code) {
+    const country = COUNTRY_BY_CODE.get(code);
+    return country ? flagSrc(country) : "";
+  }
+
+  window.InteractiveWorldMap = Object.freeze({ mount, flagFor, countries: COUNTRIES.map((country) => ({ ...country })) });
 })();

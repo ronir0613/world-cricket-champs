@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="app.css?v=3">
-  <link rel="stylesheet" href="cwc27.css?v=home-4">
+  <link rel="stylesheet" href="app.css?v=4">
+  <link rel="stylesheet" href="cwc27.css?v=v6">
 </head>
 <body>
   <div id="page-bg" aria-hidden="true"></div>
@@ -82,11 +82,13 @@
             <span class="mode-arrow" aria-hidden="true"></span>
           </span>
         </button>
-        <button class="mode mode-locked" type="button" data-mode="Quick Match" aria-label="Quick Match, coming soon">
-          <span class="mode-lock" aria-hidden="true"></span>
-          <span class="mode-locked-name">Quick Match</span>
-          <span class="mode-locked-copy">Jump into a one-off match.</span>
-          <span class="coming-soon">Coming soon</span>
+        <button class="mode gold quick" type="button" data-mode="Quick Match">
+          <span class="mode-kicker">Play now</span>
+          <span class="mode-name">Quick Match</span>
+          <span class="mode-footer">
+            <span class="mode-meta">Any two teams, your rules</span>
+            <span class="mode-arrow" aria-hidden="true"></span>
+          </span>
         </button>
         <button class="mode mode-locked" type="button" data-mode="Trophy &amp; Achievements" aria-label="Trophy and Achievements, coming soon">
           <span class="mode-lock" aria-hidden="true"></span>
@@ -319,10 +321,31 @@
         </section>
 
         <div class="hub-shortcuts" aria-label="Career pages">
-          <button class="mode mode-locked hub-locked" type="button" data-mode="Schedule" aria-label="Schedule, coming soon"><span class="mode-lock" aria-hidden="true"></span><span class="mode-locked-name">Schedule</span><span class="mode-locked-copy">Your season calendar.</span><span class="coming-soon">Soon</span></button>
-          <button class="mode mode-locked hub-locked" type="button" data-mode="Training" aria-label="Training, coming soon"><span class="mode-lock" aria-hidden="true"></span><span class="mode-locked-name">Training</span><span class="mode-locked-copy">Build your skills.</span><span class="coming-soon">Soon</span></button>
-          <button class="mode mode-locked hub-locked" type="button" data-mode="Inbox" aria-label="Inbox, coming soon"><span class="mode-lock" aria-hidden="true"></span><span class="mode-locked-name">Inbox</span><span class="mode-locked-copy">Coach and selector messages.</span><span class="coming-soon">Soon</span></button>
-          <button class="mode mode-locked hub-locked" type="button" data-mode="Stats" aria-label="Stats, coming soon"><span class="mode-lock" aria-hidden="true"></span><span class="mode-locked-name">Stats</span><span class="mode-locked-copy">Batting and bowling records.</span><span class="coming-soon">Soon</span></button>
+          <button class="hub-link" type="button" data-career-page="schedule">
+            <span class="hub-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg></span>
+            <span class="hub-link-name">Schedule</span>
+            <span class="hub-link-copy">Your season calendar.</span>
+            <span class="mode-arrow" aria-hidden="true"></span>
+          </button>
+          <button class="hub-link" type="button" data-career-page="training">
+            <span class="hub-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg></span>
+            <span class="hub-link-name">Training</span>
+            <span class="hub-link-copy" id="hubTrainingCopy">Build your skills.</span>
+            <span class="mode-arrow" aria-hidden="true"></span>
+          </button>
+          <button class="hub-link" type="button" data-career-page="inbox">
+            <span class="hub-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></span>
+            <span class="hub-link-name">Inbox</span>
+            <span class="hub-link-copy">Coach and selector messages.</span>
+            <span id="hubInboxBadge" class="hub-link-badge" hidden>0 new</span>
+            <span class="mode-arrow" aria-hidden="true"></span>
+          </button>
+          <button class="hub-link" type="button" data-career-page="stats">
+            <span class="hub-link-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></span>
+            <span class="hub-link-name">Stats</span>
+            <span class="hub-link-copy">Batting and bowling records.</span>
+            <span class="mode-arrow" aria-hidden="true"></span>
+          </button>
         </div>
       </div>
       <footer class="hub-footer">
@@ -330,6 +353,207 @@
         <button id="newCareer" class="btn-back" type="button">Start a new career</button>
       </footer>
     </section>
+
+    <section id="careerSchedulePage" class="career-flow-page career-subpage" aria-labelledby="careerScheduleTitle" hidden>
+      <header class="page-header">
+        <button class="btn-back" type="button" data-back-to-hub><span class="btn-back-icon" aria-hidden="true"></span>Hub</button>
+        <div>
+          <p class="eyebrow">Career · Season 1</p>
+          <h1 id="careerScheduleTitle">Schedule</h1>
+        </div>
+      </header>
+      <div id="scheduleBody" class="schedule-body"></div>
+    </section>
+
+    <section id="careerTrainingPage" class="career-flow-page career-subpage" aria-labelledby="careerTrainingTitle" hidden>
+      <header class="page-header">
+        <button class="btn-back" type="button" data-back-to-hub><span class="btn-back-icon" aria-hidden="true"></span>Hub</button>
+        <div>
+          <p class="eyebrow">Career · Season 1</p>
+          <h1 id="careerTrainingTitle">Training</h1>
+        </div>
+      </header>
+      <div class="training-layout">
+        <section class="training-panel" aria-labelledby="trainingSkillsTitle">
+          <header class="training-header">
+            <div>
+              <h2 id="trainingSkillsTitle">Skills</h2>
+              <p>Spend training points to raise a skill by one.</p>
+            </div>
+            <span class="training-points"><strong id="trainingPoints">6</strong> points</span>
+          </header>
+          <div id="trainingRows" class="training-rows"></div>
+          <p class="training-note">You start the season with 6 points. Matches will earn more.</p>
+        </section>
+        <aside class="training-summary" aria-label="Overall rating">
+          <span class="hub-tile-kicker">Overall</span>
+          <strong id="trainingOvr" class="training-ovr">62</strong>
+          <span id="trainingOvrChange" class="training-ovr-change">Train a skill to raise it</span>
+        </aside>
+      </div>
+    </section>
+
+    <section id="careerInboxPage" class="career-flow-page career-subpage" aria-labelledby="careerInboxTitle" hidden>
+      <header class="page-header">
+        <button class="btn-back" type="button" data-back-to-hub><span class="btn-back-icon" aria-hidden="true"></span>Hub</button>
+        <div>
+          <p class="eyebrow">Career · Season 1</p>
+          <h1 id="careerInboxTitle">Inbox</h1>
+        </div>
+      </header>
+      <div class="inbox-layout">
+        <ul id="inboxList" class="inbox-list" aria-label="Messages"></ul>
+        <article id="inboxReader" class="inbox-reader" aria-live="polite"></article>
+      </div>
+    </section>
+
+    <section id="careerStatsPage" class="career-flow-page career-subpage" aria-labelledby="careerStatsTitle" hidden>
+      <header class="page-header">
+        <button class="btn-back" type="button" data-back-to-hub><span class="btn-back-icon" aria-hidden="true"></span>Hub</button>
+        <div>
+          <p class="eyebrow">Career · Season 1</p>
+          <h1 id="careerStatsTitle">Stats</h1>
+        </div>
+      </header>
+      <div id="statsBody" class="stats-body"></div>
+    </section>
+
+    <section id="quickMatchPage" class="career-flow-page qm-page" aria-labelledby="quickMatchTitle" hidden>
+      <header class="page-header">
+        <button id="backFromQuickMatch" class="btn-back" type="button"><span class="btn-back-icon" aria-hidden="true"></span>Home</button>
+        <div>
+          <p class="eyebrow">Quick Match</p>
+          <h1 id="quickMatchTitle">Match setup</h1>
+        </div>
+      </header>
+
+      <div class="qm-body">
+        <ol class="qm-steps" aria-label="Setup steps">
+          <li data-qm-step-label="0"><span>1</span>Teams</li>
+          <li data-qm-step-label="1"><span>2</span>Format</li>
+          <li data-qm-step-label="2"><span>3</span>Conditions</li>
+          <li data-qm-step-label="3"><span>4</span>Toss</li>
+          <li data-qm-step-label="4"><span>5</span>Ready</li>
+        </ol>
+
+        <section class="qm-panel" data-qm-step="0" aria-labelledby="qmTeamsTitle">
+          <h2 id="qmTeamsTitle" class="qm-panel-title">Pick the teams</h2>
+          <div class="qm-slots">
+            <button class="qm-slot" type="button" data-qm-slot="home" aria-pressed="true">
+              <span class="qm-slot-label">Your team</span>
+              <span class="qm-slot-flag" aria-hidden="true"></span>
+              <span class="qm-slot-name">Choose a team</span>
+            </button>
+            <span class="qm-vs" aria-hidden="true">VS</span>
+            <button class="qm-slot" type="button" data-qm-slot="away" aria-pressed="false">
+              <span class="qm-slot-label">Opponent</span>
+              <span class="qm-slot-flag" aria-hidden="true"></span>
+              <span class="qm-slot-name">Choose a team</span>
+            </button>
+          </div>
+          <p id="qmTeamsHint" class="qm-hint">Choosing for: <b id="qmActiveSlotLabel">Your team</b></p>
+          <div id="qmTeamGrid" class="qm-team-grid" aria-label="Teams"></div>
+          <p id="qmTeamsError" class="field-error qm-error" role="alert" hidden>Pick both teams to continue.</p>
+        </section>
+
+        <section class="qm-panel" data-qm-step="1" aria-labelledby="qmFormatTitle" hidden>
+          <h2 id="qmFormatTitle" class="qm-panel-title">Choose the format</h2>
+          <fieldset class="choice-group">
+            <legend class="visually-hidden">Format</legend>
+            <div class="choice-grid choice-grid-3">
+              <label class="choice-tile"><input type="radio" name="qmFormat" value="T20" checked><span class="choice-title">T20</span><span class="choice-copy">20 overs a side · about 3 hours</span></label>
+              <label class="choice-tile"><input type="radio" name="qmFormat" value="One-day"><span class="choice-title">One-day</span><span class="choice-copy">50 overs a side · a full day</span></label>
+              <label class="choice-tile"><input type="radio" name="qmFormat" value="Test"><span class="choice-title">Test</span><span class="choice-copy">Up to 5 days · two innings each</span></label>
+            </div>
+          </fieldset>
+          <fieldset class="choice-group">
+            <legend>Difficulty</legend>
+            <div class="segmented">
+              <label><input type="radio" name="qmDifficulty" value="Easy"><span>Easy</span></label>
+              <label><input type="radio" name="qmDifficulty" value="Medium" checked><span>Medium</span></label>
+              <label><input type="radio" name="qmDifficulty" value="Hard"><span>Hard</span></label>
+            </div>
+          </fieldset>
+        </section>
+
+        <section class="qm-panel" data-qm-step="2" aria-labelledby="qmConditionsTitle" hidden>
+          <h2 id="qmConditionsTitle" class="qm-panel-title">Set the conditions</h2>
+          <label class="settings-field" for="qmVenue">Venue
+            <select id="qmVenue">
+              <option>Johannesburg, South Africa</option>
+              <option>Cape Town, South Africa</option>
+              <option>Durban, South Africa</option>
+              <option>Harare, Zimbabwe</option>
+              <option>Bulawayo, Zimbabwe</option>
+              <option>Windhoek, Namibia</option>
+            </select>
+          </label>
+          <fieldset class="choice-group">
+            <legend>Pitch</legend>
+            <div class="segmented">
+              <label><input type="radio" name="qmPitch" value="Balanced" checked><span>Balanced</span></label>
+              <label><input type="radio" name="qmPitch" value="Flat"><span>Flat</span></label>
+              <label><input type="radio" name="qmPitch" value="Green"><span>Green</span></label>
+              <label><input type="radio" name="qmPitch" value="Dusty"><span>Dusty</span></label>
+            </div>
+            <p id="qmPitchHint" class="qm-hint">An even contest between bat and ball.</p>
+          </fieldset>
+          <div class="create-row qm-row">
+            <fieldset class="choice-group">
+              <legend>Weather</legend>
+              <div class="segmented">
+                <label><input type="radio" name="qmWeather" value="Sunny" checked><span>Sunny</span></label>
+                <label><input type="radio" name="qmWeather" value="Overcast"><span>Overcast</span></label>
+                <label><input type="radio" name="qmWeather" value="Humid"><span>Humid</span></label>
+              </div>
+            </fieldset>
+            <fieldset class="choice-group">
+              <legend>Time</legend>
+              <div class="segmented">
+                <label><input type="radio" name="qmTime" value="Day" checked><span>Day</span></label>
+                <label><input type="radio" name="qmTime" value="Day-night"><span>Day-night</span></label>
+              </div>
+            </fieldset>
+          </div>
+        </section>
+
+        <section class="qm-panel qm-toss" data-qm-step="3" aria-labelledby="qmTossTitle" hidden>
+          <h2 id="qmTossTitle" class="qm-panel-title">The toss</h2>
+          <div class="qm-coin-stage">
+            <div id="qmCoin" class="qm-coin" aria-hidden="true"><span class="qm-coin-face qm-coin-heads">H</span><span class="qm-coin-face qm-coin-tails">T</span></div>
+          </div>
+          <p id="qmTossStatus" class="qm-toss-status" role="status">Your captain calls. Heads or tails?</p>
+          <div id="qmTossCall" class="qm-toss-actions">
+            <button class="qm-choice-button" type="button" data-qm-call="Heads">Heads</button>
+            <button class="qm-choice-button" type="button" data-qm-call="Tails">Tails</button>
+          </div>
+          <div id="qmTossDecision" class="qm-toss-actions" hidden>
+            <button class="qm-choice-button" type="button" data-qm-decide="bat">Bat first</button>
+            <button class="qm-choice-button" type="button" data-qm-decide="bowl">Bowl first</button>
+          </div>
+          <p id="qmTossError" class="field-error qm-error" role="alert" hidden>Finish the toss to continue.</p>
+        </section>
+
+        <section class="qm-panel" data-qm-step="4" aria-labelledby="qmReadyTitle" hidden>
+          <h2 id="qmReadyTitle" class="qm-panel-title">Match ready</h2>
+          <div class="qm-summary">
+            <div class="qm-summary-teams">
+              <span class="qm-summary-team"><span id="qmSumHomeFlag" class="qm-slot-flag" aria-hidden="true"></span><b id="qmSumHome">Team</b></span>
+              <span class="qm-vs" aria-hidden="true">VS</span>
+              <span class="qm-summary-team"><span id="qmSumAwayFlag" class="qm-slot-flag" aria-hidden="true"></span><b id="qmSumAway">Team</b></span>
+            </div>
+            <p id="qmSumToss" class="qm-summary-toss">Toss</p>
+            <dl id="qmSumDetails" class="qm-summary-details"></dl>
+          </div>
+        </section>
+      </div>
+
+      <footer class="qm-footer">
+        <button id="qmPrev" class="btn-back" type="button"><span class="btn-back-icon" aria-hidden="true"></span>Previous</button>
+        <button id="qmNext" class="cwc-primary qm-next" type="button">Next: Format <span aria-hidden="true">→</span></button>
+      </footer>
+    </section>
+
     <section id="profileSettingsPage" class="profile-settings-page" aria-labelledby="profileSettingsTitle" hidden>
       <header class="page-header profile-settings-header">
         <button id="backToHome" class="btn-back" type="button"><span class="btn-back-icon" aria-hidden="true"></span>Home</button>
@@ -356,6 +580,15 @@
             <input id="musicVolumeInput" type="range" min="0" max="100" step="5" value="40">
           </label>
           <p class="settings-hint">Changes apply to background music and are saved on this device.</p>
+        </div>
+        <div class="settings-section settings-controls">
+          <p class="settings-section-label">Controls</p>
+          <ul class="controls-list">
+            <li><span><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> or D-pad</span>Move</li>
+            <li><span><kbd>Enter</kbd> or <kbd>A</kbd></span>Select</li>
+            <li><span><kbd>Esc</kbd> or <kbd>B</kbd></span>Back</li>
+          </ul>
+          <p class="settings-hint">Works with a keyboard or any connected controller.</p>
         </div>
       </section>
     </section>
@@ -428,11 +661,12 @@
   </main>
   <audio id="music" preload="auto"></audio>
 
-  <script src="cwc27.js?v=home-2"></script>
+  <script src="cwc27.js?v=v5"></script>
   <script src="assets/vendor/d3-array.min.js"></script>
   <script src="assets/vendor/d3-geo.min.js"></script>
   <script src="assets/vendor/topojson-client.min.js"></script>
-  <script src="story-mode.js?v=6"></script>
+  <script src="story-mode.js?v=7"></script>
+  <script src="ui-nav.js?v=2"></script>
   <script>
     const splash = document.querySelector("#splash");
     const home = document.querySelector("#home");
@@ -716,8 +950,8 @@
     };
     const ROLE_DEFAULT_BOWLING = { "Batter": "Doesn't bowl", "Wicketkeeper": "Doesn't bowl", "Bowler": "Right-arm fast", "All-rounder": "Right-arm medium" };
 
-    function overallFor(role) {
-      const skills = ROLE_SKILLS[role];
+    function overallFor(roleOrSkills) {
+      const skills = typeof roleOrSkills === "string" ? ROLE_SKILLS[roleOrSkills] : roleOrSkills;
       const values = Object.values(skills).sort((x, y) => y - x);
       return Math.round((values[0] * 2 + values[1] + values[2]) / 4);
     }
@@ -743,7 +977,7 @@
     }
 
     function showPage(page, title) {
-      [homeMenu, careerModesPage, storyTeamSelectPage, profileSettingsPage, careerCreatePage, careerHubPage].forEach((section) => { section.hidden = section !== page; });
+      [...home.querySelectorAll(":scope > section")].forEach((section) => { section.hidden = section !== page; });
       document.title = title;
       if (page === homeMenu) refreshHome();
     }
@@ -831,10 +1065,10 @@
       };
     }
 
-    function renderPlayerCard(prefix, player, country) {
-      const skills = ROLE_SKILLS[player.role];
+    function renderPlayerCard(prefix, player, country, skillsOverride) {
+      const skills = skillsOverride || ROLE_SKILLS[player.role];
       document.querySelector(`#${prefix}Flag`).innerHTML = flagImg(country.flag);
-      document.querySelector(`#${prefix}Ovr`).textContent = String(overallFor(player.role));
+      document.querySelector(`#${prefix}Ovr`).textContent = String(overallFor(skills));
       document.querySelector(`#${prefix}Number`).textContent = Number.isInteger(player.number) && player.number >= 1 && player.number <= 99 ? String(player.number) : "";
       document.querySelector(`#${prefix}Country`).textContent = country.teamName;
       document.querySelector(`#${prefix}Name`).textContent = player.name || "Player";
@@ -880,7 +1114,7 @@
       document.querySelector("#jerseyError").hidden = numberOk;
       if (!nameOk) { playerNameInput.focus(); return; }
       if (!numberOk) { jerseyInput.focus(); return; }
-      saveCareer({ country: storyPick, player, season: 1, createdAt: new Date().toISOString() });
+      saveCareer({ country: storyPick, player, season: 1, skills: { ...ROLE_SKILLS[player.role] }, trainingPoints: 6, inboxRead: [], createdAt: new Date().toISOString() });
       openHub();
     });
 
@@ -890,7 +1124,13 @@
     function openHub() {
       const career = readCareer();
       if (!career) { openCountryPicker(); return; }
-      renderPlayerCard("hubCard", career.player, career.country);
+      renderPlayerCard("hubCard", career.player, career.country, careerSkills(career));
+      const unread = inboxFor(career).filter((message) => !(career.inboxRead || []).includes(message.id)).length;
+      const badge = document.querySelector("#hubInboxBadge");
+      badge.hidden = unread === 0;
+      badge.textContent = `${unread} new`;
+      const points = careerPoints(career);
+      document.querySelector("#hubTrainingCopy").textContent = points ? `${points} training points to spend.` : "Build your skills.";
       document.querySelector("#hubNextFlag").innerHTML = flagImg(career.country.flag);
       document.querySelector("#hubNextHome").textContent = `${career.country.teamName} domestic XI`;
       showPage(careerHubPage, `${career.player.name} | Story Mode`);
@@ -908,6 +1148,371 @@
       showToast("Your current career stays saved until you start a new one.");
     });
 
+
+    /* ---------- Career pages: Schedule, Training, Inbox, Stats ---------- */
+    const SKILL_NOTES = {
+      Batting: "Timing, footwork and shot range",
+      Bowling: "Line, length and variation",
+      Fielding: "Catching, ground work and throwing",
+      Keeping: "Glovework and stumpings",
+      Fitness: "Stamina and running between wickets"
+    };
+    const RIVAL_POOL = ["AUS", "ENG", "ZAF", "NZL", "PAK", "IND", "LKA", "BGD"];
+    const RIVAL_NAMES = { AUS: "Australia", ENG: "England", GBR: "England", ZAF: "South Africa", NZL: "New Zealand", PAK: "Pakistan", IND: "India", LKA: "Sri Lanka", BGD: "Bangladesh" };
+
+    function careerSkills(career) { return career.skills || { ...ROLE_SKILLS[career.player.role] }; }
+    function careerPoints(career) { return Number.isInteger(career.trainingPoints) ? career.trainingPoints : 6; }
+
+    function scheduleFor(career) {
+      const home = career.country.teamName;
+      const rivals = RIVAL_POOL.filter((code) => code !== career.country.iso3 && !(code === "ENG" && career.country.iso3 === "GBR")).slice(0, 2);
+      const mapFlag = (code) => window.InteractiveWorldMap.flagFor(code === "ENG" ? "GBR" : code);
+      const start = new Date(2027, 5, 5);
+      const dateFor = (index) => new Date(start.getTime() + index * 7 * 86400000).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+      const zones = ["North Zone", "South Zone", "East Zone", "West Zone", "Central Zone"];
+      const formats = ["One-day", "T20", "Multi-day", "One-day", "T20"];
+      const domestic = zones.map((zone, index) => ({ opponent: zone, flag: "", initials: zone.split(" ")[0].slice(0, 2).toUpperCase(), format: formats[index], venue: index % 2 ? "Away" : "Home", date: dateFor(index) }));
+      const tour = rivals.map((code, index) => ({ opponent: `${RIVAL_NAMES[code]} A`, flag: mapFlag(code), format: index ? "Multi-day" : "One-day", venue: "Away", date: dateFor(6 + index) }));
+      return [
+        { phase: "Domestic season", note: `Playing for the ${home} domestic XI`, matches: domestic },
+        { phase: "A team tour", note: "Selection depends on your domestic form", matches: tour, locked: true },
+        { phase: "National call-up", note: `Earn a place in the ${home} squad`, matches: [{ opponent: `${home} national squad`, flag: career.country.flag, format: "Selection", venue: "—", date: dateFor(9) }], locked: true }
+      ];
+    }
+
+    function renderSchedule(career) {
+      let matchNumber = 0;
+      document.querySelector("#scheduleBody").innerHTML = scheduleFor(career).map((block) => `
+        <section class="schedule-phase${block.locked ? " is-locked" : ""}">
+          <header><h2>${block.phase}</h2><p>${block.note}</p>${block.locked ? '<span class="coming-soon">Locked</span>' : ""}</header>
+          <ol class="schedule-list">${block.matches.map((match) => {
+            matchNumber += 1;
+            const isNext = matchNumber === 1;
+            const crest = match.flag ? `<img src="${match.flag}" alt="">` : `<span>${match.initials || "?"}</span>`;
+            return `<li class="schedule-row${isNext ? " is-next" : ""}"><span class="schedule-date">${match.date}</span><span class="schedule-crest" aria-hidden="true">${crest}</span><span class="schedule-opponent"><b>${match.format === "Selection" ? match.opponent : `vs ${match.opponent}`}</b><span>${match.venue === "—" ? "Squad announcement" : `${match.venue} · Match ${matchNumber}`}</span></span><span class="schedule-format">${match.format}</span><span class="schedule-status">${isNext ? "Next" : block.locked ? "Locked" : "Upcoming"}</span></li>`;
+          }).join("")}</ol>
+        </section>`).join("");
+    }
+
+    function renderTraining(career) {
+      const skills = careerSkills(career);
+      const points = careerPoints(career);
+      const base = overallFor(ROLE_SKILLS[career.player.role]);
+      const overall = overallFor(skills);
+      document.querySelector("#trainingPoints").textContent = String(points);
+      document.querySelector("#trainingOvr").textContent = String(overall);
+      document.querySelector("#trainingOvrChange").textContent = overall > base ? `+${overall - base} since you started` : "Train a skill to raise it";
+      document.querySelector("#trainingRows").innerHTML = Object.entries(skills).map(([label, value]) => `
+        <div class="training-row">
+          <div class="training-row-copy"><b>${label}</b><span>${SKILL_NOTES[label] || ""}</span></div>
+          <span class="player-skill-bar training-bar"><span style="width:${value}%"></span></span>
+          <b class="training-value">${value}</b>
+          <button class="training-add" type="button" data-train="${label}" aria-label="Train ${label}, costs 1 point" ${points < 1 || value >= 99 ? "disabled" : ""}>
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg>
+          </button>
+        </div>`).join("");
+    }
+
+    document.querySelector("#trainingRows").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-train]");
+      if (!button) return;
+      const career = readCareer();
+      const skills = careerSkills(career);
+      const points = careerPoints(career);
+      const label = button.dataset.train;
+      if (points < 1 || skills[label] >= 99) return;
+      skills[label] += 1;
+      saveCareer({ ...career, skills, trainingPoints: points - 1 });
+      renderTraining(readCareer());
+      const again = document.querySelector(`[data-train="${label}"]`);
+      (again && !again.disabled ? again : document.querySelector("#trainingRows")).focus?.();
+      showToast(`${label} raised to ${skills[label]}.`);
+    });
+
+    function inboxFor(career) {
+      const name = career.player.name;
+      const team = career.country.teamName;
+      return [
+        { id: "welcome", from: "Head coach", subject: "Welcome to the squad", time: "Today", body: [`Welcome aboard, ${name}. You've joined the ${team} domestic XI for Season 1.`, "Your debut is our first match of the season. Train before then: every point counts.", "See you at the nets."] },
+        { id: "selectors", from: "Selection panel", subject: "What we're watching", time: "Today", body: [`The ${team} selectors will follow the domestic season closely.`, "Strong performances earn A team tour places, and the best players get a national call-up."] },
+        { id: "physio", from: "Team physio", subject: "Fitness test booked", time: "Yesterday", body: ["We've booked your pre-season fitness test for this week.", "Your Fitness skill affects stamina in long innings and long spells."] },
+        { id: "media", from: "Media office", subject: "Interview request", time: "Yesterday", body: ["Local press would like a short interview before your debut.", "We'll confirm a time once the match day squad is announced."] }
+      ];
+    }
+
+    let openMessageId = null;
+    function renderInbox(career) {
+      const read = career.inboxRead || [];
+      const messages = inboxFor(career);
+      const active = messages.find((message) => message.id === openMessageId) || messages[0];
+      document.querySelector("#inboxList").innerHTML = messages.map((message) => `
+        <li><button class="inbox-item${message.id === active.id ? " is-open" : ""}${read.includes(message.id) ? "" : " is-unread"}" type="button" data-message="${message.id}" aria-current="${message.id === active.id}">
+          <span class="inbox-dot" aria-hidden="true"></span>
+          <span class="inbox-item-copy"><span class="inbox-from">${message.from}${read.includes(message.id) ? "" : '<span class="visually-hidden">, unread</span>'}</span><span class="inbox-subject">${message.subject}</span></span>
+          <span class="inbox-time">${message.time}</span>
+        </button></li>`).join("");
+      document.querySelector("#inboxReader").innerHTML = `<p class="inbox-reader-from">${active.from} · ${active.time}</p><h2>${active.subject}</h2>${active.body.map((line) => `<p>${line}</p>`).join("")}`;
+    }
+
+    function openMessage(id) {
+      const career = readCareer();
+      openMessageId = id;
+      const read = new Set(career.inboxRead || []);
+      read.add(id);
+      saveCareer({ ...career, inboxRead: [...read] });
+      renderInbox(readCareer());
+    }
+
+    document.querySelector("#inboxList").addEventListener("click", (event) => {
+      const item = event.target.closest("[data-message]");
+      if (!item) return;
+      openMessage(item.dataset.message);
+      document.querySelector(`[data-message="${item.dataset.message}"]`).focus();
+      if (window.matchMedia("(max-width: 720px)").matches) document.querySelector("#inboxReader").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    function renderStats(career) {
+      const dash = "—";
+      const formats = ["T20", "One-day", "Multi-day"];
+      const batting = formats.map((format) => `<tr><th scope="row">${format}</th><td>0</td><td>0</td><td>0</td><td>${dash}</td><td>${dash}</td><td>${dash}</td><td>0</td><td>0</td></tr>`).join("");
+      const bowling = formats.map((format) => `<tr><th scope="row">${format}</th><td>0</td><td>0.0</td><td>0</td><td>${dash}</td><td>${dash}</td><td>${dash}</td></tr>`).join("");
+      document.querySelector("#statsBody").innerHTML = `
+        <div class="stats-summary">
+          <div class="stat-tile"><strong>0</strong><span>Matches</span></div>
+          <div class="stat-tile"><strong>0</strong><span>Runs</span></div>
+          <div class="stat-tile"><strong>0</strong><span>Wickets</span></div>
+          <div class="stat-tile"><strong>0</strong><span>Catches</span></div>
+        </div>
+        <p class="stats-empty">Your record starts at your domestic debut for the ${career.country.teamName} domestic XI.</p>
+        <div class="stats-tables">
+          <section class="standings-card"><header><h3>Batting</h3><span>All formats</span></header><div class="standings-scroll"><table class="standings-table stats-table"><thead><tr><th scope="col">Format</th><th scope="col" title="Matches">M</th><th scope="col" title="Innings">Inns</th><th scope="col">Runs</th><th scope="col" title="Highest score">HS</th><th scope="col" title="Average">Avg</th><th scope="col" title="Strike rate">SR</th><th scope="col">50s</th><th scope="col">100s</th></tr></thead><tbody>${batting}</tbody></table></div></section>
+          <section class="standings-card"><header><h3>Bowling</h3><span>All formats</span></header><div class="standings-scroll"><table class="standings-table stats-table"><thead><tr><th scope="col">Format</th><th scope="col" title="Matches">M</th><th scope="col">Overs</th><th scope="col" title="Wickets">Wkts</th><th scope="col" title="Best bowling">Best</th><th scope="col" title="Average">Avg</th><th scope="col" title="Economy">Econ</th></tr></thead><tbody>${bowling}</tbody></table></div></section>
+        </div>`;
+    }
+
+    const CAREER_PAGES = {
+      schedule: { page: "#careerSchedulePage", title: "Schedule", render: renderSchedule },
+      training: { page: "#careerTrainingPage", title: "Training", render: renderTraining },
+      inbox: { page: "#careerInboxPage", title: "Inbox", render: (career) => {
+        const firstUnread = inboxFor(career).find((message) => !(career.inboxRead || []).includes(message.id));
+        openMessage((firstUnread || inboxFor(career)[0]).id);
+      } },
+      stats: { page: "#careerStatsPage", title: "Stats", render: renderStats }
+    };
+    let lastCareerPage = null;
+
+    document.querySelectorAll("[data-career-page]").forEach((link) => {
+      link.addEventListener("click", () => {
+        const career = readCareer();
+        const config = CAREER_PAGES[link.dataset.careerPage];
+        if (!career || !config) return;
+        lastCareerPage = link.dataset.careerPage;
+        config.render(career);
+        const page = document.querySelector(config.page);
+        showPage(page, `${config.title} | Story Mode`);
+        page.scrollTop = 0;
+        page.querySelector("[data-back-to-hub]").focus();
+      });
+    });
+
+    document.querySelectorAll("[data-back-to-hub]").forEach((button) => {
+      button.addEventListener("click", () => {
+        openHub();
+        const link = lastCareerPage && document.querySelector(`[data-career-page="${lastCareerPage}"]`);
+        if (link) link.focus();
+      });
+    });
+
+
+    /* ---------- Quick Match setup ---------- */
+    const QM_TEAMS = [
+      { code: "IND", name: "India", flag: "assets/flags/IN.svg" },
+      { code: "AUS", name: "Australia", flag: "assets/flags/AU.svg" },
+      { code: "ENG", name: "England", flag: "assets/flags/ENG.svg" },
+      { code: "PAK", name: "Pakistan", flag: "assets/flags/PK.svg" },
+      { code: "NZL", name: "New Zealand", flag: "assets/flags/NZ.svg" },
+      { code: "SA", name: "South Africa", flag: "assets/flags/ZA.svg" },
+      { code: "SL", name: "Sri Lanka", flag: "assets/flags/LK.svg" },
+      { code: "BAN", name: "Bangladesh", flag: "assets/flags/BD.svg" },
+      { code: "AFG", name: "Afghanistan", flag: "assets/flags/AF.svg" },
+      { code: "ZIM", name: "Zimbabwe", flag: "assets/flags/ZW.svg" }
+    ];
+    const QM_STEPS = ["Teams", "Format", "Conditions", "Toss", "Ready"];
+    const QM_PITCH_HINTS = {
+      Balanced: "An even contest between bat and ball.",
+      Flat: "Good for batting. Expect big totals.",
+      Green: "Grass on the surface helps seam bowlers.",
+      Dusty: "Dry and cracked. Spinners will enjoy it."
+    };
+    const quickMatchPage = document.querySelector("#quickMatchPage");
+    const qmNext = document.querySelector("#qmNext");
+    const qmPrev = document.querySelector("#qmPrev");
+    let qm;
+
+    function resetQuickMatch() {
+      qm = { step: 0, home: null, away: null, activeSlot: "home", toss: null };
+      document.querySelector("#qmTossCall").hidden = false;
+      document.querySelector("#qmTossDecision").hidden = true;
+      document.querySelector("#qmTossStatus").textContent = "Your captain calls. Heads or tails?";
+      document.querySelector("#qmCoin").className = "qm-coin";
+      const saved = window.CWC27 && window.CWC27.savedTeam();
+      const match = saved && QM_TEAMS.find((team) => team.name === saved.name);
+      if (match) { qm.home = match.code; qm.activeSlot = "away"; }
+    }
+
+    function qmTeam(code) { return QM_TEAMS.find((team) => team.code === code); }
+    function qmValue(name) { return quickMatchPage.querySelector(`input[name=${name}]:checked`).value; }
+
+    function renderQmTeams() {
+      ["home", "away"].forEach((slot) => {
+        const button = quickMatchPage.querySelector(`[data-qm-slot="${slot}"]`);
+        const team = qmTeam(qm[slot]);
+        button.setAttribute("aria-pressed", String(qm.activeSlot === slot));
+        button.querySelector(".qm-slot-flag").innerHTML = team ? flagImg(team.flag) : "";
+        button.querySelector(".qm-slot-name").textContent = team ? team.name : "Choose a team";
+        button.classList.toggle("is-empty", !team);
+      });
+      document.querySelector("#qmActiveSlotLabel").textContent = qm.activeSlot === "home" ? "Your team" : "Opponent";
+      const other = qm.activeSlot === "home" ? qm.away : qm.home;
+      document.querySelector("#qmTeamGrid").innerHTML = QM_TEAMS.map((team) => {
+        const picked = team.code === qm[qm.activeSlot];
+        const taken = team.code === other;
+        return `<button class="qm-team${picked ? " is-picked" : ""}" type="button" data-qm-team="${team.code}" aria-pressed="${picked}" ${taken ? 'disabled aria-label="' + team.name + ', already picked"' : ""}><span class="qm-team-flag" aria-hidden="true">${flagImg(team.flag)}</span><span>${team.name}</span>${taken ? '<span class="qm-team-taken">Picked</span>' : ""}</button>`;
+      }).join("");
+    }
+
+    function renderQmSummary() {
+      const home = qmTeam(qm.home);
+      const away = qmTeam(qm.away);
+      const format = qmValue("qmFormat");
+      const overs = { T20: "20 overs a side", "One-day": "50 overs a side", Test: "Two innings each" }[format];
+      document.querySelector("#qmSumHomeFlag").innerHTML = flagImg(home.flag);
+      document.querySelector("#qmSumAwayFlag").innerHTML = flagImg(away.flag);
+      document.querySelector("#qmSumHome").textContent = home.name;
+      document.querySelector("#qmSumAway").textContent = away.name;
+      document.querySelector("#qmSumToss").textContent = qm.toss.summary;
+      const rows = [["Format", `${format} · ${overs}`], ["Difficulty", qmValue("qmDifficulty")], ["Venue", document.querySelector("#qmVenue").value], ["Pitch", qmValue("qmPitch")], ["Weather", qmValue("qmWeather")], ["Time", qmValue("qmTime")]];
+      document.querySelector("#qmSumDetails").innerHTML = rows.map(([label, value]) => `<div><dt>${label}</dt><dd>${value}</dd></div>`).join("");
+    }
+
+    function renderQmStep() {
+      quickMatchPage.querySelectorAll("[data-qm-step]").forEach((panel) => { panel.hidden = Number(panel.dataset.qmStep) !== qm.step; });
+      quickMatchPage.querySelectorAll("[data-qm-step-label]").forEach((item) => {
+        const index = Number(item.dataset.qmStepLabel);
+        item.classList.toggle("is-current", index === qm.step);
+        item.classList.toggle("is-done", index < qm.step);
+        if (index === qm.step) item.setAttribute("aria-current", "step"); else item.removeAttribute("aria-current");
+      });
+      qmPrev.hidden = qm.step === 0;
+      const last = qm.step === QM_STEPS.length - 1;
+      qmNext.firstChild.textContent = last ? "Start match " : `Next: ${QM_STEPS[qm.step + 1]} `;
+      document.querySelectorAll(".qm-error").forEach((error) => { error.hidden = true; });
+      if (qm.step === 0) renderQmTeams();
+      if (last) renderQmSummary();
+      document.title = `Quick Match · ${QM_STEPS[qm.step]} | World Cricket Champs`;
+    }
+
+    function openQuickMatch() {
+      resetQuickMatch();
+      showPage(quickMatchPage, "Quick Match | World Cricket Champs");
+      renderQmStep();
+      document.querySelector("#backFromQuickMatch").focus();
+    }
+
+    quickMatchPage.addEventListener("click", (event) => {
+      const slot = event.target.closest("[data-qm-slot]");
+      if (slot) { qm.activeSlot = slot.dataset.qmSlot; renderQmTeams(); return; }
+      const teamButton = event.target.closest("[data-qm-team]");
+      if (teamButton) {
+        qm[qm.activeSlot] = teamButton.dataset.qmTeam;
+        if (qm.activeSlot === "home" && !qm.away) qm.activeSlot = "away";
+        document.querySelector("#qmTeamsError").hidden = true;
+        renderQmTeams();
+        const next = document.querySelector(`[data-qm-team="${teamButton.dataset.qmTeam}"]`);
+        if (next) next.focus();
+        return;
+      }
+      const call = event.target.closest("[data-qm-call]");
+      if (call) { runToss(call.dataset.qmCall); return; }
+      const decide = event.target.closest("[data-qm-decide]");
+      if (decide) {
+        const home = qmTeam(qm.home).name;
+        qm.toss = { summary: `${home} won the toss and chose to ${decide.dataset.qmDecide} first.` };
+        document.querySelector("#qmTossStatus").textContent = `${qm.toss.summary} Continue when you're ready.`;
+        document.querySelector("#qmTossDecision").hidden = true;
+        document.querySelector("#qmTossError").hidden = true;
+        qmNext.focus();
+      }
+    });
+
+    function runToss(callValue) {
+      const result = Math.random() < .5 ? "Heads" : "Tails";
+      const coin = document.querySelector("#qmCoin");
+      document.querySelector("#qmTossCall").hidden = true;
+      document.querySelector("#qmTossStatus").textContent = `You called ${callValue.toLowerCase()}…`;
+      coin.className = "qm-coin";
+      void coin.offsetWidth;
+      coin.classList.add("is-flipping", result === "Heads" ? "lands-heads" : "lands-tails");
+      const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      window.setTimeout(() => {
+        const home = qmTeam(qm.home).name;
+        const away = qmTeam(qm.away).name;
+        if (result === callValue) {
+          document.querySelector("#qmTossStatus").textContent = `It's ${result.toLowerCase()}. ${home} won the toss. Bat or bowl?`;
+          document.querySelector("#qmTossDecision").hidden = false;
+          document.querySelector("[data-qm-decide]").focus();
+        } else {
+          const choice = Math.random() < .5 ? "bat" : "bowl";
+          qm.toss = { summary: `${away} won the toss and chose to ${choice} first.` };
+          document.querySelector("#qmTossStatus").textContent = `It's ${result.toLowerCase()}. ${qm.toss.summary}`;
+          qmNext.focus();
+        }
+      }, reduced ? 50 : 1100);
+    }
+
+    quickMatchPage.addEventListener("change", (event) => {
+      if (event.target.name === "qmPitch") document.querySelector("#qmPitchHint").textContent = QM_PITCH_HINTS[event.target.value];
+    });
+
+    qmNext.addEventListener("click", () => {
+      if (qm.step === 0 && (!qm.home || !qm.away)) {
+        document.querySelector("#qmTeamsError").hidden = false;
+        qm.activeSlot = qm.home ? "away" : "home";
+        renderQmTeams();
+        return;
+      }
+      if (qm.step === 3 && !qm.toss) {
+        document.querySelector("#qmTossError").hidden = false;
+        return;
+      }
+      if (qm.step === QM_STEPS.length - 1) {
+        showToast("The match engine is coming soon. Your setup is ready.");
+        return;
+      }
+      qm.step += 1;
+      renderQmStep();
+      quickMatchPage.scrollTop = 0;
+    });
+
+    qmPrev.addEventListener("click", () => {
+      if (qm.step === 0) return;
+      qm.step -= 1;
+      if (qm.step <= 2) {
+        qm.toss = null;
+        document.querySelector("#qmTossCall").hidden = false;
+        document.querySelector("#qmTossDecision").hidden = true;
+        document.querySelector("#qmTossStatus").textContent = "Your captain calls. Heads or tails?";
+        document.querySelector("#qmCoin").className = "qm-coin";
+      }
+      renderQmStep();
+      qmNext.focus();
+    });
+
+    document.querySelector("#backFromQuickMatch").addEventListener("click", () => {
+      showPage(homeMenu, "Home | World Cricket Champs");
+      document.querySelector(".mode.quick").focus();
+    });
+
     /* ---------- Home tiles ---------- */
     document.querySelectorAll(".mode").forEach((button) => {
       button.addEventListener("click", () => {
@@ -918,6 +1523,10 @@
         if (button.dataset.mode === "Profile & Settings") {
           showPage(profileSettingsPage, "Profile & Settings | World Cricket Champs");
           nametagInput.focus();
+          return;
+        }
+        if (button.dataset.mode === "Quick Match") {
+          openQuickMatch();
           return;
         }
         if (button.dataset.mode === "Career") {

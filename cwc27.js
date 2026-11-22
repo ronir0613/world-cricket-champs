@@ -292,6 +292,31 @@
     return `<div class="knockout-bracket final-bracket"><div class="knockout-round"><h3>Final</h3>${knockoutMatch("World Cup Final", "Winner SF1", "Winner SF2")}<div class="champion-badge"><svg class="trophy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg><b>Champion · TBD</b></div></div></div>`;
   }
 
+  /* Points tables. No results are entered yet, so every row is zero and
+     rows keep initial seeding order (the last tiebreaker in the spec). */
+  function standingsTable(title, codes, qualifyCount, wildcardRow) {
+    const rows = codes.map((code, index) => {
+      const team = teamInfo(code);
+      const position = index + 1;
+      const selected = team.code === selectedTeam.code || code === selectedTeam.code;
+      const zone = position <= qualifyCount ? "is-qualifying" : position === wildcardRow ? "is-wildcard" : "";
+      const slot = super7Slots.find((entry) => entry.code === code);
+      const label = slot ? `<span class="standings-slot">${slot.code}</span>` : "";
+      return `<tr class="${zone}${selected ? " is-selected-team" : ""}"><td class="standings-pos">${position}</td><th scope="row"><span class="standings-team"><span class="fixture-flag" aria-hidden="true">${flagContent(team)}</span><span class="standings-name">${team.name}</span>${label}</span></th><td>0</td><td>0</td><td>0</td><td class="standings-optional">0</td><td class="standings-optional">0.000</td><td class="standings-pts">0</td></tr>`;
+    }).join("");
+    return `<section class="standings-card" aria-label="${title} points table"><header><h3>${title}</h3><span>${codes.length} teams</span></header><div class="standings-scroll"><table class="standings-table"><thead><tr><th scope="col" class="standings-pos"><span class="visually-hidden">Position</span>#</th><th scope="col">Team</th><th scope="col" title="Played">P</th><th scope="col" title="Won">W</th><th scope="col" title="Lost">L</th><th scope="col" class="standings-optional" title="Tied or no result">T/NR</th><th scope="col" class="standings-optional" title="Net run rate">NRR</th><th scope="col" class="standings-pts" title="Points">Pts</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
+  }
+
+  function standingsMarkup(stage) {
+    if (stage === "groups") {
+      return `<section class="standings" aria-labelledby="standingsTitle"><header class="standings-heading"><div><p class="cwc-eyebrow">Points table</p><h3 id="standingsTitle">Group standings</h3></div><ul class="standings-legend"><li><i class="is-qualifying" aria-hidden="true"></i>Super 7 place</li><li><i class="is-wildcard" aria-hidden="true"></i>Wildcard race</li></ul></header><div class="standings-grid">${standingsTable("Group A", groupA, 3, 4)}${standingsTable("Group B", groupB, 3, 4)}</div><p class="standings-note">Win 2 · Tie or no result 1 · Loss 0. Ties are split by points, wins, net run rate, head-to-head, then seeding. Points reset at every stage.</p></section>`;
+    }
+    if (stage === "super7") {
+      return `<section class="standings" aria-labelledby="standingsTitle"><header class="standings-heading"><div><p class="cwc-eyebrow">Points table</p><h3 id="standingsTitle">Super 7 standings</h3></div><ul class="standings-legend"><li><i class="is-qualifying" aria-hidden="true"></i>Semi-final place</li></ul></header><div class="standings-grid standings-grid-single">${standingsTable("Super 7", super7Slots.map((slot) => slot.code), 4, 0)}</div><p class="standings-note">Pre-seeded slots shown. A team that doesn't advance hands its slot to the unseeded qualifier from its group. Points reset at the start of the Super 7.</p></section>`;
+    }
+    return "";
+  }
+
   function renderStage(stage) {
     const details = stageDetails[stage];
     const group = groupNameForSelectedTeam();
@@ -301,7 +326,7 @@
         ? (super7Slots.find((slot) => slot.teamCode === selectedTeam.code)?.code || "Seed to be determined")
         : "Road to the trophy";
     const layout = stage === "groups" || stage === "super7"
-      ? `<div class="stage-card-grid">${fixtureCard(stage)}${statsMarkup(stage)}</div>`
+      ? `<div class="stage-card-grid">${fixtureCard(stage)}${statsMarkup(stage)}</div>${standingsMarkup(stage)}`
       : `<div class="knockout-layout"><section class="knockout-panel" aria-label="${details.title} bracket">${knockoutMarkup(stage)}</section>${statsMarkup(stage)}</div>`;
     stageView.hidden = false;
     fixturePage.hidden = true;
