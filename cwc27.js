@@ -270,7 +270,7 @@
       ? fixtures.filter((match) => match.stage === "Group Stage" && (match.home === selectedTeam.code || match.away === selectedTeam.code)).length
       : super7Slots.some((slot) => slot.teamCode === selectedTeam.code) ? 6 : 0;
     const meta = stage === "groups" ? (qualifierNote || "Your group is yet to be assigned") : count ? `${count} potential seeded fixtures` : "Seed and fixtures to be determined";
-    return `<button class="dashboard-card fixtures-card" type="button" data-open-fixtures><span class="dashboard-card-kicker">My fixtures</span><span class="fixtures-card-main">${selectedTeam.name}</span><span class="fixtures-card-meta">${meta}</span><span class="dashboard-card-action">Open full-page bracket <span aria-hidden="true">→</span></span></button>`;
+    return `<button class="dashboard-card fixtures-card" type="button" data-open-fixtures><span class="dashboard-card-kicker">My fixtures</span><span class="fixtures-card-flag" aria-hidden="true">${flagContent(selectedTeam)}</span><span class="fixtures-card-main">${selectedTeam.name}</span><span class="fixtures-card-meta">${meta}</span><span class="dashboard-card-action">View my fixtures <span aria-hidden="true">→</span></span></button>`;
   }
 
   function bracketFlag(code, label = "") {
@@ -288,7 +288,7 @@
     if (stage === "semi-finals") {
       return `<div class="knockout-bracket"><div class="knockout-round"><h3>Semi-Finals</h3>${knockoutMatch("Semi-Final 1", "Super 7 1st place", "Super 7 4th place")}${knockoutMatch("Semi-Final 2", "Super 7 2nd place", "Super 7 3rd place")}</div><div class="knockout-connector" aria-hidden="true">→</div><div class="knockout-round knockout-next"><h3>Next</h3>${knockoutMatch("Final", "Winner SF1", "Winner SF2")}</div></div>`;
     }
-    return `<div class="knockout-bracket final-bracket"><div class="knockout-round"><h3>Final</h3>${knockoutMatch("World Cup Final", "Winner SF1", "Winner SF2")}<div class="champion-badge"><span aria-hidden="true">🏆</span><b>Champion · TBD</b></div></div></div>`;
+    return `<div class="knockout-bracket final-bracket"><div class="knockout-round"><h3>Final</h3>${knockoutMatch("World Cup Final", "Winner SF1", "Winner SF2")}<div class="champion-badge"><svg class="trophy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg><b>Champion · TBD</b></div></div></div>`;
   }
 
   function renderStage(stage) {

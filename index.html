@@ -5,328 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#ffffff">
   <title>World Cricket Champs</title>
-  <link rel="stylesheet" href="cwc27.css?v=story-selection-6">
-  <style>
-    :root {
-      color-scheme: light;
-      font-family: "Trebuchet MS", "Century Gothic", Arial, sans-serif;
-      color: #17352d;
-      background: #fff;
-      font-synthesis: none;
-      text-rendering: optimizeLegibility;
-      -webkit-font-smoothing: antialiased;
-      --green: #15945e;
-      --deep-green: #163828;
-      --gold: #f1c54b;
-    }
-    * { box-sizing: border-box; }
-    html, body { width: 100%; min-height: 100%; margin: 0; }
-    body { min-height: 100svh; overflow: hidden; background: #f3f6f4; isolation: isolate; }
-    #page-bg {
-      position: fixed;
-      inset: 0;
-      width: 100vw;
-      height: 100vh;
-      z-index: -1;
-      pointer-events: none;
-      background-color: #f3f6f4;
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      opacity: .12;
-      filter: grayscale(100%) sepia(22%) hue-rotate(95deg) saturate(135%) contrast(85%);
-    }
-    button { font: inherit; }
-    .screen {
-      position: fixed;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-      background: #fff;
-    }
-    #splash[hidden] { display: none; }
-    .splash {
-      isolation: isolate;
-      transition: opacity .35s ease, transform .45s ease;
-    }
-    .brand {
-      position: relative;
-      z-index: 1;
-      width: min(90vw, 680px);
-      margin-top: -6vh;
-      text-align: center;
-      animation: arrive .8s cubic-bezier(.2,.8,.2,1) both;
-    }
-    .wordmark {
-      display: grid;
-      gap: .02em;
-      color: #000;
-      font-size: clamp(2.45rem, 8vw, 5.5rem);
-      font-weight: 1000;
-      letter-spacing: .085em;
-      line-height: .88;
-      text-transform: uppercase;
-      -webkit-text-stroke: 0;
-      text-shadow: none;
-    }
-    .script {
-      display: inline-block;
-      margin: 14px 0 0;
-      color: var(--green);
-      font-family: "Brush Script MT", "Segoe Script", "URW Chancery L", cursive;
-      font-size: clamp(3.4rem, 12vw, 6.2rem);
-      font-weight: 700;
-      line-height: .9;
-      transform: rotate(-6deg);
-      text-shadow: 0 3px 0 rgba(21,148,94,.16);
-    }
-    .start-hitbox {
-      position: absolute;
-      z-index: 10;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      border: 0;
-      padding: 0;
-      color: #fff;
-      background: transparent;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .start-ring {
-      position: absolute;
-      left: 50%;
-      bottom: 12%;
-      display: grid;
-      width: 48px;
-      height: 48px;
-      place-items: center;
-      border: 3px solid #1a1a1a;
-      border-radius: 50%;
-      background: transparent;
-      transform-origin: center center;
-      transform: translateX(-50%);
-      animation: breathe 1.5s ease-in-out infinite;
-      transition: transform .24s ease, opacity .24s ease;
-    }
-    .start-hitbox:focus-visible .start-ring, .menu-button:focus-visible, .mode:focus-visible {
-      outline: 3px solid #f1c54b;
-      outline-offset: 5px;
-    }
-    .menu-button {
-      position: absolute;
-      z-index: 20;
-      right: 24px;
-      bottom: 24px;
-      display: grid;
-      width: 40px;
-      height: 40px;
-      place-content: center;
-      gap: 4px;
-      border: 2px solid #1a1a1a;
-      border-radius: 50%;
-      color: #1a1a1a;
-      background: rgba(0, 0, 0, .05);
-      cursor: pointer;
-      backdrop-filter: blur(10px);
-    }
-    .menu-button span { display: block; width: 15px; height: 2px; border-radius: 2px; background: currentColor; }
-    .menu-panel {
-      position: absolute;
-      z-index: 21;
-      right: max(20px, env(safe-area-inset-right));
-      bottom: max(82px, calc(env(safe-area-inset-bottom) + 72px));
-      width: 210px;
-      padding: 17px;
-      border: 1px solid rgba(255,255,255,.6);
-      border-radius: 18px;
-      color: #1a1a1a;
-      background: rgba(255,255,255,.97);
-      box-shadow: 0 12px 38px rgba(0,0,0,.17);
-    }
-    .menu-panel[hidden] { display: none; }
-    .menu-heading { margin: 0 0 12px; font-size: .67rem; letter-spacing: .18em; opacity: .7; text-transform: uppercase; }
-    .sound-toggle {
-      display: flex;
-      width: 100%;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0;
-      border: 0;
-      color: inherit;
-      background: transparent;
-      cursor: pointer;
-      font-size: .9rem;
-    }
-    .switch { width: 38px; height: 23px; padding: 3px; border-radius: 20px; background: rgba(255,255,255,.25); transition: background .2s; }
-    .switch::after { content: ""; display: block; width: 17px; height: 17px; border-radius: 50%; background: white; transition: transform .2s; }
-    .switch[aria-checked="true"] { background: #36bb7e; }
-    .switch[aria-checked="true"]::after { transform: translateX(15px); }
-    .home { display: none; align-content: center; justify-items: center; gap: clamp(24px, 5vh, 46px); padding: 32px 24px max(32px, env(safe-area-inset-bottom)); background: transparent; overflow-y: auto; overscroll-behavior: contain; }
-    .home.is-active { display: grid; animation: home-in .52s cubic-bezier(.2,.8,.2,1) both; }
-    .home-menu { display: grid; width: min(100%, 960px); justify-items: center; gap: clamp(24px, 5vh, 46px); }
-    .home-menu[hidden], .career-modes-page[hidden], .profile-settings-page[hidden] { display: none !important; }
-    .home-heading { width: min(100%, 960px); }
-    .eyebrow { margin: 0 0 10px; color: var(--green); font-size: .72rem; font-weight: 900; letter-spacing: .26em; text-transform: uppercase; }
-    .home h1 { margin: 0; color: var(--deep-green); font-size: clamp(2.7rem, 8vw, 5.8rem); font-weight: 1000; letter-spacing: -.055em; line-height: .96; }
-    .home-note { margin: 14px 0 0; color: #73817c; font-size: 1rem; }
-    .modes { display: grid; width: min(100%, 960px); grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "cwc profile" "career trophy"; gap: clamp(14px, 3vw, 28px); }
-    .mode {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      min-height: clamp(180px, 29vh, 280px);
-      flex-direction: column;
-      align-items: flex-start;
-      justify-content: space-between;
-      padding: clamp(22px, 4vw, 38px);
-      overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.85);
-      border-radius: 28px;
-      color: var(--deep-green);
-      text-align: left;
-      cursor: pointer;
-      box-shadow: 0 10px 28px rgba(22, 56, 40, 0.08);
-      transition: transform .2s ease, box-shadow .2s ease;
-    }
-    .mode-art {
-      position: absolute;
-      z-index: 1;
-      right: 0;
-      bottom: 0;
-      width: auto;
-      max-width: 62%;
-      height: 100%;
-      object-fit: contain;
-      object-position: right bottom;
-      opacity: .22;
-      mix-blend-mode: multiply;
-      -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 40%);
-      mask-image: linear-gradient(to right, transparent 0%, #000 40%);
-      pointer-events: none;
-    }
-    .mode:hover { transform: translateY(-5px); box-shadow: 0 17px 32px rgba(36,51,44,.11); }
-    .mode.red { background: #f9dadb; }
-    .mode.blue { background: #d4e8f9; }
-    .mode.mint { background: #ddefe4; }
-    .mode.gold { background: #fceccb; }
-    .mode.cwc { grid-area: cwc; }
-    .mode.career { grid-area: career; }
-    .mode.profile-mode { grid-area: profile; }
-    .mode.trophy { grid-area: trophy; }
-    .career-modes-page { position: absolute; inset: clamp(12px, 2.3vh, 24px) clamp(12px, 2vw, 24px); display: grid; min-width: 0; min-height: 0; grid-template-rows: auto minmax(0, 1fr); align-content: stretch; gap: clamp(12px, 2.2vh, 20px); }
-    .career-modes-header { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: clamp(14px, 3vw, 28px); }
-    .career-modes-header .eyebrow { margin-bottom: 5px; font-size: .62rem; }
-    .career-modes-header h2 { margin: 0; color: var(--deep-green); font-size: clamp(1.55rem, 4vw, 2.4rem); letter-spacing: -.04em; }
-    .career-mode-board { display: grid; width: 100%; min-width: 0; min-height: 0; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-template-rows: repeat(8, minmax(0, 1fr)); gap: clamp(9px, 1.5vw, 16px); }
-    .career-mode-card { position: relative; display: flex; min-width: 0; min-height: 0; flex-direction: column; align-items: flex-start; justify-content: space-between; overflow: hidden; padding: clamp(14px, 2vw, 24px); border: 1px solid rgba(230,196,112,.6); border-radius: 2px; color: #fff; background: linear-gradient(145deg, #1c3977, #101e45 80%); text-align: left; }
-    .career-mode-story { grid-area: 1 / 1 / 5 / 7; cursor: pointer; box-shadow: inset 0 0 0 1px rgba(255,255,255,.05), 0 10px 24px rgba(10,21,46,.14); }
-    .career-mode-story:hover { border-color: #efd786; background: linear-gradient(145deg, #25478e, #12234e 80%); }
-    .career-mode-story[aria-pressed="true"] { border-color: #efd786; box-shadow: inset 0 0 0 1px rgba(239,215,134,.25), 0 10px 24px rgba(10,21,46,.14); }
-    .career-mode-story .mode-kicker { color: #e5cd8d; }
-    .career-mode-story .mode-name { color: #fff; font-size: clamp(1.65rem, 4vw, 2.8rem); }
-    .career-mode-story .mode-arrow { color: #162850; background: #e4c775; }
-    .career-mode-locked { justify-content: center; gap: 10px; border-color: rgba(230,196,112,.24); color: rgba(22,40,80,.58); background: linear-gradient(145deg, rgba(28,57,119,.19), rgba(16,30,69,.16)); text-align: center; }
-    .career-mode-locked span { width: 100%; font-size: clamp(.58rem, 1vw, .73rem); font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
-    .career-mode-locked:nth-of-type(2) { grid-area: 1 / 7 / 4 / 11; }
-    .career-mode-locked:nth-of-type(3) { grid-area: 1 / 11 / 8 / 13; }
-    .career-mode-locked:nth-of-type(4) { grid-area: 5 / 1 / 9 / 4; }
-    .career-mode-locked:nth-of-type(5) { grid-area: 5 / 4 / 9 / 7; }
-    .career-mode-locked:nth-of-type(6) { grid-area: 4 / 7 / 9 / 11; }
-    .career-mode-card:focus-visible { outline: 3px solid #15945e; outline-offset: 3px; }
-    .profile-settings-page { display: grid; width: min(100%, 760px); max-height: 100%; align-content: center; gap: clamp(18px, 4vh, 32px); overflow-y: auto; overscroll-behavior: contain; }
-    .profile-settings-header { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: clamp(14px, 3vw, 28px); }
-    .profile-back { min-height: 42px; padding: 0 14px; border: 1px solid #d4dfd8; border-radius: 8px; color: var(--deep-green); background: #fff; cursor: pointer; font-weight: 800; }
-    .profile-back:hover { border-color: #15945e; background: #f4faf6; }
-    .profile-settings-header .eyebrow { margin-bottom: 5px; font-size: .62rem; }
-    .profile-settings-header h2 { margin: 0; color: var(--deep-green); font-size: clamp(1.55rem, 4vw, 2.4rem); letter-spacing: -.04em; }
-    .profile-settings-card { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: clamp(18px, 3vw, 30px); padding: clamp(20px, 4vw, 34px); border: 1px solid #dce7e0; border-radius: 20px; background: #fff; box-shadow: 0 16px 40px rgba(22,56,40,.08); }
-    .settings-section { display: grid; align-content: start; gap: 14px; }
-    .settings-section-label { margin: 0; color: #64766c; font-size: .67rem; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; }
-    .settings-field { display: grid; gap: 8px; color: #244335; font-size: .82rem; font-weight: 850; }
-    .settings-field input { width: 100%; min-height: 45px; padding: 0 12px; border: 1px solid #ccd9d0; border-radius: 8px; color: #17352d; background: #fff; font: inherit; font-weight: 650; }
-    .settings-field input:focus-visible, .volume-field input:focus-visible { outline: 3px solid rgba(21,148,94,.3); outline-offset: 2px; }
-    .nametag-preview-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: #64766c; font-size: .74rem; font-weight: 750; }
-    .nametag-preview { max-width: 58%; overflow: hidden; padding: 6px 10px; border: 1px solid #cfe0d4; border-radius: 5px; color: #214b32; background: #f2f8f3; font-size: .78rem; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
-    .settings-hint { margin: 0; color: #75847b; font-size: .66rem; line-height: 1.5; }
-    .settings-section:first-child { padding-right: clamp(18px, 3vw, 30px); border-right: 1px solid #e5ece7; }
-    .profile-music-toggle { display: flex; min-height: 38px; align-items: center; justify-content: space-between; padding: 0; border: 0; color: #244335; background: transparent; cursor: pointer; font-size: .84rem; font-weight: 850; }
-    .profile-music-toggle .switch { background: #c6d1ca; }
-    .sound-toggle[aria-checked="true"] .switch, .profile-music-toggle[aria-checked="true"] .switch { background: #36bb7e; }
-    .sound-toggle[aria-checked="true"] .switch::after, .profile-music-toggle[aria-checked="true"] .switch::after { transform: translateX(15px); }
-    .volume-field { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px; color: #244335; font-size: .78rem; font-weight: 850; }
-    .volume-field output { color: #64766c; font-size: .72rem; font-weight: 800; }
-    .volume-field input { width: 100%; grid-column: 1 / -1; accent-color: #15945e; cursor: pointer; }
-    .volume-field input:disabled { cursor: not-allowed; opacity: .45; }
-    .mode-kicker { position: relative; z-index: 2; color: rgba(23,59,49,.58); font-size: .68rem; font-weight: 900; letter-spacing: .2em; text-transform: uppercase; }
-    .mode-name { position: relative; z-index: 2; display: block; max-width: 100%; font-size: clamp(1.55rem, 4vw, 2.5rem); font-weight: 950; letter-spacing: -.045em; }
-    .mode-arrow { position: relative; z-index: 2; display: grid; width: 40px; height: 40px; place-items: center; border-radius: 50%; color: #fff; background: var(--deep-green); }
-    .mode-arrow::before { width: 17px; height: 2px; background: currentColor; content: ""; transform: rotate(-45deg); }
-    .mode-arrow::after { position: absolute; top: 11px; right: 11px; width: 8px; height: 8px; border-top: 2px solid currentColor; border-right: 2px solid currentColor; content: ""; }
-    .coming-soon { position: absolute; z-index: 2; right: 20px; top: 20px; padding: 7px 10px; border-radius: 20px; color: rgba(23,59,49,.72); background: rgba(255,255,255,.55); font-size: .62rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
-    .toast {
-      position: absolute;
-      z-index: 6;
-      left: 50%;
-      bottom: max(24px, env(safe-area-inset-bottom));
-      padding: 12px 17px;
-      border-radius: 24px;
-      color: white;
-      background: var(--deep-green);
-      box-shadow: 0 8px 25px rgba(23,59,49,.18);
-      font-size: .84rem;
-      font-weight: 700;
-      opacity: 0;
-      pointer-events: none;
-      transform: translate(-50%, 10px);
-      transition: opacity .2s, transform .2s;
-    }
-    .toast.is-visible { opacity: 1; transform: translate(-50%, 0); }
-    .loading {
-      position: absolute;
-      z-index: 11;
-      left: 50%;
-      bottom: 12%;
-      width: 48px;
-      height: 48px;
-      border: 3px solid rgba(26,26,26,.2);
-      border-top-color: #1a1a1a;
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-      transform: translateX(-50%);
-    }
-    .loading[hidden] { display: none; }
-    @keyframes breathe {
-      0%, 100% { opacity: .5; transform: translateX(-50%) scale(.92); }
-      50% { opacity: 1; transform: translateX(-50%) scale(1.08); }
-    }
-    @keyframes spin { to { transform: translateX(-50%) rotate(360deg); } }
-    @keyframes arrive { from { opacity: 0; transform: translateY(14px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
-    @keyframes home-in { from { opacity: 0; transform: translateY(12px) scale(.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
-    @media (max-width: 620px) {
-      .brand { margin-top: -10vh; }
-      .home-menu { gap: 20px; }
-      .profile-settings-page { align-content: start; }
-      .profile-settings-header { grid-template-columns: auto 1fr; gap: 10px; }
-      .profile-back { min-height: 36px; padding: 0 10px; font-size: .77rem; }
-      .profile-settings-card { grid-template-columns: 1fr; gap: 18px; padding: 18px; border-radius: 16px; }
-      .settings-section:first-child { padding-right: 0; padding-bottom: 18px; border-right: 0; border-bottom: 1px solid #e5ece7; }
-      .modes { grid-template-columns: 1fr; grid-template-areas: "cwc" "career" "profile" "trophy"; gap: 14px; }
-      .mode { min-height: 148px; border-radius: 22px; }
-      .career-modes-page { inset: 12px; align-content: start; grid-template-rows: auto auto; }
-      .career-modes-header { gap: 10px; }
-      .career-mode-board { height: auto; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: auto; gap: 10px; }
-      .career-mode-card { min-height: 112px; padding: 14px; }
-      .career-mode-story { min-height: 170px; grid-area: auto / span 2; }
-      .career-mode-locked:nth-of-type(n) { grid-area: auto; }
-      .career-mode-locked:last-child { grid-column: span 2; }
-      .home { align-content: start; justify-items: center; padding-top: max(15vh, 72px); }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-    }
-  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="app.css?v=1">
+  <link rel="stylesheet" href="cwc27.css?v=polish-1">
 </head>
 <body>
   <div id="page-bg" aria-hidden="true"></div>
@@ -337,6 +20,7 @@
     </section>
     <button id="start" class="start-hitbox" type="button" aria-label="Start World Cricket Champs">
       <span class="start-ring" aria-hidden="true"></span>
+      <span class="start-hint" aria-hidden="true">Tap to start</span>
     </button>
     <button id="menuButton" class="menu-button" type="button" aria-label="Open game menu" aria-expanded="false" aria-controls="menuPanel">
       <span></span><span></span><span></span>
@@ -386,8 +70,8 @@
       </section>
     </section>
     <section id="careerModesPage" class="career-modes-page" aria-labelledby="careerModesTitle" hidden>
-      <header class="career-modes-header">
-        <button id="backFromCareer" class="profile-back" type="button">← Home</button>
+      <header class="page-header career-modes-header">
+        <button id="backFromCareer" class="btn-back" type="button"><span class="btn-back-icon" aria-hidden="true"></span>Home</button>
         <div>
           <p class="eyebrow">World Cricket Champs</p>
           <h2 id="careerModesTitle">Career</h2>
@@ -407,10 +91,10 @@
       </section>
     </section>
     <section id="storyTeamSelectPage" class="story-team-select-page" aria-labelledby="storyTeamTitle" hidden>
-      <header class="story-team-header">
-        <button id="backFromStoryMode" class="cwc-back" type="button">← Career</button>
+      <header class="page-header story-team-header">
+        <button id="backFromStoryMode" class="btn-back" type="button"><span class="btn-back-icon" aria-hidden="true"></span>Career</button>
         <div>
-          <p class="cwc-eyebrow">Career · Story Mode</p>
+          <p class="eyebrow">Career · Story Mode</p>
           <h1 id="storyTeamTitle">Choose your country</h1>
         </div>
       </header>
@@ -432,9 +116,9 @@
               <h2 id="storyMapTitle">Explore the world</h2>
             </div>
             <div class="story-map-controls" aria-label="Map controls">
-              <button id="storyMapZoomOut" type="button" aria-label="Zoom out">−</button>
+              <button id="storyMapZoomOut" type="button" aria-label="Zoom out"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg></button>
               <button id="storyMapReset" type="button" aria-label="Show whole map">WORLD</button>
-              <button id="storyMapZoomIn" type="button" aria-label="Zoom in">+</button>
+              <button id="storyMapZoomIn" type="button" aria-label="Zoom in"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg></button>
             </div>
           </header>
           <div id="storyMapMount" class="story-map-stage" aria-label="Interactive world map">
@@ -451,8 +135,8 @@
       </div>
     </section>
     <section id="profileSettingsPage" class="profile-settings-page" aria-labelledby="profileSettingsTitle" hidden>
-      <header class="profile-settings-header">
-        <button id="backToHome" class="profile-back" type="button">← Home</button>
+      <header class="page-header profile-settings-header">
+        <button id="backToHome" class="btn-back" type="button"><span class="btn-back-icon" aria-hidden="true"></span>Home</button>
         <div>
           <p class="eyebrow">World Cricket Champs</p>
           <h2 id="profileSettingsTitle">Profile &amp; Settings</h2>
@@ -484,7 +168,7 @@
   <main id="cwcApp" class="cwc-app" aria-label="CWC27 Tournament" hidden>
     <section id="teamPicker" class="cwc-view team-picker" aria-labelledby="pickerTitle">
       <header class="cwc-topbar">
-        <button id="pickerHome" class="cwc-back" type="button">← Home</button>
+        <button id="pickerHome" class="btn-back" type="button"><span class="btn-back-icon" aria-hidden="true"></span>Home</button>
         <div class="cwc-heading">
           <p class="cwc-eyebrow">ICC Cricket World Cup 2027</p>
           <h1 id="pickerTitle">Choose your team</h1>
@@ -522,7 +206,7 @@
 
     <section id="tournamentHub" class="cwc-view tournament-hub" aria-labelledby="hubTitle" hidden>
       <header class="hub-header">
-        <button id="hubHome" class="cwc-back" type="button">← Home</button>
+        <button id="hubHome" class="btn-back" type="button"><span class="btn-back-icon" aria-hidden="true"></span>Home</button>
         <div class="hub-title">
           <p class="cwc-eyebrow">ICC Cricket World Cup 2027</p>
           <h1 id="hubTitle">CWC27</h1>
@@ -539,7 +223,7 @@
       <section id="stageView" class="stage-view" aria-live="polite"></section>
       <section id="fixturePage" class="fixture-page" aria-labelledby="fixturesTitle" hidden>
         <header class="fixture-page-header">
-          <button id="backToStage" class="cwc-back" type="button">← Back to stage</button>
+          <button id="backToStage" class="btn-back" type="button"><span class="btn-back-icon" aria-hidden="true"></span>Back to stage</button>
           <div><p class="cwc-eyebrow">Selected team: <span id="fixturesTeamName"></span></p><h2 id="fixturesTitle">My Fixtures</h2></div>
         </header>
         <section id="fixturesDisplay" class="fixtures-display" aria-live="polite"></section>
@@ -548,7 +232,7 @@
   </main>
   <audio id="music" preload="auto"></audio>
 
-  <script src="cwc27.js"></script>
+  <script src="cwc27.js?v=polish-1"></script>
   <script src="assets/vendor/d3-array.min.js"></script>
   <script src="assets/vendor/d3-geo.min.js"></script>
   <script src="assets/vendor/topojson-client.min.js"></script>
