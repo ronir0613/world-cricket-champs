@@ -124,6 +124,7 @@
     setAppActive(false);
     if (window.location.hash.startsWith("#/cwc27/")) window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
     document.title = "Home | World Cricket Champs";
+    window.dispatchEvent(new Event("wcc:home-shown"));
   }
 
   function navigate(route, replace = false) {
@@ -376,8 +377,12 @@
     open() {
       selectedTeam = readSavedTeam();
       setAppActive(true);
-      if (!parseRoute()) navigate("team", true);
+      if (!parseRoute()) navigate(selectedTeam ? "groups" : "team", true);
       else renderRoute();
+    },
+    savedTeam() {
+      const team = readSavedTeam();
+      return team ? { name: team.name, flag: team.flag ? `assets/flags/${team.flag}` : "" } : null;
     }
   };
 

@@ -784,3 +784,216 @@
 @media (prefers-reduced-motion: reduce) {
   .cwc-app *, .cwc-app *::before, .cwc-app *::after { scroll-behavior: auto; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+
+/* ==========================================================================
+   Career flow: Story Mode confirm bar, Create Player, Career Hub
+   ========================================================================== */
+
+.story-team-select-page { grid-template-rows: auto minmax(0, 1fr) auto; }
+.story-confirm {
+  display: flex;
+  min-height: 72px;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 12px 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  box-shadow: var(--shadow-2);
+}
+.story-confirm-flag { display: grid; flex: 0 0 auto; place-items: center; }
+.story-confirm-flag:empty { width: 48px; height: 32px; border: 1px dashed var(--line-strong); border-radius: 4px; }
+.story-confirm-flag img { width: 48px; height: 32px; border-radius: 4px; box-shadow: 0 0 0 1px rgba(16, 42, 67, .12); object-fit: cover; }
+.story-confirm-copy { display: grid; min-width: 0; flex: 1; gap: 2px; }
+.story-confirm-label { overflow: hidden; color: var(--muted); font-size: var(--text-xs); font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.story-confirm-name { overflow: hidden; color: var(--ink); font-family: var(--font-display); font-size: 1.375rem; font-weight: 700; line-height: 1.1; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.story-confirm .story-confirm-button { width: auto; min-width: 220px; margin: 0; }
+
+/* Full-page career screens share one frame */
+.career-flow-page {
+  position: absolute;
+  inset: max(20px, env(safe-area-inset-top)) var(--gutter) max(20px, env(safe-area-inset-bottom));
+  display: grid;
+  max-width: var(--content-max);
+  min-width: 0;
+  min-height: 0;
+  margin: 0 auto;
+  grid-template-rows: auto auto auto;
+  align-content: start;
+  gap: clamp(16px, 2.4vh, 24px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.career-flow-page[hidden] { display: none !important; }
+
+/* ---------- Create your player ---------- */
+
+.create-layout { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(300px, .8fr); align-items: start; gap: clamp(16px, 2vw, 24px); }
+.create-form {
+  display: grid;
+  gap: 20px;
+  padding: clamp(20px, 2.4vw, 32px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+}
+.create-form .cwc-primary { margin-top: 4px; }
+.create-row { display: grid; grid-template-columns: minmax(0, 1fr) 160px; align-items: end; gap: 16px; }
+.field-error { margin: -12px 0 0; color: #b42318; font-size: var(--text-sm); font-weight: 600; }
+.field-error[hidden] { display: none; }
+.choice-group { display: grid; gap: 8px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.choice-group legend { margin-bottom: 8px; padding: 0; color: var(--ink); font-size: var(--text-sm); font-weight: 600; }
+.choice-grid { display: grid; gap: 8px; }
+.choice-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.choice-tile {
+  position: relative;
+  display: grid;
+  min-height: 72px;
+  align-content: center;
+  gap: 2px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease;
+}
+.choice-tile input, .segmented input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.choice-title { color: var(--ink); font-size: var(--text-md); font-weight: 700; }
+.choice-copy { color: var(--muted); font-size: var(--text-xs); }
+.choice-tile:has(input:checked) { border-color: var(--gold); background: var(--gold-soft); box-shadow: inset 0 0 0 1px var(--gold); }
+.choice-tile:has(input:focus-visible), .segmented label:has(input:focus-visible) { outline: 3px solid var(--gold); outline-offset: 2px; }
+.segmented { display: flex; padding: 4px; border: 1px solid var(--line); border-radius: var(--radius-s); background: var(--surface-2); }
+.segmented label { display: grid; min-height: 40px; flex: 1; place-items: center; border-radius: 6px; color: var(--muted); cursor: pointer; font-size: var(--text-sm); font-weight: 600; }
+.segmented label:has(input:checked) { color: var(--ink); background: var(--surface); box-shadow: 0 1px 3px rgba(16, 42, 67, .14); }
+@media (hover: hover) and (pointer: fine) {
+  .choice-tile:not(:has(input:checked)):hover { border-color: var(--line-strong); background: var(--surface); }
+}
+.settings-field select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 40px 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-s);
+  color: var(--ink);
+  background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23334e68' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") right 12px center / 18px no-repeat;
+  font-size: var(--text-md);
+  font-weight: 500;
+  appearance: none;
+  cursor: pointer;
+}
+.settings-field select:focus-visible { border-color: var(--brand); outline: none; box-shadow: 0 0 0 3px rgba(21, 148, 94, .22); }
+
+/* ---------- Player card (preview and hub) ---------- */
+
+.player-card {
+  position: relative;
+  display: flex;
+  min-height: 420px;
+  flex-direction: column;
+  gap: 18px;
+  padding: clamp(20px, 2.4vw, 28px);
+  overflow: clip;
+  border: 1px solid rgba(212, 173, 82, .55);
+  border-radius: var(--radius-l);
+  color: #fff;
+  background:
+    radial-gradient(120% 80% at 100% 0%, rgba(212, 173, 82, .24), transparent 55%),
+    linear-gradient(155deg, #1d3f7a, var(--navy-deep) 78%);
+  box-shadow: var(--shadow-2);
+}
+.player-card-top { position: relative; z-index: 1; display: flex; align-items: flex-start; justify-content: space-between; }
+.player-card-flag img { display: block; width: 60px; height: 40px; border-radius: 4px; box-shadow: 0 0 0 1px rgba(255, 255, 255, .25); object-fit: cover; }
+.player-card-ovr { display: grid; justify-items: end; line-height: 1; }
+.player-card-ovr strong { color: var(--gold); font-family: var(--font-display); font-size: 3.5rem; font-weight: 800; }
+.player-card-ovr span { color: #c4cfe2; font-size: var(--text-xs); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.player-card-number {
+  position: absolute;
+  right: -8px;
+  bottom: 96px;
+  color: rgba(255, 255, 255, .06);
+  font-family: var(--font-display);
+  font-size: 13rem;
+  font-weight: 800;
+  line-height: 1;
+  pointer-events: none;
+}
+.player-card-identity { position: relative; z-index: 1; display: grid; gap: 4px; margin-top: auto; }
+.player-card-country { color: #ecd394; font-size: var(--text-xs); font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+.player-card-name { overflow: hidden; font-family: var(--font-display); font-size: clamp(2rem, 1.4rem + 1.6vw, 2.75rem); font-weight: 800; line-height: 1; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.player-card-role { color: #c4cfe2; font-size: var(--text-sm); }
+.player-skills { position: relative; z-index: 1; display: grid; gap: 10px; margin: 0; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, .14); }
+.player-skill { display: grid; grid-template-columns: 76px minmax(0, 1fr); align-items: center; gap: 12px; }
+.player-skill dt { color: #c4cfe2; font-size: var(--text-xs); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.player-skill dd { display: flex; align-items: center; gap: 10px; margin: 0; }
+.player-skill dd b { width: 24px; font-variant-numeric: tabular-nums; text-align: right; }
+.player-skill-bar { height: 6px; flex: 1; overflow: hidden; border-radius: 999px; background: rgba(255, 255, 255, .12); }
+.player-skill-bar span { display: block; height: 100%; border-radius: inherit; background: var(--gold); transition: width .3s var(--ease); }
+
+/* ---------- Career hub ---------- */
+
+.hub-layout {
+  display: grid;
+  grid-template-columns: minmax(300px, .9fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: clamp(14px, 1.8vw, 20px);
+}
+.player-card-hub { grid-row: 1 / 3; min-height: 0; }
+.hub-tile {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 220px;
+  flex-direction: column;
+  gap: 10px;
+  padding: clamp(18px, 2vw, 24px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
+}
+.hub-tile h2 { margin: 0; color: var(--ink); font-family: var(--font-display); font-size: var(--text-xl); font-weight: 700; line-height: 1.05; text-transform: uppercase; }
+.hub-tile-kicker { color: var(--gold-ink); font-size: var(--text-xs); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+.hub-tile-meta { margin: auto 0 0; color: var(--muted); font-size: var(--text-sm); }
+.hub-fixture { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 10px; margin-top: 8px; padding: 14px; border-radius: var(--radius); background: var(--surface-2); }
+.hub-fixture-team { display: grid; min-width: 0; justify-items: center; gap: 8px; color: var(--ink); font-size: var(--text-sm); font-weight: 700; text-align: center; }
+.hub-fixture-flag img, .hub-fixture-flag-tbd { display: grid; width: 48px; height: 32px; place-items: center; border-radius: 4px; box-shadow: 0 0 0 1px rgba(16, 42, 67, .12); object-fit: cover; }
+.hub-fixture-flag-tbd { color: #fff; background: #8a99ac; font-size: var(--text-xs); font-weight: 700; }
+.hub-fixture-vs { color: var(--gold-ink); font-size: var(--text-xs); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.hub-next .coming-soon { top: 18px; right: 18px; color: var(--gold-ink); background: var(--gold-soft); }
+.road-steps { display: grid; gap: 8px; margin: 6px 0 0; padding: 0; list-style: none; }
+.road-steps li { display: flex; min-height: 40px; align-items: center; gap: 12px; padding: 0 12px 0 6px; border-radius: var(--radius-s); color: var(--muted); background: var(--surface-2); font-size: var(--text-sm); font-weight: 600; }
+.road-steps li span { display: grid; width: 28px; height: 28px; flex: 0 0 28px; place-items: center; border-radius: 50%; color: var(--ink-2); background: var(--surface); font-size: var(--text-xs); font-weight: 700; }
+.road-steps li.is-current { color: var(--ink); background: var(--gold-soft); box-shadow: inset 0 0 0 1px rgba(212, 173, 82, .55); }
+.road-steps li.is-current span { color: #fff; background: var(--gold-ink); }
+.hub-shortcuts { display: grid; grid-column: 2 / 4; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(12px, 1.6vw, 16px); }
+.hub-shortcuts > .mode-locked { grid-column: auto; min-height: 140px; }
+.hub-locked .coming-soon { top: 12px; right: 12px; }
+.hub-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: var(--text-sm); }
+
+@media (max-width: 1100px) {
+  .hub-layout { grid-template-columns: minmax(280px, .9fr) minmax(0, 1fr); }
+  .player-card-hub { grid-row: 1 / 3; }
+  .hub-shortcuts { grid-column: 1 / -1; }
+}
+@media (max-width: 900px) {
+  .create-layout { grid-template-columns: 1fr; }
+  .create-layout .player-card { order: -1; min-height: 300px; }
+  .hub-layout { grid-template-columns: 1fr 1fr; }
+  .player-card-hub { grid-column: 1 / -1; grid-row: auto; min-height: 340px; }
+  .hub-shortcuts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  .career-flow-page { inset: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)); }
+  .story-confirm { flex-wrap: wrap; padding: 12px; }
+  .story-confirm .story-confirm-button { width: 100%; min-width: 0; }
+  .create-form { padding: 20px; }
+  .choice-grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .create-row { grid-template-columns: minmax(0, 1fr) 120px; }
+  .player-card-number { font-size: 9rem; bottom: 120px; }
+  .hub-layout { grid-template-columns: 1fr; }
+  .hub-shortcuts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hub-locked { min-height: 128px; padding: 16px; }
+  .hub-footer { flex-direction: column; align-items: stretch; text-align: center; }
+}

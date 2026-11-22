@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="app.css?v=1">
-  <link rel="stylesheet" href="cwc27.css?v=polish-1">
+  <link rel="stylesheet" href="app.css?v=3">
+  <link rel="stylesheet" href="cwc27.css?v=home-4">
 </head>
 <body>
   <div id="page-bg" aria-hidden="true"></div>
@@ -36,37 +36,96 @@
 
   <main id="home" class="screen home" aria-label="Home">
     <section id="homeMenu" class="home-menu">
-      <header class="home-heading">
-        <p class="eyebrow">World Cricket Champs</p>
-        <h1>Home</h1>
-        <p class="home-note">Choose how you want to play.</p>
+      <header class="home-topbar">
+        <div class="home-heading">
+          <p class="eyebrow">World Cricket Champs</p>
+          <h1>Home</h1>
+        </div>
+        <div class="home-topbar-actions">
+          <button id="homePlayerChip" class="player-chip" type="button" aria-label="Open Profile and Settings">
+            <span class="player-chip-avatar" id="homePlayerInitial" aria-hidden="true">P</span>
+            <span class="player-chip-copy"><span class="player-chip-label">Playing as</span><span id="homePlayerName" class="player-chip-name">Player</span></span>
+          </button>
+          <button id="homeMusicToggle" class="icon-chip" type="button" role="switch" aria-checked="true" aria-label="Music">
+            <svg class="icon-music-on" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            <svg class="icon-music-off" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V9m0-4 12-2v9"/><circle cx="6" cy="18" r="3"/><path d="M3 3l18 18"/></svg>
+          </button>
+        </div>
       </header>
+
       <section class="modes" aria-label="Game modes">
-        <button class="mode red cwc" type="button" data-mode="CWC27">
+        <button class="mode mode-hero red cwc" type="button" data-mode="CWC27">
           <img class="mode-art" src="gallary/1.png" alt="" aria-hidden="true">
-          <span class="mode-kicker">Pick up and play</span>
+          <span class="mode-kicker">Featured tournament</span>
           <span class="mode-name">CWC27</span>
-          <span class="mode-arrow" aria-hidden="true"></span>
+          <span class="mode-meta">2 Oct – 21 Nov 2027 · 14 teams · 57 matches</span>
+          <span class="mode-footer">
+            <span id="homeCwcResume" class="mode-resume"><span class="mode-resume-flag" id="homeCwcFlag" aria-hidden="true"></span><span id="homeCwcResumeText">Pick your team</span></span>
+            <span class="mode-arrow" aria-hidden="true"></span>
+          </span>
         </button>
         <button class="mode blue career" type="button" data-mode="Career">
           <img class="mode-art" src="gallary/3.jpg" alt="" aria-hidden="true">
           <span class="mode-kicker">Build your legacy</span>
           <span class="mode-name">Career</span>
-          <span class="mode-arrow" aria-hidden="true"></span>
+          <span class="mode-footer">
+            <span id="homeCareerMeta" class="mode-meta">Story Mode</span>
+            <span class="mode-arrow" aria-hidden="true"></span>
+          </span>
         </button>
         <button class="mode mint profile-mode" type="button" data-mode="Profile &amp; Settings">
           <img class="mode-art" src="gallary/2.jpg" alt="" aria-hidden="true">
           <span class="mode-kicker">Your game, your way</span>
           <span class="mode-name">Profile &amp; Settings</span>
-          <span class="mode-arrow" aria-hidden="true"></span>
+          <span class="mode-footer">
+            <span class="mode-meta">Nametag and music</span>
+            <span class="mode-arrow" aria-hidden="true"></span>
+          </span>
         </button>
-        <button class="mode gold trophy" type="button" data-mode="Trophy &amp; Achievements">
-          <img class="mode-art" src="gallary/4.webp" alt="" aria-hidden="true">
-          <span class="mode-kicker">Celebrate your wins</span>
-          <span class="mode-name">Trophy &amp; Achievements</span>
-          <span class="mode-arrow" aria-hidden="true"></span>
+        <button class="mode mode-locked" type="button" data-mode="Quick Match" aria-label="Quick Match, coming soon">
+          <span class="mode-lock" aria-hidden="true"></span>
+          <span class="mode-locked-name">Quick Match</span>
+          <span class="mode-locked-copy">Jump into a one-off match.</span>
           <span class="coming-soon">Coming soon</span>
         </button>
+        <button class="mode mode-locked" type="button" data-mode="Trophy &amp; Achievements" aria-label="Trophy and Achievements, coming soon">
+          <span class="mode-lock" aria-hidden="true"></span>
+          <span class="mode-locked-name">Trophy &amp; Achievements</span>
+          <span class="mode-locked-copy">Your trophies and milestones.</span>
+          <span class="coming-soon">Coming soon</span>
+        </button>
+        <button class="mode mode-locked" type="button" data-mode="Practice Nets" aria-label="Practice Nets, coming soon">
+          <span class="mode-lock" aria-hidden="true"></span>
+          <span class="mode-locked-name">Practice Nets</span>
+          <span class="mode-locked-copy">Sharpen your batting and bowling.</span>
+          <span class="coming-soon">Coming soon</span>
+        </button>
+        <button class="mode mode-locked" type="button" data-mode="Store / Kit Locker" aria-label="Store and Kit Locker, coming soon">
+          <span class="mode-lock" aria-hidden="true"></span>
+          <span class="mode-locked-name">Store / Kit Locker</span>
+          <span class="mode-locked-copy">Kits, bats and team colours.</span>
+          <span class="coming-soon">Coming soon</span>
+        </button>
+      </section>
+
+      <section class="news-strip" aria-label="Tournament news">
+        <span class="news-label">News</span>
+        <div class="news-track-wrap">
+          <ul class="news-track">
+            <li>CWC27 runs 2 October – 21 November 2027</li>
+            <li>Hosted by South Africa, Zimbabwe and Namibia</li>
+            <li>14 teams · 57 matches across four stages</li>
+            <li>Top three from each group plus one wildcard reach the Super 7</li>
+            <li>Win 2 points · Tie or no result 1 point</li>
+          </ul>
+          <ul class="news-track" aria-hidden="true">
+            <li>CWC27 runs 2 October – 21 November 2027</li>
+            <li>Hosted by South Africa, Zimbabwe and Namibia</li>
+            <li>14 teams · 57 matches across four stages</li>
+            <li>Top three from each group plus one wildcard reach the Super 7</li>
+            <li>Win 2 points · Tie or no result 1 point</li>
+          </ul>
+        </div>
       </section>
     </section>
     <section id="careerModesPage" class="career-modes-page" aria-labelledby="careerModesTitle" hidden>
@@ -133,6 +192,143 @@
           </footer>
         </section>
       </div>
+      <footer class="story-confirm" aria-live="polite">
+        <span id="storyConfirmFlag" class="story-confirm-flag" aria-hidden="true"></span>
+        <span class="story-confirm-copy">
+          <span id="storyConfirmLabel" class="story-confirm-label">No country selected</span>
+          <span id="storyConfirmName" class="story-confirm-name">Pick a country to represent</span>
+        </span>
+        <button id="storyContinue" class="cwc-primary story-confirm-button" type="button" disabled>Continue <span aria-hidden="true">→</span></button>
+      </footer>
+    </section>
+
+    <section id="careerCreatePage" class="career-flow-page" aria-labelledby="careerCreateTitle" hidden>
+      <header class="page-header">
+        <button id="backFromCreate" class="btn-back" type="button"><span class="btn-back-icon" aria-hidden="true"></span>Country</button>
+        <div>
+          <p class="eyebrow">Career · Story Mode</p>
+          <h1 id="careerCreateTitle">Create your player</h1>
+        </div>
+      </header>
+      <div class="create-layout">
+        <form id="createPlayerForm" class="create-form" novalidate>
+          <label class="settings-field" for="playerNameInput">Player name
+            <input id="playerNameInput" name="playerName" type="text" maxlength="20" autocomplete="nickname" placeholder="Your player's name" required>
+          </label>
+          <p id="playerNameError" class="field-error" role="alert" hidden>Enter a name for your player.</p>
+
+          <fieldset class="choice-group">
+            <legend>Role</legend>
+            <div class="choice-grid choice-grid-4">
+              <label class="choice-tile"><input type="radio" name="role" value="Batter" checked><span class="choice-title">Batter</span><span class="choice-copy">Top-order runs</span></label>
+              <label class="choice-tile"><input type="radio" name="role" value="Bowler"><span class="choice-title">Bowler</span><span class="choice-copy">Takes wickets</span></label>
+              <label class="choice-tile"><input type="radio" name="role" value="All-rounder"><span class="choice-title">All-rounder</span><span class="choice-copy">Bats and bowls</span></label>
+              <label class="choice-tile"><input type="radio" name="role" value="Wicketkeeper"><span class="choice-title">Wicketkeeper</span><span class="choice-copy">Gloves and runs</span></label>
+            </div>
+          </fieldset>
+
+          <div class="create-row">
+            <fieldset class="choice-group">
+              <legend>Batting hand</legend>
+              <div class="segmented">
+                <label><input type="radio" name="battingHand" value="Right-hand bat" checked><span>Right</span></label>
+                <label><input type="radio" name="battingHand" value="Left-hand bat"><span>Left</span></label>
+              </div>
+            </fieldset>
+            <label class="settings-field" for="jerseyInput">Shirt number
+              <input id="jerseyInput" name="jersey" type="number" inputmode="numeric" min="1" max="99" value="18">
+            </label>
+          </div>
+          <p id="jerseyError" class="field-error" role="alert" hidden>Pick a number from 1 to 99.</p>
+
+          <label class="settings-field" for="bowlingStyleSelect">Bowling style
+            <select id="bowlingStyleSelect" name="bowlingStyle">
+              <option>Doesn't bowl</option>
+              <option>Right-arm fast</option>
+              <option selected>Right-arm medium</option>
+              <option>Right-arm off spin</option>
+              <option>Right-arm leg spin</option>
+              <option>Left-arm fast</option>
+              <option>Left-arm orthodox spin</option>
+            </select>
+          </label>
+
+          <button id="startCareer" class="cwc-primary" type="submit">Start career <span aria-hidden="true">→</span></button>
+        </form>
+
+        <aside class="player-card" aria-label="Player card preview">
+          <div class="player-card-top">
+            <span id="previewCardFlag" class="player-card-flag" aria-hidden="true"></span>
+            <span class="player-card-ovr"><strong id="previewCardOvr">62</strong><span>Overall</span></span>
+          </div>
+          <span id="previewCardNumber" class="player-card-number" aria-hidden="true">18</span>
+          <div class="player-card-identity">
+            <span id="previewCardCountry" class="player-card-country">Country</span>
+            <span id="previewCardName" class="player-card-name">Player</span>
+            <span id="previewCardRole" class="player-card-role">Batter · Right-hand bat</span>
+          </div>
+          <dl id="previewCardSkills" class="player-skills"></dl>
+        </aside>
+      </div>
+    </section>
+
+    <section id="careerHubPage" class="career-flow-page" aria-labelledby="careerHubTitle" hidden>
+      <header class="page-header">
+        <button id="backFromHub" class="btn-back" type="button"><span class="btn-back-icon" aria-hidden="true"></span>Career</button>
+        <div>
+          <p class="eyebrow">Career · Season 1</p>
+          <h1 id="careerHubTitle">Story Mode</h1>
+        </div>
+      </header>
+      <div class="hub-layout">
+        <section class="player-card player-card-hub" aria-label="Your player">
+          <div class="player-card-top">
+            <span id="hubCardFlag" class="player-card-flag" aria-hidden="true"></span>
+            <span class="player-card-ovr"><strong id="hubCardOvr">62</strong><span>Overall</span></span>
+          </div>
+          <span id="hubCardNumber" class="player-card-number" aria-hidden="true">18</span>
+          <div class="player-card-identity">
+            <span id="hubCardCountry" class="player-card-country">Country</span>
+            <span id="hubCardName" class="player-card-name">Player</span>
+            <span id="hubCardRole" class="player-card-role">Batter</span>
+          </div>
+          <dl id="hubCardSkills" class="player-skills"></dl>
+        </section>
+
+        <section class="hub-tile hub-next" aria-labelledby="hubNextTitle">
+          <span class="hub-tile-kicker">Next match</span>
+          <h2 id="hubNextTitle">Domestic debut</h2>
+          <div class="hub-fixture">
+            <span class="hub-fixture-team"><span id="hubNextFlag" class="hub-fixture-flag" aria-hidden="true"></span><span id="hubNextHome">Your club</span></span>
+            <span class="hub-fixture-vs">vs</span>
+            <span class="hub-fixture-team"><span class="hub-fixture-flag hub-fixture-flag-tbd" aria-hidden="true">TBD</span><span>Opponent TBD</span></span>
+          </div>
+          <p class="hub-tile-meta">Season 1 · Match 1 · 50 overs</p>
+          <span class="coming-soon">Match day coming soon</span>
+        </section>
+
+        <section class="hub-tile hub-road" aria-labelledby="hubRoadTitle">
+          <span class="hub-tile-kicker">Your journey</span>
+          <h2 id="hubRoadTitle">Road to the national team</h2>
+          <ol class="road-steps">
+            <li class="is-current"><span>1</span>Domestic cricket</li>
+            <li><span>2</span>A team</li>
+            <li><span>3</span>National squad</li>
+            <li><span>4</span>World Cup</li>
+          </ol>
+        </section>
+
+        <div class="hub-shortcuts" aria-label="Career pages">
+          <button class="mode mode-locked hub-locked" type="button" data-mode="Schedule" aria-label="Schedule, coming soon"><span class="mode-lock" aria-hidden="true"></span><span class="mode-locked-name">Schedule</span><span class="mode-locked-copy">Your season calendar.</span><span class="coming-soon">Soon</span></button>
+          <button class="mode mode-locked hub-locked" type="button" data-mode="Training" aria-label="Training, coming soon"><span class="mode-lock" aria-hidden="true"></span><span class="mode-locked-name">Training</span><span class="mode-locked-copy">Build your skills.</span><span class="coming-soon">Soon</span></button>
+          <button class="mode mode-locked hub-locked" type="button" data-mode="Inbox" aria-label="Inbox, coming soon"><span class="mode-lock" aria-hidden="true"></span><span class="mode-locked-name">Inbox</span><span class="mode-locked-copy">Coach and selector messages.</span><span class="coming-soon">Soon</span></button>
+          <button class="mode mode-locked hub-locked" type="button" data-mode="Stats" aria-label="Stats, coming soon"><span class="mode-lock" aria-hidden="true"></span><span class="mode-locked-name">Stats</span><span class="mode-locked-copy">Batting and bowling records.</span><span class="coming-soon">Soon</span></button>
+        </div>
+      </div>
+      <footer class="hub-footer">
+        <span>Saved on this device.</span>
+        <button id="newCareer" class="btn-back" type="button">Start a new career</button>
+      </footer>
     </section>
     <section id="profileSettingsPage" class="profile-settings-page" aria-labelledby="profileSettingsTitle" hidden>
       <header class="page-header profile-settings-header">
@@ -232,11 +428,11 @@
   </main>
   <audio id="music" preload="auto"></audio>
 
-  <script src="cwc27.js?v=polish-1"></script>
+  <script src="cwc27.js?v=home-2"></script>
   <script src="assets/vendor/d3-array.min.js"></script>
   <script src="assets/vendor/d3-geo.min.js"></script>
   <script src="assets/vendor/topojson-client.min.js"></script>
-  <script src="story-mode.js?v=5"></script>
+  <script src="story-mode.js?v=6"></script>
   <script>
     const splash = document.querySelector("#splash");
     const home = document.querySelector("#home");
@@ -353,6 +549,7 @@
       const enabled = String(musicEnabled);
       soundToggle.setAttribute("aria-checked", enabled);
       profileMusicToggle.setAttribute("aria-checked", enabled);
+      document.querySelector("#homeMusicToggle").setAttribute("aria-checked", enabled);
     }
 
     function updateNametag() {
@@ -364,6 +561,7 @@
       } catch (_) {
         nametagStatus.textContent = "Could not save on this device.";
       }
+      refreshHome();
     }
 
     function updateMusicVolume() {
@@ -499,45 +697,218 @@
     profileMusicToggle.addEventListener("click", () => setMusic(!musicEnabled));
     musicVolumeInput.addEventListener("input", updateMusicVolume);
     nametagInput.addEventListener("input", updateNametag);
+    /* ---------- Shared helpers ---------- */
+    const careerStorageKey = "world-cricket-champs-career";
+    const careerCreatePage = document.querySelector("#careerCreatePage");
+    const careerHubPage = document.querySelector("#careerHubPage");
+    const createPlayerForm = document.querySelector("#createPlayerForm");
+    const playerNameInput = document.querySelector("#playerNameInput");
+    const jerseyInput = document.querySelector("#jerseyInput");
+    const bowlingStyleSelect = document.querySelector("#bowlingStyleSelect");
+    const storyContinue = document.querySelector("#storyContinue");
+    let storyPick = null;
+
+    const ROLE_SKILLS = {
+      "Batter": { Batting: 68, Bowling: 32, Fielding: 60, Fitness: 64 },
+      "Bowler": { Batting: 34, Bowling: 68, Fielding: 58, Fitness: 66 },
+      "All-rounder": { Batting: 58, Bowling: 58, Fielding: 60, Fitness: 62 },
+      "Wicketkeeper": { Batting: 62, Bowling: 20, Keeping: 70, Fitness: 62 }
+    };
+    const ROLE_DEFAULT_BOWLING = { "Batter": "Doesn't bowl", "Wicketkeeper": "Doesn't bowl", "Bowler": "Right-arm fast", "All-rounder": "Right-arm medium" };
+
+    function overallFor(role) {
+      const skills = ROLE_SKILLS[role];
+      const values = Object.values(skills).sort((x, y) => y - x);
+      return Math.round((values[0] * 2 + values[1] + values[2]) / 4);
+    }
+
+    function readCareer() {
+      try { return JSON.parse(localStorage.getItem(careerStorageKey) || "null"); }
+      catch (_) { return null; }
+    }
+
+    function saveCareer(career) {
+      try { localStorage.setItem(careerStorageKey, JSON.stringify(career)); } catch (_) { /* Storage may be unavailable. */ }
+    }
+
+    function flagImg(src) {
+      return src ? `<img src="${src}" alt="">` : "";
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("is-visible");
+      window.clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => toast.classList.remove("is-visible"), 2200);
+    }
+
+    function showPage(page, title) {
+      [homeMenu, careerModesPage, storyTeamSelectPage, profileSettingsPage, careerCreatePage, careerHubPage].forEach((section) => { section.hidden = section !== page; });
+      document.title = title;
+      if (page === homeMenu) refreshHome();
+    }
+
+    /* ---------- Home ---------- */
+    function refreshHome() {
+      const name = readStoredNametag() || "Player";
+      document.querySelector("#homePlayerName").textContent = name;
+      document.querySelector("#homePlayerInitial").textContent = name.trim().charAt(0) || "P";
+      const cwcTeam = window.CWC27 && window.CWC27.savedTeam();
+      document.querySelector("#homeCwcFlag").innerHTML = cwcTeam ? flagImg(cwcTeam.flag) : "";
+      document.querySelector("#homeCwcResumeText").textContent = cwcTeam ? `Continue as ${cwcTeam.name}` : "Pick your team";
+      const career = readCareer();
+      document.querySelector("#homeCareerMeta").textContent = career ? `Story Mode · ${career.country.teamName}` : "Story Mode";
+    }
+    window.addEventListener("wcc:home-shown", refreshHome);
+    refreshHome();
+
+    document.querySelector("#homePlayerChip").addEventListener("click", () => {
+      showPage(profileSettingsPage, "Profile & Settings | World Cricket Champs");
+      nametagInput.focus();
+    });
+    document.querySelector("#homeMusicToggle").addEventListener("click", () => setMusic(!musicEnabled));
+
     document.querySelector("#backToHome").addEventListener("click", () => {
-      profileSettingsPage.hidden = true;
-      homeMenu.hidden = false;
-      document.title = "Home | World Cricket Champs";
+      showPage(homeMenu, "Home | World Cricket Champs");
       profileModeButton.focus();
     });
 
     document.querySelector("#backFromCareer").addEventListener("click", () => {
-      careerModesPage.hidden = true;
-      homeMenu.hidden = false;
-      document.title = "Home | World Cricket Champs";
+      showPage(homeMenu, "Home | World Cricket Champs");
       careerModeButton.focus();
     });
 
-    backFromStoryMode.addEventListener("click", () => {
-      storyTeamSelectPage.hidden = true;
-      careerModesPage.hidden = false;
-      document.title = "Career | World Cricket Champs";
-      storyModeButton.focus();
-    });
+    /* ---------- Story Mode: choose a country ---------- */
+    function updateStoryConfirm() {
+      storyContinue.disabled = !storyPick;
+      document.querySelector("#storyConfirmFlag").innerHTML = storyPick ? flagImg(storyPick.flag) : "";
+      document.querySelector("#storyConfirmLabel").textContent = storyPick ? storyPick.detail : "No country selected";
+      document.querySelector("#storyConfirmName").textContent = storyPick ? storyPick.teamName : "Pick a country to represent";
+      storyContinue.firstChild.textContent = storyPick ? `Continue as ${storyPick.teamName} ` : "Continue ";
+    }
 
-    storyModeButton.addEventListener("click", () => {
-      storyModeButton.setAttribute("aria-pressed", "true");
-      storyModeButton.setAttribute("aria-label", "Story Mode, selected");
-      careerModesPage.hidden = true;
-      storyTeamSelectPage.hidden = false;
-      document.title = "Choose your country | Story Mode";
+    function openCountryPicker() {
+      showPage(storyTeamSelectPage, "Choose your country | Story Mode");
       if (!storyMapComponent) {
         storyMapComponent = window.InteractiveWorldMap.mount({
           mapRoot: document.querySelector("#storyMapMount"),
           countryListRoot: document.querySelector("#storyCountryGroups"),
-          onSelectTeam(teamCode) {
+          onSelectTeam(teamCode, details) {
             storyTeamSelectPage.dataset.selectedTeam = teamCode;
+            storyPick = details;
+            updateStoryConfirm();
           }
         });
       }
+      updateStoryConfirm();
       backFromStoryMode.focus();
+    }
+
+    backFromStoryMode.addEventListener("click", () => {
+      showPage(careerModesPage, "Career | World Cricket Champs");
+      storyModeButton.focus();
     });
 
+    storyModeButton.addEventListener("click", () => {
+      if (readCareer()) openHub();
+      else openCountryPicker();
+    });
+
+    storyContinue.addEventListener("click", () => {
+      if (!storyPick) return;
+      openCreatePlayer();
+    });
+
+    /* ---------- Create your player ---------- */
+    function formValues() {
+      const data = new FormData(createPlayerForm);
+      return {
+        name: playerNameInput.value.trim().slice(0, 20),
+        role: data.get("role"),
+        battingHand: data.get("battingHand"),
+        bowlingStyle: bowlingStyleSelect.value,
+        number: Number(jerseyInput.value)
+      };
+    }
+
+    function renderPlayerCard(prefix, player, country) {
+      const skills = ROLE_SKILLS[player.role];
+      document.querySelector(`#${prefix}Flag`).innerHTML = flagImg(country.flag);
+      document.querySelector(`#${prefix}Ovr`).textContent = String(overallFor(player.role));
+      document.querySelector(`#${prefix}Number`).textContent = Number.isInteger(player.number) && player.number >= 1 && player.number <= 99 ? String(player.number) : "";
+      document.querySelector(`#${prefix}Country`).textContent = country.teamName;
+      document.querySelector(`#${prefix}Name`).textContent = player.name || "Player";
+      const bowling = player.bowlingStyle === "Doesn't bowl" ? "" : ` · ${player.bowlingStyle}`;
+      document.querySelector(`#${prefix}Role`).textContent = `${player.role} · ${player.battingHand}${bowling}`;
+      document.querySelector(`#${prefix}Skills`).innerHTML = Object.entries(skills)
+        .map(([label, value]) => `<div class="player-skill"><dt>${label}</dt><dd><span class="player-skill-bar"><span style="width:${value}%"></span></span><b>${value}</b></dd></div>`)
+        .join("");
+    }
+
+    function updateCreatePreview() {
+      if (storyPick) renderPlayerCard("previewCard", formValues(), storyPick);
+    }
+
+    function openCreatePlayer() {
+      const existing = readCareer();
+      playerNameInput.value = existing?.player.name || readStoredNametag() || "";
+      document.querySelector("#playerNameError").hidden = true;
+      document.querySelector("#jerseyError").hidden = true;
+      const role = createPlayerForm.querySelector("input[name=role]:checked").value;
+      bowlingStyleSelect.value = existing?.player.bowlingStyle || ROLE_DEFAULT_BOWLING[role];
+      showPage(careerCreatePage, "Create your player | Story Mode");
+      updateCreatePreview();
+      playerNameInput.focus();
+    }
+
+    createPlayerForm.addEventListener("input", updateCreatePreview);
+    createPlayerForm.addEventListener("change", (event) => {
+      if (event.target.name === "role") {
+        bowlingStyleSelect.value = ROLE_DEFAULT_BOWLING[event.target.value];
+        updateCreatePreview();
+      }
+    });
+    playerNameInput.addEventListener("input", () => { document.querySelector("#playerNameError").hidden = true; });
+    jerseyInput.addEventListener("input", () => { document.querySelector("#jerseyError").hidden = true; });
+
+    createPlayerForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const player = formValues();
+      const nameOk = player.name.length > 0;
+      const numberOk = Number.isInteger(player.number) && player.number >= 1 && player.number <= 99;
+      document.querySelector("#playerNameError").hidden = nameOk;
+      document.querySelector("#jerseyError").hidden = numberOk;
+      if (!nameOk) { playerNameInput.focus(); return; }
+      if (!numberOk) { jerseyInput.focus(); return; }
+      saveCareer({ country: storyPick, player, season: 1, createdAt: new Date().toISOString() });
+      openHub();
+    });
+
+    document.querySelector("#backFromCreate").addEventListener("click", openCountryPicker);
+
+    /* ---------- Career hub ---------- */
+    function openHub() {
+      const career = readCareer();
+      if (!career) { openCountryPicker(); return; }
+      renderPlayerCard("hubCard", career.player, career.country);
+      document.querySelector("#hubNextFlag").innerHTML = flagImg(career.country.flag);
+      document.querySelector("#hubNextHome").textContent = `${career.country.teamName} domestic XI`;
+      showPage(careerHubPage, `${career.player.name} | Story Mode`);
+      document.querySelector("#backFromHub").focus();
+    }
+
+    document.querySelector("#backFromHub").addEventListener("click", () => {
+      showPage(careerModesPage, "Career | World Cricket Champs");
+      storyModeButton.focus();
+    });
+
+    document.querySelector("#newCareer").addEventListener("click", () => {
+      storyPick = null;
+      openCountryPicker();
+      showToast("Your current career stays saved until you start a new one.");
+    });
+
+    /* ---------- Home tiles ---------- */
     document.querySelectorAll(".mode").forEach((button) => {
       button.addEventListener("click", () => {
         if (button.dataset.mode === "CWC27") {
@@ -545,23 +916,16 @@
           return;
         }
         if (button.dataset.mode === "Profile & Settings") {
-          homeMenu.hidden = true;
-          profileSettingsPage.hidden = false;
-          document.title = "Profile & Settings | World Cricket Champs";
+          showPage(profileSettingsPage, "Profile & Settings | World Cricket Champs");
           nametagInput.focus();
           return;
         }
         if (button.dataset.mode === "Career") {
-          homeMenu.hidden = true;
-          careerModesPage.hidden = false;
-          document.title = "Career | World Cricket Champs";
+          showPage(careerModesPage, "Career | World Cricket Champs");
           storyModeButton.focus();
           return;
         }
-        toast.textContent = `${button.dataset.mode} is coming soon.`;
-        toast.classList.add("is-visible");
-        window.clearTimeout(toastTimer);
-        toastTimer = window.setTimeout(() => toast.classList.remove("is-visible"), 2200);
+        showToast(`${button.dataset.mode} is coming soon.`);
       });
     });
 

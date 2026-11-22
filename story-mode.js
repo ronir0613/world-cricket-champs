@@ -59,9 +59,12 @@
   const COUNTRY_BY_CODE = new Map(COUNTRIES.map((country) => [country.code, country]));
   const REGION_ORDER = ["Asia", "Africa", "Europe", "Americas", "Oceania"];
 
+  function flagSrc(country) {
+    return FLAG_IMAGES[country.code] || `assets/flags/${country.alpha2.toLowerCase()}.svg`;
+  }
+
   function flagMarkup(country) {
-    const image = FLAG_IMAGES[country.code] || `assets/flags/${country.alpha2.toLowerCase()}.svg`;
-    return `<img src="${image}" alt="" aria-hidden="true">`;
+    return `<img src="${flagSrc(country)}" alt="" aria-hidden="true">`;
   }
 
   function renderCountryList(root, chooseCountry, hoverCountry) {
@@ -241,7 +244,14 @@
       updateSelectionBadge(iso3);
       hideTooltip();
       zoomTo(iso3);
-      onSelectTeam(selected.teamCode);
+      onSelectTeam(selected.teamCode, {
+        iso3,
+        teamCode: selected.teamCode,
+        teamName: selected.teamName,
+        countryName: selected.country.name,
+        detail: selected.detailLabel,
+        flag: flagSrc(selected.country)
+      });
     }
 
     function hoverCountry(iso3, event) {
