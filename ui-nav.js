@@ -32,6 +32,10 @@
   }
 
   function activeLayer() {
+    const dialog = document.querySelector("dialog[open]");
+    if (dialog) return dialog;
+    const loading = document.querySelector("#loadingScreen:not([hidden])");
+    if (loading) return loading;
     const menu = document.querySelector("#menuPanel:not([hidden])");
     if (menu) return menu.closest("main");
     const cwc = document.querySelector("#cwcApp.is-active");
@@ -82,7 +86,9 @@
     playTick();
   }
 
+  let reportedNav = false;
   function move(direction) {
+    if (!reportedNav) { reportedNav = true; window.dispatchEvent(new CustomEvent("wcc:achievement", { detail: "nav" })); }
     const pool = candidates();
     if (!pool.length) return;
     const current = document.activeElement;
@@ -103,11 +109,15 @@
 
   /* Back: close the open menu, or press the visible back button. */
   function goBack() {
+    const dialog = document.querySelector("dialog[open]");
+    if (dialog) { dialog.close("cancel"); return; }
     const menu = document.querySelector("#menuPanel:not([hidden])");
     if (menu) { document.querySelector("#menuButton").click(); focusElement(document.querySelector("#menuButton")); return; }
     const layer = activeLayer();
     const back = [...layer.querySelectorAll(".btn-back, .cwc-back")].find((button) => isVisible(button) && !/Start a new career|Previous/.test(button.textContent));
-    if (back) back.click();
+    if (back) { back.click(); return; }
+    /* Nothing to go back to: open the pause menu on Home. */
+    window.dispatchEvent(new Event("wcc:open-pause"));
   }
 
   /* A soft tick for navigation, quiet and only when music is on. */

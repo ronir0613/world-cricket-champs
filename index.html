@@ -4,12 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#ffffff">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Cricket Champs">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/app-icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/app-icon.svg">
   <title>World Cricket Champs</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap">
-  <link rel="stylesheet" href="app.css?v=4">
-  <link rel="stylesheet" href="cwc27.css?v=v6">
+  <link rel="stylesheet" href="app.css?v=5">
+  <link rel="stylesheet" href="cwc27.css?v=v7">
+  <link rel="stylesheet" href="features.css?v=7">
 </head>
 <body>
   <div id="page-bg" aria-hidden="true"></div>
@@ -45,6 +53,9 @@
           <button id="homePlayerChip" class="player-chip" type="button" aria-label="Open Profile and Settings">
             <span class="player-chip-avatar" id="homePlayerInitial" aria-hidden="true">P</span>
             <span class="player-chip-copy"><span class="player-chip-label">Playing as</span><span id="homePlayerName" class="player-chip-name">Player</span></span>
+          </button>
+          <button id="homeMenuButton" class="icon-chip" type="button" aria-label="Open menu" aria-haspopup="dialog">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
           </button>
           <button id="homeMusicToggle" class="icon-chip" type="button" role="switch" aria-checked="true" aria-label="Music">
             <svg class="icon-music-on" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
@@ -90,23 +101,31 @@
             <span class="mode-arrow" aria-hidden="true"></span>
           </span>
         </button>
-        <button class="mode mode-locked" type="button" data-mode="Trophy &amp; Achievements" aria-label="Trophy and Achievements, coming soon">
-          <span class="mode-lock" aria-hidden="true"></span>
-          <span class="mode-locked-name">Trophy &amp; Achievements</span>
-          <span class="mode-locked-copy">Your trophies and milestones.</span>
-          <span class="coming-soon">Coming soon</span>
+        <button class="mode lavender trophy-tile" type="button" data-mode="Trophy &amp; Achievements">
+          <span class="mode-kicker">Your collection</span>
+          <span class="mode-name">Trophies</span>
+          <span class="mode-footer">
+            <span id="homeTrophyMeta" class="mode-meta">0 of 12 achievements</span>
+            <span class="mode-arrow" aria-hidden="true"></span>
+          </span>
         </button>
-        <button class="mode mode-locked" type="button" data-mode="Practice Nets" aria-label="Practice Nets, coming soon">
-          <span class="mode-lock" aria-hidden="true"></span>
-          <span class="mode-locked-name">Practice Nets</span>
-          <span class="mode-locked-copy">Sharpen your batting and bowling.</span>
-          <span class="coming-soon">Coming soon</span>
+        <button class="mode sand nets-tile" type="button" data-mode="Practice Nets">
+          <img class="mode-art mode-photo" src="assets/photos/nets.jpg" alt="" aria-hidden="true">
+          <span class="mode-kicker">Sharpen up</span>
+          <span class="mode-name">Practice Nets</span>
+          <span class="mode-footer">
+            <span class="mode-meta">Batting, bowling and fielding drills</span>
+            <span class="mode-arrow" aria-hidden="true"></span>
+          </span>
         </button>
-        <button class="mode mode-locked" type="button" data-mode="Store / Kit Locker" aria-label="Store and Kit Locker, coming soon">
-          <span class="mode-lock" aria-hidden="true"></span>
-          <span class="mode-locked-name">Store / Kit Locker</span>
-          <span class="mode-locked-copy">Kits, bats and team colours.</span>
-          <span class="coming-soon">Coming soon</span>
+        <button class="mode teal kit-tile" type="button" data-mode="Store / Kit Locker">
+          <span id="homeKitShirt" class="mode-kit-shirt" aria-hidden="true"></span>
+          <span class="mode-kicker">Kit locker</span>
+          <span class="mode-name">Store</span>
+          <span class="mode-footer">
+            <span class="mode-meta">Design your shirt</span>
+            <span class="mode-arrow" aria-hidden="true"></span>
+          </span>
         </button>
       </section>
 
@@ -285,7 +304,7 @@
       <div class="hub-layout">
         <section class="player-card player-card-hub" aria-label="Your player">
           <div class="player-card-top">
-            <span id="hubCardFlag" class="player-card-flag" aria-hidden="true"></span>
+            <span class="player-card-badges"><span id="hubCardFlag" class="player-card-flag" aria-hidden="true"></span><span id="hubCardKit" class="player-card-kit" aria-hidden="true"></span></span>
             <span class="player-card-ovr"><strong id="hubCardOvr">62</strong><span>Overall</span></span>
           </div>
           <span id="hubCardNumber" class="player-card-number" aria-hidden="true">18</span>
@@ -480,14 +499,15 @@
           <h2 id="qmConditionsTitle" class="qm-panel-title">Set the conditions</h2>
           <label class="settings-field" for="qmVenue">Venue
             <select id="qmVenue">
-              <option>Johannesburg, South Africa</option>
-              <option>Cape Town, South Africa</option>
-              <option>Durban, South Africa</option>
-              <option>Harare, Zimbabwe</option>
-              <option>Bulawayo, Zimbabwe</option>
-              <option>Windhoek, Namibia</option>
+              <option value="johannesburg">The Wanderers Stadium, Johannesburg</option>
+              <option value="cape-town">Newlands, Cape Town</option>
+              <option value="durban">Kingsmead, Durban</option>
+              <option value="harare">Harare Sports Club, Harare</option>
+              <option value="bulawayo">Queens Sports Club, Bulawayo</option>
+              <option value="windhoek">Wanderers Cricket Ground, Windhoek</option>
             </select>
           </label>
+          <div id="qmVenuePreview" class="qm-venue-preview"></div>
           <fieldset class="choice-group">
             <legend>Pitch</legend>
             <div class="segmented">
@@ -554,6 +574,136 @@
       </footer>
     </section>
 
+    <section id="trophyPage" class="career-flow-page feature-page" aria-labelledby="trophyTitle" hidden>
+      <header class="page-header">
+        <button class="btn-back" type="button" data-back-home><span class="btn-back-icon" aria-hidden="true"></span>Home</button>
+        <div>
+          <p class="eyebrow">Your collection</p>
+          <h1 id="trophyTitle">Trophies</h1>
+        </div>
+      </header>
+      <section class="trophy-cabinet" aria-labelledby="cabinetTitle">
+        <h2 id="cabinetTitle" class="visually-hidden">Trophy cabinet</h2>
+        <div class="trophy-shelf">
+          <div class="trophy-slot"><span class="trophy-figure" aria-hidden="true"></span><b>CWC27 champions</b><span>Not won yet</span></div>
+          <div class="trophy-slot trophy-slot-feature"><span class="trophy-figure" aria-hidden="true"></span><b>Domestic champions</b><span>Not won yet</span></div>
+          <div class="trophy-slot"><span class="trophy-figure" aria-hidden="true"></span><b>Player of the season</b><span>Not won yet</span></div>
+        </div>
+      </section>
+      <section class="achievements" aria-labelledby="achievementsTitle">
+        <header class="achievements-header">
+          <div>
+            <h2 id="achievementsTitle">Achievements</h2>
+            <p id="achievementsProgressText">0 of 12 unlocked</p>
+          </div>
+          <div class="segmented achievements-filter" role="radiogroup" aria-label="Show achievements">
+            <label><input type="radio" name="achievementFilter" value="all" checked><span>All</span></label>
+            <label><input type="radio" name="achievementFilter" value="unlocked"><span>Unlocked</span></label>
+            <label><input type="radio" name="achievementFilter" value="locked"><span>Locked</span></label>
+          </div>
+        </header>
+        <div class="achievements-progress" aria-hidden="true"><span id="achievementsProgressBar"></span></div>
+        <ul id="achievementsGrid" class="achievements-grid"></ul>
+      </section>
+    </section>
+
+    <section id="kitPage" class="career-flow-page feature-page" aria-labelledby="kitTitle" hidden>
+      <header class="page-header">
+        <button class="btn-back" type="button" data-back-home><span class="btn-back-icon" aria-hidden="true"></span>Home</button>
+        <div>
+          <p class="eyebrow">Kit locker</p>
+          <h1 id="kitTitle">Store</h1>
+        </div>
+      </header>
+      <div class="kit-layout">
+        <section class="kit-stage" aria-label="Shirt preview">
+          <div class="segmented kit-view-toggle" role="radiogroup" aria-label="Shirt view">
+            <label><input type="radio" name="kitView" value="front"><span>Front</span></label>
+            <label><input type="radio" name="kitView" value="back" checked><span>Back</span></label>
+          </div>
+          <div id="kitPreview" class="kit-preview"></div>
+        </section>
+        <form id="kitForm" class="create-form kit-form" novalidate>
+          <fieldset class="choice-group">
+            <legend>Main colour</legend>
+            <div id="kitPrimary" class="swatches"></div>
+          </fieldset>
+          <fieldset class="choice-group">
+            <legend>Trim colour</legend>
+            <div id="kitSecondary" class="swatches"></div>
+          </fieldset>
+          <fieldset class="choice-group">
+            <legend>Pattern</legend>
+            <div class="segmented">
+              <label><input type="radio" name="kitPattern" value="plain" checked><span>Plain</span></label>
+              <label><input type="radio" name="kitPattern" value="sash"><span>Sash</span></label>
+              <label><input type="radio" name="kitPattern" value="stripes"><span>Stripes</span></label>
+              <label><input type="radio" name="kitPattern" value="panels"><span>Panels</span></label>
+            </div>
+          </fieldset>
+          <div class="create-row">
+            <label class="settings-field" for="kitName">Name on back
+              <input id="kitName" type="text" maxlength="12" autocomplete="off" placeholder="PLAYER">
+            </label>
+            <label class="settings-field" for="kitNumber">Number
+              <input id="kitNumber" type="number" inputmode="numeric" min="1" max="99" value="18">
+            </label>
+          </div>
+          <p id="kitNumberError" class="field-error" role="alert" hidden>Pick a number from 1 to 99.</p>
+          <div class="kit-actions">
+            <button id="kitReset" class="btn-back" type="button">Reset</button>
+            <button class="cwc-primary" type="submit">Save kit <span aria-hidden="true">→</span></button>
+          </div>
+        </form>
+      </div>
+      <section class="store-browse" aria-labelledby="storeTitle">
+        <header><h2 id="storeTitle">Gear</h2><span class="coming-soon">Browse only</span></header>
+        <ul class="store-grid">
+          <li class="store-item"><span class="store-icon store-icon-bat" aria-hidden="true"></span><b>Bats</b><span>Coming soon</span></li>
+          <li class="store-item"><span class="store-icon store-icon-gloves" aria-hidden="true"></span><b>Gloves</b><span>Coming soon</span></li>
+          <li class="store-item"><span class="store-icon store-icon-helmet" aria-hidden="true"></span><b>Helmets</b><span>Coming soon</span></li>
+          <li class="store-item"><span class="store-icon store-icon-pads" aria-hidden="true"></span><b>Pads</b><span>Coming soon</span></li>
+        </ul>
+      </section>
+    </section>
+
+    <section id="venuesPage" class="career-flow-page feature-page" aria-labelledby="venuesTitle" hidden>
+      <header class="page-header">
+        <button id="backFromVenues" class="btn-back" type="button"><span class="btn-back-icon" aria-hidden="true"></span><span id="venuesBackLabel">Home</span></button>
+        <div>
+          <p class="eyebrow">CWC27 host venues</p>
+          <h1 id="venuesTitle">Venue guide</h1>
+        </div>
+      </header>
+      <div id="venueGrid" class="venue-grid"></div>
+      <article id="venueDetail" class="venue-detail" aria-live="polite" hidden></article>
+    </section>
+
+    <section id="netsPage" class="career-flow-page feature-page" aria-labelledby="netsTitle" hidden>
+      <header class="page-header">
+        <button class="btn-back" type="button" data-back-home><span class="btn-back-icon" aria-hidden="true"></span>Home</button>
+        <div>
+          <p class="eyebrow">Training ground</p>
+          <h1 id="netsTitle">Practice Nets</h1>
+        </div>
+      </header>
+      <section class="nets-hero">
+        <img src="assets/photos/nets.jpg" alt="Cricket practice nets on a sunny day">
+        <div class="nets-hero-copy">
+          <p>Pick a drill and a difficulty. Drills will open when the match engine arrives.</p>
+          <fieldset class="choice-group">
+            <legend>Difficulty</legend>
+            <div class="segmented segmented-dark">
+              <label><input type="radio" name="netsDifficulty" value="Club" checked><span>Club</span></label>
+              <label><input type="radio" name="netsDifficulty" value="Domestic"><span>Domestic</span></label>
+              <label><input type="radio" name="netsDifficulty" value="International"><span>International</span></label>
+            </div>
+          </fieldset>
+        </div>
+      </section>
+      <div id="drillGrid" class="drill-grid"></div>
+    </section>
+
     <section id="profileSettingsPage" class="profile-settings-page" aria-labelledby="profileSettingsTitle" hidden>
       <header class="page-header profile-settings-header">
         <button id="backToHome" class="btn-back" type="button"><span class="btn-back-icon" aria-hidden="true"></span>Home</button>
@@ -570,6 +720,10 @@
           </label>
           <div class="nametag-preview-row"><span>Nametag preview</span><output id="nametagPreview" class="nametag-preview">Player</output></div>
           <p class="settings-hint" id="nametagStatus" role="status" aria-live="polite">Saved on this device.</p>
+          <label class="settings-field" for="favouriteTeamSelect">Favourite team
+            <select id="favouriteTeamSelect" class="team-select"></select>
+          </label>
+          <p class="settings-hint" id="memberSince"></p>
         </div>
         <div class="settings-section">
           <p class="settings-section-label">Music</p>
@@ -640,7 +794,7 @@
           <p class="cwc-eyebrow">ICC Cricket World Cup 2027</p>
           <h1 id="hubTitle">CWC27</h1>
         </div>
-        <div class="hub-team"><span id="hubTeamFlag" aria-hidden="true"></span><span id="hubTeamName">Team</span></div>
+        <a id="hubTeamLink" class="hub-team" href="#/cwc27/team" aria-label="View your team page"><span id="hubTeamFlag" aria-hidden="true"></span><span id="hubTeamName">Team</span></a>
       </header>
       <nav class="stage-navigation" aria-label="Tournament stages">
         <a data-stage-link="team" href="#/cwc27/team"><span>1</span><b>Team</b></a>
@@ -659,14 +813,76 @@
       </section>
     </section>
   </main>
+  <dialog id="welcomeDialog" class="app-dialog" aria-labelledby="welcomeTitle">
+    <form id="welcomeForm" method="dialog" class="app-dialog-body" novalidate>
+      <p class="eyebrow">Welcome</p>
+      <h2 id="welcomeTitle">Set up your player profile</h2>
+      <p class="app-dialog-copy">You can change these later in Profile &amp; Settings.</p>
+      <label class="settings-field" for="welcomeName">Nametag
+        <input id="welcomeName" type="text" maxlength="20" autocomplete="nickname" placeholder="Your name">
+      </label>
+      <p id="welcomeNameError" class="field-error" role="alert" hidden>Enter a nametag, or skip for now.</p>
+      <label class="settings-field" for="welcomeTeam">Favourite team
+        <select id="welcomeTeam" class="team-select"></select>
+      </label>
+      <div class="app-dialog-actions">
+        <button id="welcomeSkip" class="btn-back" type="button">Skip for now</button>
+        <button class="cwc-primary" type="submit">Let's play <span aria-hidden="true">→</span></button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="pauseDialog" class="app-dialog pause-dialog" aria-labelledby="pauseTitle">
+    <div class="app-dialog-body">
+      <p class="eyebrow">World Cricket Champs</p>
+      <h2 id="pauseTitle">Menu</h2>
+      <nav class="pause-list" aria-label="Menu">
+        <button type="button" data-pause="resume"><span>Resume</span><kbd>Esc</kbd></button>
+        <button type="button" data-pause="trophies"><span>Trophies and achievements</span></button>
+        <button type="button" data-pause="kit"><span>Kit locker</span></button>
+        <button type="button" data-pause="venues"><span>Venue guide</span></button>
+        <button type="button" data-pause="profile"><span>Profile and settings</span></button>
+        <button type="button" data-pause="title"><span>Return to title screen</span></button>
+      </nav>
+      <div class="pause-controls">
+        <p class="settings-section-label">Controls</p>
+        <ul class="controls-list">
+          <li><span><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd></span>Move</li>
+          <li><span><kbd>Enter</kbd> / <kbd>A</kbd></span>Select</li>
+          <li><span><kbd>Esc</kbd> / <kbd>B</kbd></span>Back</li>
+        </ul>
+      </div>
+    </div>
+  </dialog>
+
+  <div id="rotatePrompt" class="rotate-prompt" role="dialog" aria-modal="true" aria-labelledby="rotateTitle">
+    <div class="rotate-device" aria-hidden="true"><span></span></div>
+    <h2 id="rotateTitle">Rotate your device</h2>
+    <p>World Cricket Champs plays in landscape. Turn your phone sideways to continue.</p>
+    <button id="rotateFullscreen" class="cwc-primary" type="button">Play full screen <span aria-hidden="true">→</span></button>
+  </div>
+
+  <div id="loadingScreen" class="loading-screen" hidden>
+    <img id="loadingPhoto" class="loading-photo" alt="">
+    <div class="loading-copy">
+      <p id="loadingLabel" class="loading-label">Loading</p>
+      <span class="loading-bar" aria-hidden="true"><span></span></span>
+      <p id="loadingTip" class="loading-tip"></p>
+    </div>
+  </div>
+
+  <div id="achievementToast" class="achievement-toast" role="status" aria-live="polite" hidden>
+    <span class="achievement-toast-icon" aria-hidden="true"></span>
+    <span class="achievement-toast-copy"><span>Achievement unlocked</span><b id="achievementToastTitle"></b></span>
+  </div>
   <audio id="music" preload="auto"></audio>
 
-  <script src="cwc27.js?v=v5"></script>
+  <script src="cwc27.js?v=v7"></script>
   <script src="assets/vendor/d3-array.min.js"></script>
   <script src="assets/vendor/d3-geo.min.js"></script>
   <script src="assets/vendor/topojson-client.min.js"></script>
   <script src="story-mode.js?v=7"></script>
-  <script src="ui-nav.js?v=2"></script>
+  <script src="ui-nav.js?v=3"></script>
   <script>
     const splash = document.querySelector("#splash");
     const home = document.querySelector("#home");
@@ -1391,7 +1607,7 @@
       document.querySelector("#qmSumHome").textContent = home.name;
       document.querySelector("#qmSumAway").textContent = away.name;
       document.querySelector("#qmSumToss").textContent = qm.toss.summary;
-      const rows = [["Format", `${format} · ${overs}`], ["Difficulty", qmValue("qmDifficulty")], ["Venue", document.querySelector("#qmVenue").value], ["Pitch", qmValue("qmPitch")], ["Weather", qmValue("qmWeather")], ["Time", qmValue("qmTime")]];
+      const rows = [["Format", `${format} · ${overs}`], ["Difficulty", qmValue("qmDifficulty")], ["Venue", document.querySelector("#qmVenue").selectedOptions[0].text], ["Pitch", qmValue("qmPitch")], ["Weather", qmValue("qmWeather")], ["Time", qmValue("qmTime")]];
       document.querySelector("#qmSumDetails").innerHTML = rows.map(([label, value]) => `<div><dt>${label}</dt><dd>${value}</dd></div>`).join("");
     }
 
@@ -1534,10 +1750,12 @@
           storyModeButton.focus();
           return;
         }
+        if (window.openFeature && window.openFeature(button.dataset.mode)) return;
         showToast(`${button.dataset.mode} is coming soon.`);
       });
     });
 
   </script>
+  <script src="features.js?v=2"></script>
 </body>
 </html>

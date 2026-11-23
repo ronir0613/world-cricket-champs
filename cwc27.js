@@ -117,6 +117,7 @@
     cwcApp.classList.toggle("is-active", active);
     cwcApp.hidden = !active;
     document.querySelector("#home").classList.toggle("is-active", !active);
+    if (!active) document.querySelector("#splash").hidden = true;
     document.querySelector("#home").setAttribute("aria-hidden", String(active));
   }
 
@@ -141,6 +142,8 @@
 
   function parseRoute() {
     const raw = window.location.hash.replace(/^#/, "");
+    const nation = raw.match(/^\/cwc27\/nation\/([A-Z0-9-]+)$/);
+    if (nation) return { page: "nation", code: nation[1], from: "groups" };
     const match = raw.match(/^\/cwc27\/(team|groups|super7|semi-finals|finals|fixtures)(?:\?from=(groups|super7))?$/);
     if (!match) return null;
     return { page: match[1], from: match[2] || "groups" };
@@ -302,7 +305,7 @@
       const zone = position <= qualifyCount ? "is-qualifying" : position === wildcardRow ? "is-wildcard" : "";
       const slot = super7Slots.find((entry) => entry.code === code);
       const label = slot ? `<span class="standings-slot">${slot.code}</span>` : "";
-      return `<tr class="${zone}${selected ? " is-selected-team" : ""}"><td class="standings-pos">${position}</td><th scope="row"><span class="standings-team"><span class="fixture-flag" aria-hidden="true">${flagContent(team)}</span><span class="standings-name">${team.name}</span>${label}</span></th><td>0</td><td>0</td><td>0</td><td class="standings-optional">0</td><td class="standings-optional">0.000</td><td class="standings-pts">0</td></tr>`;
+      return `<tr class="${zone}${selected ? " is-selected-team" : ""}"><td class="standings-pos">${position}</td><th scope="row"><span class="standings-team"><span class="fixture-flag" aria-hidden="true">${flagContent(team)}</span><a class="standings-name" href="#/cwc27/nation/${team.code}">${team.name}</a>${label}</span></th><td>0</td><td>0</td><td>0</td><td class="standings-optional">0</td><td class="standings-optional">0.000</td><td class="standings-pts">0</td></tr>`;
     }).join("");
     return `<section class="standings-card" aria-label="${title} points table"><header><h3>${title}</h3><span>${codes.length} teams</span></header><div class="standings-scroll"><table class="standings-table"><thead><tr><th scope="col" class="standings-pos"><span class="visually-hidden">Position</span>#</th><th scope="col">Team</th><th scope="col" title="Played">P</th><th scope="col" title="Won">W</th><th scope="col" title="Lost">L</th><th scope="col" class="standings-optional" title="Tied or no result">T/NR</th><th scope="col" class="standings-optional" title="Net run rate">NRR</th><th scope="col" class="standings-pts" title="Points">Pts</th></tr></thead><tbody>${rows}</tbody></table></div></section>`;
   }
@@ -333,7 +336,50 @@
     const nextAction = details.next
       ? `<button class="cwc-primary stage-next" type="button" data-next-stage="${details.next}">${details.nextLabel}<span aria-hidden="true">→</span></button>`
       : `<span class="stage-complete">Tournament final · Champion TBD</span>`;
-    stageView.innerHTML = `<header class="stage-heading"><div><p class="cwc-eyebrow">ICC Cricket World Cup 2027 · ${selectedTeam.name}</p><h2>${details.title}</h2><p class="stage-subtitle">${subheading}</p></div><span class="stage-unlocked">Test build · Stage unlocked</span></header>${layout}<footer class="stage-footer"><span>All stages are available in this test build.</span>${nextAction}</footer>`;
+    stageView.innerHTML = `<header class="stage-heading"><div><p class="cwc-eyebrow">ICC Cricket World Cup 2027 · ${selectedTeam.name}</p><h2>${details.title}</h2><p class="stage-subtitle">${subheading}</p></div><span class="stage-unlocked">Test build · Stage unlocked</span></header>${layout}<footer class="stage-footer"><span class="stage-footer-note">All stages are available in this test build. <button class="text-link" type="button" data-open-venues>Host venues</button></span>${nextAction}</footer>`;
+  }
+
+  /* ---------- Team pages ---------- */
+  let lastStageRoute = "groups";
+  const SQUAD_SHAPE = [["Batters", 5], ["Wicketkeepers", 2], ["All-rounders", 3], ["Bowlers", 5]];
+
+  function nationFixtures(code) {
+    const slot = super7Slots.find((entry) => entry.teamCode === code);
+    return fixtures.filter((match) => (match.stage === "Group Stage" || match.stage === "Super Series") && (match.home === code || match.away === code))
+      .concat(slot ? fixtures.filter((match) => match.stage === "Super 7" && (match.home === slot.code || match.away === slot.code)) : []);
+  }
+
+  function renderNation(code) {
+    const team = byCode.get(code);
+    stageView.hidden = false;
+    fixturePage.hidden = true;
+    if (!team) {
+      stageView.innerHTML = `<div class="fixture-empty"><h3>Team not found</h3><p>Pick a team from the points table.</p></div>`;
+      return;
+    }
+    const slot = super7Slots.find((entry) => entry.teamCode === code);
+    const list = nationFixtures(code);
+    const rows = list.map((match, index) => {
+      const homeInfo = teamInfo(match.home);
+      const awayInfo = teamInfo(match.away);
+      return `<article class="team-fixture-match"><span class="team-fixture-index">${String(index + 1).padStart(2, "0")}</span><span class="team-fixture-stage">${match.stage}${match.group ? ` · ${match.group}` : ""} · Round ${match.round}</span><div class="team-fixture-pair">${teamInline(match.home, homeInfo.code === code)}<span class="fixture-vs">VS</span>${teamInline(match.away, awayInfo.code === code)}</div><span class="team-fixture-date">${match.venue || "Date TBA"}</span></article>`;
+    }).join("");
+    const squad = SQUAD_SHAPE.map(([role, count]) => `<div class="squad-group"><h4>${role}</h4><div class="squad-slots">${Array.from({ length: count }, () => `<span class="squad-slot"><span class="squad-avatar" aria-hidden="true"></span>TBA</span>`).join("")}</div></div>`).join("");
+    stageView.innerHTML = `
+      <header class="nation-hero">
+        <span class="nation-flag" aria-hidden="true">${flagContent(team)}</span>
+        <div class="nation-copy">
+          <p class="cwc-eyebrow">${team.type}</p>
+          <h2>${team.name}</h2>
+          <div class="nation-chips"><span>${team.group}</span><span>${slot ? `Super 7 seed ${slot.code}` : "Unseeded for Super 7"}</span><span>${list.length} scheduled ${list.length === 1 ? "match" : "matches"}</span></div>
+        </div>
+        <button class="btn-back nation-back" type="button" data-nation-back><span class="btn-back-icon" aria-hidden="true"></span>Back</button>
+      </header>
+      <div class="nation-layout">
+        <section class="team-fixture-section" aria-label="${team.name} fixtures"><header><h3>Fixtures</h3><span>${list.length} matches</span></header>${rows ? `<div class="team-fixture-bracket">${rows}</div>` : `<p class="fixture-section-note">Fixtures appear once this entrant is confirmed.</p>`}</section>
+        <section class="team-fixture-section squad-section" aria-label="${team.name} squad"><header><h3>Squad</h3><span>15 players</span></header><p class="fixture-section-note">Squads are named closer to the tournament.</p>${squad}</section>
+      </div>`;
+    window.dispatchEvent(new CustomEvent("wcc:achievement", { detail: "scout" }));
   }
 
   function renderRoute() {
@@ -361,17 +407,22 @@
     tournamentHub.hidden = false;
     hubTeamFlag.innerHTML = flagContent(selectedTeam);
     hubTeamName.textContent = selectedTeam.name;
+    document.querySelector("#hubTeamLink").setAttribute("href", `#/cwc27/nation/${selectedTeam.code}`);
     document.querySelectorAll("[data-stage-link]").forEach((link) => {
       const active = link.dataset.stageLink === route.page || (route.page === "fixtures" && link.dataset.stageLink === route.from);
       link.classList.toggle("is-current", active);
       if (active) link.setAttribute("aria-current", "page");
       else link.removeAttribute("aria-current");
     });
-    if (route.page === "fixtures") {
+    if (route.page === "nation") {
+      renderNation(route.code);
+      document.title = `${byCode.get(route.code)?.name || "Team"} | CWC27`;
+    } else if (route.page === "fixtures") {
       renderFixturePage(route.from);
       document.title = `My fixtures · ${selectedTeam.name} | CWC27`;
     } else {
       renderStage(route.page);
+      lastStageRoute = route.page;
       document.title = `${stageDetails[route.page].title} | CWC27`;
     }
   }
@@ -379,6 +430,7 @@
   enterTournament.addEventListener("click", () => {
     if (!selectedTeam) return;
     try { localStorage.setItem(storageKey, selectedTeam.code); } catch (_) { /* Storage may be unavailable. */ }
+    window.dispatchEvent(new CustomEvent("wcc:achievement", { detail: "cwc-team" }));
     navigate("groups");
   });
 
@@ -394,7 +446,9 @@
       return;
     }
     const nextButton = event.target.closest("[data-next-stage]");
-    if (nextButton) navigate(nextButton.dataset.nextStage);
+    if (nextButton) { navigate(nextButton.dataset.nextStage); return; }
+    if (event.target.closest("[data-nation-back]")) { navigate(lastStageRoute); return; }
+    if (event.target.closest("[data-open-venues]")) window.dispatchEvent(new CustomEvent("wcc:open-venues", { detail: { from: "cwc" } }));
   });
 
   window.addEventListener("hashchange", renderRoute);
@@ -405,6 +459,7 @@
       if (!parseRoute()) navigate(selectedTeam ? "groups" : "team", true);
       else renderRoute();
     },
+    close: closeCwc,
     savedTeam() {
       const team = readSavedTeam();
       return team ? { name: team.name, flag: team.flag ? `assets/flags/${team.flag}` : "" } : null;
