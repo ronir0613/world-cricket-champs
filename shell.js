@@ -12,7 +12,7 @@ const splashEl = document.querySelector("#splash");
 
 /* ---------- Global settings, shared by every save ---------- */
 const SETTINGS_KEY = "wcc-settings";
-const SETTINGS_DEFAULTS = { sfx: true, sfxVolume: 0.6, haptics: true, theme: "day", text: "100", reduceMotion: false, colour: "off" };
+const SETTINGS_DEFAULTS = { skin: "pro", sfx: true, sfxVolume: 0.6, haptics: true, theme: "day", text: "100", reduceMotion: false, colour: "off" };
 
 function readSettings() {
   try { return { ...SETTINGS_DEFAULTS, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}") }; }
@@ -25,12 +25,14 @@ function saveSettings(patch) {
   applySettings();
 }
 function applySettings() {
-  html.dataset.theme = settings.theme;
+  if (!["pro", "classic"].includes(settings.skin)) settings.skin = "pro";
+  html.dataset.skin = settings.skin;
+  html.dataset.theme = settings.skin === "pro" ? "day" : settings.theme;
   html.dataset.colour = settings.colour;
   html.style.fontSize = `${settings.text}%`;
   html.classList.toggle("reduce-motion", settings.reduceMotion);
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute("content", settings.theme === "night" ? "#0a1424" : "#ffffff");
+  if (meta) meta.setAttribute("content", html.dataset.theme === "night" ? "#050b16" : "#ffffff");
 }
 applySettings();
 const motionReduced = () => settings.reduceMotion || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -98,6 +100,7 @@ window.WCCSound = WCCSound;
 
 function buzz(pattern = 8) {
   if (!settings.haptics || !navigator.vibrate || !window.matchMedia("(pointer: coarse)").matches) return;
+  if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
   try { navigator.vibrate(pattern); } catch (_) { /* Vibration is optional. */ }
 }
 
@@ -437,6 +440,8 @@ function syncSettingsControls() {
   document.querySelector("#motionToggle").setAttribute("aria-checked", String(settings.reduceMotion));
   document.querySelector("#sfxVolume").value = String(Math.round(settings.sfxVolume * 100));
   document.querySelector("#sfxVolumeValue").textContent = `${Math.round(settings.sfxVolume * 100)}%`;
+  const skin = settingsPage.querySelector(`input[name=settingSkin][value="${settings.skin}"]`);
+  if (skin) skin.checked = true;
   const theme = settingsPage.querySelector(`input[name=settingTheme][value="${settings.theme}"]`);
   if (theme) theme.checked = true;
   const text = settingsPage.querySelector(`input[name=settingText][value="${settings.text}"]`);
@@ -458,6 +463,7 @@ document.querySelector("#motionToggle").addEventListener("click", () => { saveSe
 document.querySelector("#sfxVolume").addEventListener("input", (event) => { saveSettings({ sfxVolume: Number(event.target.value) / 100 }); syncSettingsControls(); });
 document.querySelector("#sfxVolume").addEventListener("change", () => WCCSound.play("select"));
 settingsPage.addEventListener("change", (event) => {
+  if (event.target.name === "settingSkin") saveSettings({ skin: event.target.value });
   if (event.target.name === "settingTheme") saveSettings({ theme: event.target.value });
   if (event.target.name === "settingText") saveSettings({ text: event.target.value });
   if (event.target.id === "colourMode") saveSettings({ colour: event.target.value });
@@ -639,4 +645,20 @@ refreshIdentity();
 renderNotifications();
 updateShell();
 const baseRefreshHomeShell = refreshHome;
-refreshHome = function refreshHomeWithShell() { baseRefreshHomeShell(); refreshIdentity(); renderNotifications(); };
+refreshHome = function refreshHomeWithShell() { baseRefreshHomeShell(); refreshIdentity(); renderNotifications(); refreshTileData(); };
+
+/* Live details on Home tiles: next fixture, career rating, profile level. */
+function refreshTileData() {
+  const next = window.CWC27 && window.CWC27.nextFixture ? window.CWC27.nextFixture() : null;
+  const nextLine = document.querySelector("#homeCwcNext");
+  nextLine.hidden = !next;
+  nextLine.textContent = next ? `Next: ${next}` : "";
+  const career = readCareer();
+  if (career) {
+    const overall = overallFor(careerSkills(career));
+    document.querySelector("#homeCareerMeta").textContent = `${career.player.name} · ${career.country.teamName} · OVR ${overall}`;
+  }
+  const p = progress();
+  document.querySelector("#homeProfileMeta").textContent = `${p.title} · Level ${p.level}`;
+}
+refreshTileData();

@@ -1,0 +1,5 @@
+Key art player cutouts. Backgrounds removed locally with rembg (isnet-general-use).
+Source wallpapers from wallpaperaccess.com:
+ab-de-villiers.webp  https://wallpaperaccess.com/full/1869035.jpg
+warner.webp          https://wallpaperaccess.com/full/2555267.jpg
+smith.webp           https://wallpaperaccess.com/full/2350407.jpg

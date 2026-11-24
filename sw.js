@@ -1,6 +1,6 @@
 /* Offline support. Network first, so updates always show when online;
    the cache is only used when the network is unavailable. */
-const CACHE = "wcc-v1";
+const CACHE = "wcc-v5";
 const CORE = [
   "./",
   "index.html",
@@ -8,11 +8,14 @@ const CORE = [
   "cwc27.css",
   "features.css",
   "shell.css",
+  "pro.css",
+  "pro.js",
   "cwc27.js",
   "story-mode.js",
   "ui-nav.js",
   "features.js",
   "shell.js",
+  "assets/keyart/ab-de-villiers.webp",
   "presentation.js",
   "manifest.webmanifest",
   "assets/world-countries-50m.json",

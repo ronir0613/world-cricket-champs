@@ -20,6 +20,8 @@
   <link rel="stylesheet" href="cwc27.css?v=v7">
   <link rel="stylesheet" href="features.css?v=7">
   <link rel="stylesheet" href="shell.css?v=2">
+  <!-- Pro look (default). Remove this line to drop it; Settings > Display > Style switches styles. -->
+  <link rel="stylesheet" href="pro.css?v=6">
 </head>
 <body>
   <div id="page-bg" aria-hidden="true"></div>
@@ -104,6 +106,7 @@
           <span class="mode-kicker">Featured tournament</span>
           <span class="mode-name">CWC27</span>
           <span class="mode-meta">2 Oct – 21 Nov 2027 · 14 teams · 57 matches</span>
+          <span id="homeCwcNext" class="mode-meta mode-next" hidden></span>
           <span class="mode-footer">
             <span id="homeCwcResume" class="mode-resume"><span class="mode-resume-flag" id="homeCwcFlag" aria-hidden="true"></span><span id="homeCwcResumeText">Pick your team</span></span>
             <span class="mode-arrow" aria-hidden="true"></span>
@@ -123,7 +126,7 @@
           <span class="mode-kicker">Your game, your way</span>
           <span class="mode-name">Profile</span>
           <span class="mode-footer">
-            <span class="mode-meta">Badge, banner and nametag</span>
+            <span id="homeProfileMeta" class="mode-meta">Badge, banner and nametag</span>
             <span class="mode-arrow" aria-hidden="true"></span>
           </span>
         </button>
@@ -180,6 +183,101 @@
             <li>Top three from each group plus one wildcard reach the Super 7</li>
             <li>Win 2 points · Tie or no result 1 point</li>
           </ul>
+        </div>
+      </section>
+          <!-- Pro hub: key art + tabbed tile panel. Only shown when Settings > Style is Pro. -->
+      <section class="pro-hub" aria-label="Main menu">
+        <div class="pro-keyart" aria-hidden="true">
+          <img class="pro-keyart-img is-current" data-pro-art="home" src="assets/keyart/ab-de-villiers.webp" alt="">
+          <img class="pro-keyart-img" data-pro-art="play" src="assets/keyart/warner.webp?v=2" alt="" loading="lazy">
+          <img class="pro-keyart-img" data-pro-art="customise" src="assets/keyart/smith.webp" alt="" loading="lazy">
+        </div>
+
+        <div class="pro-panel">
+          <div class="pro-tabs" role="tablist" aria-label="Menu sections">
+            <button type="button" role="tab" id="proTabHome" aria-controls="proGridHome" aria-selected="true" data-pro-tab="home">Home</button>
+            <button type="button" role="tab" id="proTabPlay" aria-controls="proGridPlay" aria-selected="false" data-pro-tab="play" tabindex="-1">Play</button>
+            <button type="button" role="tab" id="proTabCustomise" aria-controls="proGridCustomise" aria-selected="false" data-pro-tab="customise" tabindex="-1">Customise</button>
+          </div>
+
+          <div id="proGridHome" class="pro-grid pro-grid-home" role="tabpanel" aria-labelledby="proTabHome" data-pro-panel="home">
+            <button class="pro-tile pro-tile-kickoff" type="button" data-pro-go="quick-match">
+              <span class="pro-tile-label">Kick off</span>
+              <span class="pro-tile-title">Quick Match</span>
+              <span class="pro-tile-fixture" aria-hidden="true">
+                <span id="proQmHomeFlag" class="pro-flag"></span>
+                <span class="pro-vs">vs</span>
+                <span id="proQmAwayFlag" class="pro-flag"></span>
+              </span>
+              <span id="proQmCaption" class="pro-tile-foot">India vs Australia</span>
+              <span class="pro-tile-note">T20 · One-day · Test</span>
+            </button>
+            <button class="pro-tile pro-tile-cwc" type="button" data-pro-go="cwc27">
+              <span class="pro-tile-label" id="proCwcLabel">Continue</span>
+              <span class="pro-tile-title">CWC27</span>
+              <span class="pro-tile-crest" aria-hidden="true"><span id="proCwcFlag" class="pro-flag pro-flag-large"></span></span>
+              <span class="pro-tile-small">Next match</span>
+              <span id="proCwcNext" class="pro-tile-foot">Pick your team</span>
+              <span id="proCwcStage" class="pro-tile-note">2 Oct – 21 Nov 2027</span>
+              <span class="new-pip tile-pip" data-new-key="cwc27" hidden>New</span>
+            </button>
+            <button class="pro-tile pro-tile-wide pro-tile-story" type="button" data-pro-go="career">
+              <span class="pro-tile-copy">
+                <span class="pro-tile-label">Career</span>
+                <span class="pro-tile-title">Story Mode</span>
+                <span id="proStoryBody" class="pro-tile-text">Create your player and play for your country.</span>
+                <span id="proStoryMeta" class="pro-tile-note">Season 1</span>
+              </span>
+              <img class="pro-tile-photo" src="gallary/3.jpg" alt="" aria-hidden="true">
+              <span class="new-pip tile-pip" data-new-key="career" hidden>New</span>
+            </button>
+            <button class="pro-tile pro-tile-wide pro-tile-news" type="button" data-pro-go="news">
+              <span class="pro-tile-copy">
+                <span class="pro-tile-label">News</span>
+                <span id="proNewsTitle" class="pro-tile-title pro-tile-title-small">CWC27 starts 2 October</span>
+                <span id="proNewsBody" class="pro-tile-text">Hosted by South Africa, Zimbabwe and Namibia.</span>
+              </span>
+              <img class="pro-tile-photo" src="assets/photos/matchday-1.jpg" alt="" aria-hidden="true">
+            </button>
+          </div>
+
+          <div id="proGridPlay" class="pro-grid pro-grid-play" role="tabpanel" aria-labelledby="proTabPlay" data-pro-panel="play" hidden>
+            <button class="pro-tile pro-tile-art pro-tile-tall" type="button" data-pro-go="career">
+              <span class="pro-tile-head"><span class="pro-tile-title">Career</span><span class="pro-tile-note">Story Mode</span></span>
+              <img class="pro-tile-fill" src="gallary/3.jpg" alt="" aria-hidden="true">
+            </button>
+            <button class="pro-tile pro-tile-art" type="button" data-pro-go="cwc27">
+              <span class="pro-tile-head"><span class="pro-tile-title">CWC27</span><span class="pro-tile-note">World Cup 2027</span></span>
+              <img class="pro-tile-fill pro-tile-fill-logo" src="gallary/1.png" alt="" aria-hidden="true">
+            </button>
+            <button class="pro-tile pro-tile-art" type="button" data-pro-go="quick-match">
+              <span class="pro-tile-head"><span class="pro-tile-title">Quick Match</span><span class="pro-tile-note">Any two teams</span></span>
+              <img class="pro-tile-fill" src="assets/photos/matchday-2.jpg" alt="" aria-hidden="true">
+            </button>
+            <button class="pro-tile pro-tile-art" type="button" data-pro-go="nets">
+              <span class="pro-tile-head"><span class="pro-tile-title">Practice Nets</span><span class="pro-tile-note">Drills</span></span>
+              <img class="pro-tile-fill" src="assets/photos/nets.jpg" alt="" aria-hidden="true">
+              <span class="new-pip tile-pip" data-new-key="nets" hidden>New</span>
+            </button>
+            <button class="pro-tile pro-tile-art" type="button" data-pro-go="venues">
+              <span class="pro-tile-head"><span class="pro-tile-title">Venues</span><span class="pro-tile-note">Host grounds</span></span>
+              <img class="pro-tile-fill" src="assets/photos/cape-town.jpg" alt="" aria-hidden="true">
+              <span class="new-pip tile-pip" data-new-key="venues" hidden>New</span>
+            </button>
+          </div>
+
+          <div id="proGridCustomise" class="pro-grid pro-grid-customise" role="tabpanel" aria-labelledby="proTabCustomise" data-pro-panel="customise" hidden>
+            <button class="pro-tile pro-tile-icon" type="button" data-pro-go="settings"><span class="pro-tile-title">Settings</span><span class="pro-icon pro-icon-settings" aria-hidden="true"></span></button>
+            <button class="pro-tile pro-tile-icon" type="button" data-pro-go="profile"><span class="pro-tile-title">Profile</span><span class="pro-icon pro-icon-profile" aria-hidden="true"></span></button>
+            <button class="pro-tile pro-tile-icon" type="button" data-pro-go="kit"><span class="pro-tile-title">Kit Locker</span><span class="pro-icon pro-icon-kit" aria-hidden="true"></span><span class="new-pip tile-pip" data-new-key="store" hidden>New</span></button>
+            <button class="pro-tile pro-tile-icon" type="button" data-pro-go="trophies"><span class="pro-tile-title">Trophies</span><span class="pro-icon pro-icon-trophy" aria-hidden="true"></span><span class="new-pip tile-pip" data-new-key="trophies" hidden>New</span></button>
+            <button class="pro-tile pro-tile-icon" type="button" data-pro-go="controls"><span class="pro-tile-title">Controls</span><span class="pro-icon pro-icon-controls" aria-hidden="true"></span></button>
+            <button class="pro-tile pro-tile-icon" type="button" data-pro-go="saves"><span class="pro-tile-title">Save Data</span><span class="pro-icon pro-icon-saves" aria-hidden="true"></span></button>
+            <button class="pro-tile pro-tile-icon" type="button" data-pro-go="audio"><span class="pro-tile-title">Audio</span><span class="pro-icon pro-icon-audio" aria-hidden="true"></span></button>
+            <button class="pro-tile pro-tile-icon" type="button" data-pro-go="tour"><span class="pro-tile-title">Game Tour</span><span class="pro-icon pro-icon-tour" aria-hidden="true"></span></button>
+          </div>
+
+          <div class="pro-dots" aria-hidden="true"><span data-pro-dot="home"></span><span data-pro-dot="play"></span><span data-pro-dot="customise"></span></div>
         </div>
       </section>
     </section>
@@ -828,7 +926,15 @@
           <section class="settings-panel" data-settings-panel="display" aria-labelledby="displayTitle" hidden>
             <h2 id="displayTitle">Display</h2>
             <fieldset class="choice-group">
-              <legend>Theme</legend>
+              <legend>Style</legend>
+              <div class="segmented">
+                <label><input type="radio" name="settingSkin" value="pro"><span>Pro</span></label>
+                <label><input type="radio" name="settingSkin" value="classic"><span>Classic</span></label>
+              </div>
+              <p class="settings-hint">Pro is the bright tile look. Classic is the original design, with a day or night theme.</p>
+            </fieldset>
+            <fieldset class="choice-group theme-choice">
+              <legend>Classic theme</legend>
               <div class="segmented">
                 <label><input type="radio" name="settingTheme" value="day"><span>Day</span></label>
                 <label><input type="radio" name="settingTheme" value="night"><span>Night</span></label>
@@ -1105,7 +1211,7 @@
   </div>
   <audio id="music" preload="auto"></audio>
 
-  <script src="cwc27.js?v=v7"></script>
+  <script src="cwc27.js?v=v9"></script>
   <script src="assets/vendor/d3-array.min.js"></script>
   <script src="assets/vendor/d3-geo.min.js"></script>
   <script src="assets/vendor/topojson-client.min.js"></script>
@@ -1986,7 +2092,9 @@
 
   </script>
   <script src="features.js?v=2"></script>
-  <script src="shell.js?v=2"></script>
+  <script src="shell.js?v=5"></script>
   <script src="presentation.js?v=2"></script>
+  <!-- Pro layout behaviour. Remove together with pro.css to drop Pro. -->
+  <script src="pro.js?v=2"></script>
 </body>
 </html>

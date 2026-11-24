@@ -460,6 +460,27 @@
       else renderRoute();
     },
     close: closeCwc,
+    nextFixtureInfo() {
+      const team = readSavedTeam();
+      if (!team) return null;
+      const match = fixtures.find((item) => (item.stage === "Group Stage" || item.stage === "Super Series") && (item.home === team.code || item.away === team.code));
+      if (!match) return { team: { name: team.name, flag: team.flag ? `assets/flags/${team.flag}` : "" }, opponent: null };
+      const opponent = teamInfo(match.home === team.code ? match.away : match.home);
+      return {
+        team: { name: team.name, code: team.code, flag: team.flag ? `assets/flags/${team.flag}` : "" },
+        opponent: { name: opponent.name, code: opponent.code, flag: opponent.flag ? `assets/flags/${opponent.flag}` : "" },
+        stage: match.group || match.stage,
+        round: match.round
+      };
+    },
+    nextFixture() {
+      const team = readSavedTeam();
+      if (!team) return null;
+      const match = fixtures.find((item) => (item.stage === "Group Stage" || item.stage === "Super Series") && (item.home === team.code || item.away === team.code));
+      if (!match) return null;
+      const opponent = teamInfo(match.home === team.code ? match.away : match.home);
+      return `${match.group || match.stage} · Round ${match.round} vs ${opponent.name}`;
+    },
     savedTeam() {
       const team = readSavedTeam();
       return team ? { name: team.name, flag: team.flag ? `assets/flags/${team.flag}` : "" } : null;
