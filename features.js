@@ -317,7 +317,7 @@ pauseDialog.addEventListener("click", (event) => {
   if (action === "trophies") openFeaturePage("trophies");
   if (action === "kit") openFeaturePage("kit");
   if (action === "venues") openVenues("home");
-  if (action === "profile") { showPage(profileSettingsPage, "Profile & Settings | World Cricket Champs"); nametagInput.focus(); }
+  if (action === "profile") { showPage(profileSettingsPage, "Profile | World Cricket Champs"); nametagInput.focus(); }
   if (action === "title") window.location.href = window.location.pathname;
 });
 pauseDialog.addEventListener("close", () => {

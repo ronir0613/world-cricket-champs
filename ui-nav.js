@@ -32,6 +32,10 @@
   }
 
   function activeLayer() {
+    const coach = document.querySelector("#coach:not([hidden])");
+    if (coach) return coach;
+    const versus = document.querySelector("#versusScreen:not([hidden])");
+    if (versus) return versus;
     const dialog = document.querySelector("dialog[open]");
     if (dialog) return dialog;
     const loading = document.querySelector("#loadingScreen:not([hidden])");
@@ -39,10 +43,11 @@
     const menu = document.querySelector("#menuPanel:not([hidden])");
     if (menu) return menu.closest("main");
     const cwc = document.querySelector("#cwcApp.is-active");
-    if (cwc) return cwc;
+    if (cwc) return { querySelectorAll: (selector) => [...document.querySelectorAll(`#shell ${selector.split(",").join(", #shell ")}`), ...cwc.querySelectorAll(selector)] };
     const splash = document.querySelector("#splash:not([hidden])");
     if (splash) return splash;
-    return document.querySelector("#home");
+    const homeEl = document.querySelector("#home");
+    return { querySelectorAll: (selector) => [...document.querySelectorAll(`#shell ${selector.split(",").join(", #shell ")}`), ...homeEl.querySelectorAll(selector)] };
   }
 
   function candidates() {
@@ -111,6 +116,8 @@
   function goBack() {
     const dialog = document.querySelector("dialog[open]");
     if (dialog) { dialog.close("cancel"); return; }
+    if (!document.querySelector("#coach").hidden) { document.querySelector("#coachSkip").click(); return; }
+    if (!document.querySelector("#versusScreen").hidden) { document.querySelector("#versusBack").click(); return; }
     const menu = document.querySelector("#menuPanel:not([hidden])");
     if (menu) { document.querySelector("#menuButton").click(); focusElement(document.querySelector("#menuButton")); return; }
     const layer = activeLayer();
@@ -123,6 +130,7 @@
   /* A soft tick for navigation, quiet and only when music is on. */
   let audio;
   function playTick() {
+    if (window.WCCSound) { window.WCCSound.play("focus"); return; }
     try {
       if (localStorage.getItem("world-cricket-champs-music-enabled") === "false") return;
       audio = audio || new (window.AudioContext || window.webkitAudioContext)();
@@ -178,12 +186,21 @@
     }
   });
 
+  /* Track the input device so prompts can show the right buttons. */
+  function setInput(kind) {
+    if (root.dataset.input === kind) return;
+    root.dataset.input = kind;
+    window.dispatchEvent(new Event("wcc:input-change"));
+  }
   /* Mouse or touch hides the navigation highlight again. */
-  document.addEventListener("pointerdown", () => root.classList.remove("nav-focus"), true);
-  document.addEventListener("keydown", (event) => { if (KEY_DIRECTIONS[event.key] || event.key === "Tab") root.classList.add("nav-focus"); }, true);
+  document.addEventListener("pointerdown", () => { root.classList.remove("nav-focus"); setInput("pointer"); }, true);
+  document.addEventListener("keydown", (event) => {
+    if (KEY_DIRECTIONS[event.key] || event.key === "Tab") root.classList.add("nav-focus");
+    if (!event.ctrlKey && !event.metaKey) setInput("keyboard");
+  }, true);
 
   /* ---------- Gamepad ---------- */
-  const BUTTONS = { a: 0, b: 1, up: 12, down: 13, left: 14, right: 15 };
+  const BUTTONS = { a: 0, b: 1, lb: 4, rb: 5, start: 9, up: 12, down: 13, left: 14, right: 15 };
   const REPEAT_DELAY = 320;
   const REPEAT_RATE = 130;
   let polling = false;
@@ -203,8 +220,12 @@
       left: pressed(pad, "left") || axisX < -0.55,
       right: pressed(pad, "right") || axisX > 0.55,
       a: pressed(pad, "a"),
-      b: pressed(pad, "b")
+      b: pressed(pad, "b"),
+      lb: pressed(pad, "lb"),
+      rb: pressed(pad, "rb"),
+      start: pressed(pad, "start")
     };
+    if (Object.values(state).some(Boolean)) setInput(/054c|playstation|dualsense|dualshock|wireless controller/i.test(pad.id) ? "ps" : "xbox");
     for (const [name, isDown] of Object.entries(state)) {
       const previous = held[name];
       if (isDown && !previous) {
@@ -221,6 +242,8 @@
 
   function fire(name) {
     root.classList.add("nav-focus");
+    if (name === "lb" || name === "rb") { window.dispatchEvent(new CustomEvent("wcc:tab", { detail: name === "lb" ? -1 : 1 })); return; }
+    if (name === "start") { window.dispatchEvent(new Event("wcc:menu")); return; }
     if (name === "a") activate();
     else if (name === "b") goBack();
     else move(name);

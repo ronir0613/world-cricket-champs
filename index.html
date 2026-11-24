@@ -10,7 +10,8 @@
   <meta name="apple-mobile-web-app-title" content="Cricket Champs">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="assets/app-icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="assets/app-icon.svg">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="icon" href="assets/icon-192.png" type="image/png" sizes="192x192">
   <title>World Cricket Champs</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,9 +19,42 @@
   <link rel="stylesheet" href="app.css?v=5">
   <link rel="stylesheet" href="cwc27.css?v=v7">
   <link rel="stylesheet" href="features.css?v=7">
+  <link rel="stylesheet" href="shell.css?v=2">
 </head>
 <body>
   <div id="page-bg" aria-hidden="true"></div>
+  <header id="shell" class="shell" hidden>
+    <button id="shellBrand" class="shell-brand" type="button" aria-label="World Cricket Champs, go to Home"><span>WCC</span></button>
+    <nav class="shell-tabs" aria-label="Main">
+      <span class="shell-shoulder" data-shoulder="prev" aria-hidden="true"></span>
+      <div class="shell-tab-list">
+        <button type="button" data-tab="home">Home</button>
+        <button type="button" data-tab="career">Career<span class="new-pip" data-new-key="career" hidden>New</span></button>
+        <button type="button" data-tab="cwc27">CWC27<span class="new-pip" data-new-key="cwc27" hidden>New</span></button>
+        <button type="button" data-tab="quick-match">Quick Match<span class="new-pip" data-new-key="quick-match" hidden>New</span></button>
+        <button type="button" data-tab="store">Store<span class="new-pip" data-new-key="store" hidden>New</span></button>
+        <button type="button" data-tab="trophies">Trophies<span class="new-pip" data-new-key="trophies" hidden>New</span></button>
+      </div>
+      <span class="shell-shoulder" data-shoulder="next" aria-hidden="true"></span>
+    </nav>
+    <div class="shell-actions">
+      <button id="shellBell" class="shell-icon" type="button" aria-label="Notifications" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        <span id="shellBellCount" class="shell-count" hidden>0</span>
+      </button>
+      <button id="shellSettings" class="shell-icon" type="button" aria-label="Settings">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <button id="shellProfile" class="shell-profile" type="button" aria-label="Open your profile">
+        <span id="shellBadge" class="identity-badge" aria-hidden="true"></span>
+        <span class="shell-profile-copy">
+          <span id="shellName" class="shell-name">Player</span>
+          <span class="shell-level"><span id="shellTitle">Rookie</span> · Lv <span id="shellLevel">1</span></span>
+          <span class="xp-bar xp-bar-small" aria-hidden="true"><span id="shellXpBar"></span></span>
+        </span>
+      </button>
+    </div>
+  </header>
   <main id="splash" class="screen splash" aria-label="World Cricket Champs start screen">
     <section class="brand" aria-label="World Cricket Champs">
       <div class="wordmark"><span>World</span><span>Cricket</span></div>
@@ -87,9 +121,9 @@
         <button class="mode mint profile-mode" type="button" data-mode="Profile &amp; Settings">
           <img class="mode-art" src="gallary/2.jpg" alt="" aria-hidden="true">
           <span class="mode-kicker">Your game, your way</span>
-          <span class="mode-name">Profile &amp; Settings</span>
+          <span class="mode-name">Profile</span>
           <span class="mode-footer">
-            <span class="mode-meta">Nametag and music</span>
+            <span class="mode-meta">Badge, banner and nametag</span>
             <span class="mode-arrow" aria-hidden="true"></span>
           </span>
         </button>
@@ -704,17 +738,42 @@
       <div id="drillGrid" class="drill-grid"></div>
     </section>
 
-    <section id="profileSettingsPage" class="profile-settings-page" aria-labelledby="profileSettingsTitle" hidden>
+    <section id="profileSettingsPage" class="career-flow-page feature-page profile-page" aria-labelledby="profileSettingsTitle" hidden>
       <header class="page-header profile-settings-header">
         <button id="backToHome" class="btn-back" type="button"><span class="btn-back-icon" aria-hidden="true"></span>Home</button>
         <div>
-          <p class="eyebrow">World Cricket Champs</p>
-          <h2 id="profileSettingsTitle">Profile &amp; Settings</h2>
+          <p class="eyebrow">Your profile</p>
+          <h2 id="profileSettingsTitle">Profile</h2>
         </div>
       </header>
-      <section class="profile-settings-card" aria-label="Player profile and music settings">
-        <div class="settings-section">
-          <p class="settings-section-label">Player profile</p>
+
+      <section id="profileBanner" class="profile-banner" aria-label="Player identity">
+        <span id="profileBannerBadge" class="identity-badge identity-badge-large" aria-hidden="true"></span>
+        <div class="profile-banner-copy">
+          <span id="profileBannerTitle" class="profile-banner-title">Rookie</span>
+          <b id="profileBannerName" class="profile-banner-name">Player</b>
+          <span class="profile-banner-level">Level <strong id="profileBannerLevel">1</strong> · <span id="profileBannerXp">0 / 200 XP</span></span>
+          <span class="xp-bar" aria-hidden="true"><span id="profileBannerXpBar"></span></span>
+        </div>
+        <span id="profileBannerFlag" class="profile-banner-flag" aria-hidden="true"></span>
+      </section>
+
+      <div class="profile-columns">
+        <section class="profile-card" aria-labelledby="profileStyleTitle">
+          <h3 id="profileStyleTitle" class="settings-section-label">Badge and banner</h3>
+          <fieldset class="choice-group">
+            <legend>Badge</legend>
+            <div id="badgePicker" class="identity-picker"></div>
+          </fieldset>
+          <fieldset class="choice-group">
+            <legend>Banner</legend>
+            <div id="bannerPicker" class="identity-picker banner-picker"></div>
+          </fieldset>
+          <p class="settings-hint">Your level goes up as you unlock achievements. Each one is worth 100 XP.</p>
+        </section>
+
+        <section class="profile-card" aria-labelledby="profileDetailsTitle">
+          <h3 id="profileDetailsTitle" class="settings-section-label">Player details</h3>
           <label class="settings-field" for="nametagInput">Nametag
             <input id="nametagInput" name="nametag" type="text" maxlength="20" autocomplete="nickname" placeholder="Enter your name">
           </label>
@@ -724,27 +783,142 @@
             <select id="favouriteTeamSelect" class="team-select"></select>
           </label>
           <p class="settings-hint" id="memberSince"></p>
+        </section>
+      </div>
+    </section>
+
+    <section id="settingsPage" class="career-flow-page feature-page settings-page" aria-labelledby="settingsTitle" hidden>
+      <header class="page-header">
+        <button class="btn-back" type="button" data-back-home><span class="btn-back-icon" aria-hidden="true"></span>Home</button>
+        <div>
+          <p class="eyebrow">World Cricket Champs</p>
+          <h1 id="settingsTitle">Settings</h1>
         </div>
-        <div class="settings-section">
-          <p class="settings-section-label">Music</p>
-          <button id="profileMusicToggle" class="profile-music-toggle" type="button" role="switch" aria-checked="true">
-            <span>Music</span><span class="switch" aria-hidden="true"></span>
-          </button>
-          <label class="volume-field" for="musicVolumeInput"><span>Music volume</span><output id="musicVolumeValue" for="musicVolumeInput">40%</output>
-            <input id="musicVolumeInput" type="range" min="0" max="100" step="5" value="40">
-          </label>
-          <p class="settings-hint">Changes apply to background music and are saved on this device.</p>
+      </header>
+      <div class="settings-layout">
+        <nav class="settings-nav" aria-label="Settings sections">
+          <button type="button" data-settings-tab="audio" aria-current="true">Audio</button>
+          <button type="button" data-settings-tab="display">Display</button>
+          <button type="button" data-settings-tab="access">Accessibility</button>
+          <button type="button" data-settings-tab="controls">Controls</button>
+          <button type="button" data-settings-tab="saves">Save data</button>
+          <button type="button" data-settings-tab="about">About</button>
+        </nav>
+
+        <div class="settings-panels">
+          <section class="settings-panel" data-settings-panel="audio" aria-labelledby="audioTitle">
+            <h2 id="audioTitle">Audio</h2>
+            <button id="profileMusicToggle" class="profile-music-toggle settings-row" type="button" role="switch" aria-checked="true">
+              <span>Music</span><span class="switch" aria-hidden="true"></span>
+            </button>
+            <label class="volume-field" for="musicVolumeInput"><span>Music volume</span><output id="musicVolumeValue" for="musicVolumeInput">40%</output>
+              <input id="musicVolumeInput" type="range" min="0" max="100" step="5" value="40">
+            </label>
+            <button id="sfxToggle" class="profile-music-toggle settings-row" type="button" role="switch" aria-checked="true">
+              <span>Sound effects</span><span class="switch" aria-hidden="true"></span>
+            </button>
+            <label class="volume-field" for="sfxVolume"><span>Effects volume</span><output id="sfxVolumeValue" for="sfxVolume">60%</output>
+              <input id="sfxVolume" type="range" min="0" max="100" step="5" value="60">
+            </label>
+            <button id="hapticsToggle" class="profile-music-toggle settings-row" type="button" role="switch" aria-checked="true">
+              <span>Vibration on supported phones</span><span class="switch" aria-hidden="true"></span>
+            </button>
+          </section>
+
+          <section class="settings-panel" data-settings-panel="display" aria-labelledby="displayTitle" hidden>
+            <h2 id="displayTitle">Display</h2>
+            <fieldset class="choice-group">
+              <legend>Theme</legend>
+              <div class="segmented">
+                <label><input type="radio" name="settingTheme" value="day"><span>Day</span></label>
+                <label><input type="radio" name="settingTheme" value="night"><span>Night</span></label>
+              </div>
+            </fieldset>
+            <fieldset class="choice-group">
+              <legend>Text size</legend>
+              <div class="segmented">
+                <label><input type="radio" name="settingText" value="100"><span>Standard</span></label>
+                <label><input type="radio" name="settingText" value="112.5"><span>Large</span></label>
+                <label><input type="radio" name="settingText" value="125"><span>Larger</span></label>
+              </div>
+            </fieldset>
+            <button id="motionToggle" class="profile-music-toggle settings-row" type="button" role="switch" aria-checked="false">
+              <span>Reduce motion</span><span class="switch" aria-hidden="true"></span>
+            </button>
+          </section>
+
+          <section class="settings-panel" data-settings-panel="access" aria-labelledby="accessTitle" hidden>
+            <h2 id="accessTitle">Accessibility</h2>
+            <label class="settings-field" for="colourMode">Colour-blind mode
+              <select id="colourMode">
+                <option value="off">Off</option>
+                <option value="deuteranopia">Red-green (deuteranopia)</option>
+                <option value="protanopia">Red-green (protanopia)</option>
+                <option value="tritanopia">Blue-yellow (tritanopia)</option>
+              </select>
+            </label>
+            <div class="colour-preview" aria-label="Colour preview">
+              <span><i class="swatch-qualify"></i>Qualifies</span>
+              <span><i class="swatch-wildcard"></i>Wildcard race</span>
+              <span><i class="swatch-selected"></i>Selected</span>
+              <span><i class="swatch-alert"></i>Unread</span>
+            </div>
+            <p class="settings-hint">Changes the colours used for qualification markers, selections and alerts.</p>
+          </section>
+
+          <section class="settings-panel" data-settings-panel="controls" aria-labelledby="controlsTitle" hidden>
+            <h2 id="controlsTitle">Controls</h2>
+            <div class="standings-scroll">
+              <table class="controls-table">
+                <thead><tr><th scope="col">Action</th><th scope="col">Keyboard</th><th scope="col">Xbox</th><th scope="col">PlayStation</th></tr></thead>
+                <tbody>
+                  <tr><th scope="row">Move</th><td><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd></td><td>D-pad / left stick</td><td>D-pad / left stick</td></tr>
+                  <tr><th scope="row">Select</th><td><kbd>Enter</kbd></td><td><span class="glyph glyph-xa">A</span></td><td><span class="glyph glyph-ps-cross">✕</span></td></tr>
+                  <tr><th scope="row">Back</th><td><kbd>Esc</kbd></td><td><span class="glyph glyph-xb">B</span></td><td><span class="glyph glyph-ps-circle">○</span></td></tr>
+                  <tr><th scope="row">Switch tab</th><td><kbd>Q</kbd> <kbd>E</kbd></td><td><span class="glyph glyph-bumper">LB</span> <span class="glyph glyph-bumper">RB</span></td><td><span class="glyph glyph-bumper">L1</span> <span class="glyph glyph-bumper">R1</span></td></tr>
+                  <tr><th scope="row">Menu</th><td><kbd>Esc</kbd> on Home</td><td><span class="glyph glyph-bumper">Menu</span></td><td><span class="glyph glyph-bumper">Options</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="settings-hint">Button remapping is coming soon.</p>
+          </section>
+
+          <section class="settings-panel" data-settings-panel="saves" aria-labelledby="savesTitle" hidden>
+            <h2 id="savesTitle">Save data</h2>
+            <div id="saveSlots" class="save-slots"></div>
+            <div class="settings-actions">
+              <button id="replayTutorial" class="btn-back" type="button">Replay the tour</button>
+              <button id="resetSave" class="btn-back btn-danger" type="button">Reset this save</button>
+            </div>
+            <p class="settings-hint">Saves are kept in this browser only. Audio and display settings are shared by every save.</p>
+          </section>
+
+          <section class="settings-panel" data-settings-panel="about" aria-labelledby="aboutTitle" hidden>
+            <h2 id="aboutTitle">About</h2>
+            <dl class="about-list">
+              <div><dt>Build</dt><dd>Test build · UI preview</dd></div>
+              <div><dt>Fonts</dt><dd>Barlow and Barlow Condensed</dd></div>
+              <div><dt>Map data</dt><dd>Natural Earth via world-atlas, drawn with d3</dd></div>
+              <div><dt>Flags</dt><dd>flag-icons (see assets/flags)</dd></div>
+              <div><dt>Photos</dt><dd>Wikimedia Commons and Flickr (see assets/photos/SOURCES.txt)</dd></div>
+            </dl>
+          </section>
         </div>
-        <div class="settings-section settings-controls">
-          <p class="settings-section-label">Controls</p>
-          <ul class="controls-list">
-            <li><span><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> or D-pad</span>Move</li>
-            <li><span><kbd>Enter</kbd> or <kbd>A</kbd></span>Select</li>
-            <li><span><kbd>Esc</kbd> or <kbd>B</kbd></span>Back</li>
-          </ul>
-          <p class="settings-hint">Works with a keyboard or any connected controller.</p>
+      </div>
+    </section>
+    <section id="teamSheetPage" class="career-flow-page feature-page" aria-labelledby="teamSheetTitle" hidden>
+      <header class="page-header">
+        <button id="backFromTeamSheet" class="btn-back" type="button"><span class="btn-back-icon" aria-hidden="true"></span>Match preview</button>
+        <div>
+          <p class="eyebrow">Quick Match · Team sheets</p>
+          <h1 id="teamSheetTitle">Playing XI</h1>
         </div>
-      </section>
+      </header>
+      <p class="sheet-note">Fictional squads. Drag players to change your batting order, or use the arrow buttons. Tap C or WK to choose your captain and wicketkeeper.</p>
+      <div class="sheet-layout">
+        <section id="sheetHome" class="team-sheet" aria-label="Your team sheet"></section>
+        <section id="sheetAway" class="team-sheet team-sheet-away" aria-label="Opponent team sheet"></section>
+      </div>
     </section>
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
   </main>
@@ -817,7 +991,7 @@
     <form id="welcomeForm" method="dialog" class="app-dialog-body" novalidate>
       <p class="eyebrow">Welcome</p>
       <h2 id="welcomeTitle">Set up your player profile</h2>
-      <p class="app-dialog-copy">You can change these later in Profile &amp; Settings.</p>
+      <p class="app-dialog-copy">You can change these later in your Profile.</p>
       <label class="settings-field" for="welcomeName">Nametag
         <input id="welcomeName" type="text" maxlength="20" autocomplete="nickname" placeholder="Your name">
       </label>
@@ -875,6 +1049,60 @@
     <span class="achievement-toast-icon" aria-hidden="true"></span>
     <span class="achievement-toast-copy"><span>Achievement unlocked</span><b id="achievementToastTitle"></b></span>
   </div>
+  <footer id="promptBar" class="prompt-bar" hidden></footer>
+
+  <dialog id="notifDialog" class="app-dialog notif-dialog" aria-labelledby="notifTitle">
+    <div class="app-dialog-body">
+      <div class="notif-header">
+        <h2 id="notifTitle">Notifications</h2>
+        <button class="btn-back" type="button" data-close-dialog>Close</button>
+      </div>
+      <ul id="notifList" class="notif-list"></ul>
+    </div>
+  </dialog>
+
+  <dialog id="confirmDialog" class="app-dialog" aria-labelledby="confirmTitle">
+    <form method="dialog" class="app-dialog-body">
+      <h2 id="confirmTitle">Are you sure?</h2>
+      <p id="confirmCopy" class="app-dialog-copy"></p>
+      <div class="app-dialog-actions">
+        <button class="btn-back" type="submit" value="cancel">Cancel</button>
+        <button id="confirmOk" class="cwc-primary btn-danger-primary" type="submit" value="ok">Confirm</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="versusScreen" class="versus-screen" hidden role="dialog" aria-modal="true" aria-labelledby="versusTitle">
+    <img id="versusPhoto" class="versus-photo" alt="">
+    <div class="versus-stage">
+      <div class="versus-side versus-home"><span id="versusHomeFlag" class="versus-flag" aria-hidden="true"></span><b id="versusHomeName">Team</b></div>
+      <div class="versus-mid"><span class="versus-vs" aria-hidden="true">VS</span><h2 id="versusTitle" class="visually-hidden">Match preview</h2></div>
+      <div class="versus-side versus-away"><span id="versusAwayFlag" class="versus-flag" aria-hidden="true"></span><b id="versusAwayName">Team</b></div>
+    </div>
+    <div class="versus-strap">
+      <span id="versusFormat" class="versus-strap-main">T20</span>
+      <span id="versusDetails" class="versus-strap-details"></span>
+      <span id="versusToss" class="versus-strap-toss"></span>
+    </div>
+    <div class="versus-actions">
+      <button id="versusBack" class="btn-back" type="button"><span class="btn-back-icon" aria-hidden="true"></span>Setup</button>
+      <button id="versusSheets" class="btn-back" type="button">Team sheets</button>
+      <button id="versusStart" class="cwc-primary" type="button">Start match <span aria-hidden="true">→</span></button>
+    </div>
+  </div>
+
+  <div id="coach" class="coach" hidden>
+    <div id="coachSpot" class="coach-spot"></div>
+    <div id="coachCard" class="coach-card" role="dialog" aria-modal="true" aria-labelledby="coachTitle">
+      <p id="coachStep" class="eyebrow">Tour · 1 of 4</p>
+      <h2 id="coachTitle">Title</h2>
+      <p id="coachCopy"></p>
+      <div class="coach-actions">
+        <button id="coachSkip" class="btn-back" type="button">Skip tour</button>
+        <button id="coachNext" class="cwc-primary" type="button">Next <span aria-hidden="true">→</span></button>
+      </div>
+    </div>
+  </div>
   <audio id="music" preload="auto"></audio>
 
   <script src="cwc27.js?v=v7"></script>
@@ -882,7 +1110,7 @@
   <script src="assets/vendor/d3-geo.min.js"></script>
   <script src="assets/vendor/topojson-client.min.js"></script>
   <script src="story-mode.js?v=7"></script>
-  <script src="ui-nav.js?v=3"></script>
+  <script src="ui-nav.js?v=4"></script>
   <script>
     const splash = document.querySelector("#splash");
     const home = document.querySelector("#home");
@@ -1213,7 +1441,7 @@
     refreshHome();
 
     document.querySelector("#homePlayerChip").addEventListener("click", () => {
-      showPage(profileSettingsPage, "Profile & Settings | World Cricket Champs");
+      showPage(profileSettingsPage, "Profile | World Cricket Champs");
       nametagInput.focus();
     });
     document.querySelector("#homeMusicToggle").addEventListener("click", () => setMusic(!musicEnabled));
@@ -1671,6 +1899,7 @@
       coin.classList.add("is-flipping", result === "Heads" ? "lands-heads" : "lands-tails");
       const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       window.setTimeout(() => {
+        if (!qmTeam(qm.home) || !qmTeam(qm.away)) return;
         const home = qmTeam(qm.home).name;
         const away = qmTeam(qm.away).name;
         if (result === callValue) {
@@ -1737,7 +1966,7 @@
           return;
         }
         if (button.dataset.mode === "Profile & Settings") {
-          showPage(profileSettingsPage, "Profile & Settings | World Cricket Champs");
+          showPage(profileSettingsPage, "Profile | World Cricket Champs");
           nametagInput.focus();
           return;
         }
@@ -1757,5 +1986,7 @@
 
   </script>
   <script src="features.js?v=2"></script>
+  <script src="shell.js?v=2"></script>
+  <script src="presentation.js?v=2"></script>
 </body>
 </html>
