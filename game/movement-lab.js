@@ -5,8 +5,8 @@
    ========================================================================== */
 import * as THREE from "three";
 import { buildWorld } from "./world.js?v=7";
-import { applyPose, batterPose, batterStride, BATTER_SPOT, KITS } from "./figure.js?v=4";
-import { createBatter } from "./batter.js?v=11";
+import { applyPose, batterPose, batterStride, batterFeet, BATTER_SPOT, KITS } from "./figure.js?v=5";
+import { createBatter } from "./batter.js?v=12";
 import { createBowler } from "./bowler.js?v=7";
 
 /* Batting moves: the swing starts at 0.8 s and meets the ball at 1.05 s. */
@@ -107,17 +107,19 @@ export async function startLab(host, { kit = "IND" } = {}) {
     if (state.player === "batter") {
       const s = batterState(state.move, t);
       applyPose(batter.driver, batterPose(s, t));
-      batter.driver.root.position.z = BATTER_SPOT.z + batterStride(s, t);
-      batter.update();
+      const stride = batterStride(s, t);
+      batter.driver.root.position.z = BATTER_SPOT.z + stride;
+      batter.update({ feet: batterFeet(s, t), stride });
       bowler.root.visible = false;
       focus.set(BATTER_SPOT.x, 1.0, batter.driver.root.position.z);
     } else {
       const tau = t - state.move.run;
       bowler.update(tau);
       bowler.root.visible = true;
-      applyPose(batter.driver, batterPose({ phase: "stance", t0: 0 }, t));
+      const stance = { phase: "stance", t0: 0 };
+      applyPose(batter.driver, batterPose(stance, t));
       batter.driver.root.position.z = BATTER_SPOT.z;
-      batter.update();
+      batter.update({ feet: batterFeet(stance, t), stride: 0 });
       bowler.root.updateMatrixWorld(true);
       (bowler.root.getObjectByName("Hips") || bowler.root).getWorldPosition(hips);
       focus.set(hips.x, 1.1, hips.z);

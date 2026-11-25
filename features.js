@@ -550,7 +550,7 @@ async function launchDrill(drillId, level, button) {
   const favourite = FEATURE_TEAMS.find((team) => team.code === storeGet(FAVOURITE_KEY, ""));
   button.disabled = true;
   try {
-    netsModule = netsModule || await import("./game/nets.js?v=19");
+    netsModule = netsModule || await import("./game/nets.js?v=21");
     netsModule.startNets({
       drill: drillId,
       level,
@@ -585,7 +585,7 @@ async function openLab() {
   button.disabled = true;
   button.firstChild.textContent = "Loading players… ";
   try {
-    const module = await import("./game/movement-lab.js?v=2");
+    const module = await import("./game/movement-lab.js?v=3");
     const favourite = FEATURE_TEAMS.find((team) => team.code === storeGet(FAVOURITE_KEY, ""));
     lab = await module.startLab(labEl("labStage"), { kit: favourite ? favourite.code : "IND" });
     button.hidden = true;

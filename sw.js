@@ -1,6 +1,6 @@
 /* Offline support. Network first, so updates always show when online;
    the cache is only used when the network is unavailable. */
-const CACHE = "wcc-v18";
+const CACHE = "wcc-v20";
 const CORE = [
   "./",
   "index.html",
@@ -38,6 +38,17 @@ const CORE = [
   "assets/players/bat.glb",
   "game/bowler.js",
   "game/batter.js",
+  "game/rig.js",
+  "game/squad-nets.js",
+  "assets/players/rig/clips.json",
+  "assets/players/rig/character.glb",
+  "assets/players/rig/anim_batting.glb",
+  "assets/players/rig/anim_bowling.glb",
+  "assets/players/rig/anim_fielding.glb",
+  "assets/props/bat.glb",
+  "assets/props/ball.glb",
+  "assets/props/stumps.glb",
+  "assets/props/bails.glb",
   "game/venue-preview.js",
   "game/movement-lab.js",
   "vendor/three/addons/loaders/FBXLoader.js",

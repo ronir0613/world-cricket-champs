@@ -10,7 +10,7 @@
    ========================================================================== */
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { buildFigure, applyPose } from "./figure.js?v=4";
+import { buildFigure, applyPose } from "./figure.js?v=5";
 
 const BASE = new URL("../assets/players/", import.meta.url).href;
 const loader = new GLTFLoader();
