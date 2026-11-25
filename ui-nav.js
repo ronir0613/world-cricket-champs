@@ -226,6 +226,12 @@
       start: pressed(pad, "start")
     };
     if (Object.values(state).some(Boolean)) setInput(/054c|playstation|dualsense|dualshock|wireless controller/i.test(pad.id) ? "ps" : "xbox");
+    /* While a game is on screen it reads the pad itself; just track what's held. */
+    if (root.classList.contains("game-on")) {
+      for (const [name, isDown] of Object.entries(state)) held[name] = isDown ? { since: time, last: time } : null;
+      requestAnimationFrame(poll);
+      return;
+    }
     for (const [name, isDown] of Object.entries(state)) {
       const previous = held[name];
       if (isDown && !previous) {

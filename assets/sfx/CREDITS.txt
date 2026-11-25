@@ -1,0 +1,6 @@
+Sound effects
+
+assets/sfx/bat_hit.mp3 (trimmed, normalised)
+  "Willow Bat Knock" by BudgetPixel - CC BY 4.0 - https://budgetpixel.com/sfx/willow-bat-knock-3da2a28b
+assets/sfx/crowd_ambience.mp3, cheer_big.mp3, cheer_small.mp3 (excerpts, mono, normalised)
+  "Free Crowd Cheering Sounds" by Gregor Quendel - CC BY 4.0 - https://gregor-quendel.itch.io/free-crowd-cheering-sounds

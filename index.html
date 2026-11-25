@@ -22,6 +22,8 @@
   <link rel="stylesheet" href="shell.css?v=2">
   <!-- Pro look (default). Remove this line to drop it; Settings > Display > Style switches styles. -->
   <link rel="stylesheet" href="pro.css?v=6">
+  <link rel="stylesheet" href="game/game.css?v=2">
+  <script type="importmap">{ "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }</script>
 </head>
 <body>
   <div id="page-bg" aria-hidden="true"></div>
@@ -822,7 +824,7 @@
       <section class="nets-hero">
         <img src="assets/photos/nets.jpg" alt="Cricket practice nets on a sunny day">
         <div class="nets-hero-copy">
-          <p>Pick a drill and a difficulty. Drills will open when the match engine arrives.</p>
+          <p>Pick a drill and a difficulty. The batting drills are playable in 3D; bowling and fielding drills are coming soon.</p>
           <fieldset class="choice-group">
             <legend>Difficulty</legend>
             <div class="segmented segmented-dark">
@@ -1178,6 +1180,8 @@
     </form>
   </dialog>
 
+  <div id="gameScreen" class="game-screen" hidden></div>
+
   <div id="versusScreen" class="versus-screen" hidden role="dialog" aria-modal="true" aria-labelledby="versusTitle">
     <img id="versusPhoto" class="versus-photo" alt="">
     <div class="versus-stage">
@@ -1216,7 +1220,7 @@
   <script src="assets/vendor/d3-geo.min.js"></script>
   <script src="assets/vendor/topojson-client.min.js"></script>
   <script src="story-mode.js?v=7"></script>
-  <script src="ui-nav.js?v=4"></script>
+  <script src="ui-nav.js?v=5"></script>
   <script>
     const splash = document.querySelector("#splash");
     const home = document.querySelector("#home");
@@ -1445,6 +1449,24 @@
       player.addEventListener("ended", () => {
         if (player === activeMusic && !crossfadeStarted && musicEnabled) void crossfadeToNextTrack(180);
       });
+    });
+
+    /* Gameplay silences the menu music; it comes back when you leave. */
+    window.addEventListener("wcc:game-start", () => {
+      [music, nextMusic].forEach((player) => {
+        if (player.paused) return;
+        const from = player.volume;
+        const began = Date.now();
+        const timer = setInterval(() => {
+          const k = Math.min(1, (Date.now() - began) / 600);
+          player.volume = from * (1 - k);
+          if (k >= 1) { clearInterval(timer); player.pause(); }
+        }, 40);
+      });
+    });
+    window.addEventListener("wcc:game-end", async () => {
+      if (!musicEnabled) return;
+      try { activeMusic.volume = musicVolume; await activeMusic.play(); } catch (_) { /* The browser may block audio. */ }
     });
 
     start.addEventListener("click", async () => {
@@ -2091,7 +2113,7 @@
     });
 
   </script>
-  <script src="features.js?v=2"></script>
+  <script src="features.js?v=13"></script>
   <script src="shell.js?v=5"></script>
   <script src="presentation.js?v=2"></script>
   <!-- Pro layout behaviour. Remove together with pro.css to drop Pro. -->

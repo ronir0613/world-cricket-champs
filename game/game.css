@@ -1,0 +1,306 @@
+/* ==========================================================================
+   In-game HUD for Practice Nets. Same visual language as the Pro menus:
+   flat white and navy panels, condensed uppercase type, square corners.
+   ========================================================================== */
+.game-screen {
+  --g-navy: #12357a;
+  --g-navy-2: #0c2558;
+  --g-green: #15945e;
+  --g-ink: #0f1c33;
+  --g-muted: #5f6e85;
+  --g-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  background: #0b1424;
+  color: var(--g-ink);
+  font-family: "Barlow", system-ui, sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+.game-screen[hidden], .game-screen [hidden] { display: none !important; }
+html.game-on body { overflow: hidden; }
+html.game-on .shell, html.game-on .prompt-bar, html.game-on .pro-logo { visibility: hidden; }
+
+.g-root { position: absolute; inset: 0; overflow: hidden; }
+.g-canvas { display: block; width: 100%; height: 100%; outline: none; }
+
+/* Scorebug, top left */
+.g-scorebug {
+  position: absolute;
+  top: max(14px, env(safe-area-inset-top));
+  left: max(16px, env(safe-area-inset-left));
+  display: flex;
+  align-items: stretch;
+  height: 40px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .25);
+  font-family: var(--g-display);
+  text-transform: uppercase;
+}
+.g-scorebug > span { display: flex; align-items: center; padding: 0 12px; }
+.g-bug-tag { color: #fff; background: var(--g-green); font-weight: 800; letter-spacing: .08em; font-size: .875rem; }
+.g-bug-drill { color: #fff; background: var(--g-navy); font-weight: 700; letter-spacing: .04em; font-size: .9375rem; }
+.g-bug-score { gap: 6px; background: #fff; }
+.g-bug-score b { font-size: 1.5rem; font-weight: 800; line-height: 1; }
+.g-bug-score small { color: var(--g-muted); font-size: .875rem; font-weight: 700; }
+.g-bug-overs { gap: 4px; background: rgba(255, 255, 255, .9); }
+.g-bug-overs:empty { display: none !important; }
+.g-bug-overs i {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  color: var(--g-ink);
+  background: #e6ebf4;
+  font-style: normal;
+  font-size: .8125rem;
+  font-weight: 800;
+}
+.g-bug-overs i.is-dot { color: var(--g-muted); }
+.g-bug-overs i.is-boundary { color: #fff; background: var(--g-green); }
+.g-bug-overs i.is-out { color: #fff; background: #c8102e; }
+
+/* Delivery info, top right (below the pause button) */
+.g-delivery {
+  position: absolute;
+  top: max(64px, calc(env(safe-area-inset-top) + 50px));
+  right: max(16px, env(safe-area-inset-right));
+  display: grid;
+  justify-items: end;
+  padding: 8px 12px;
+  color: #fff;
+  background: rgba(12, 37, 88, .88);
+  font-family: var(--g-display);
+  text-transform: uppercase;
+  animation: g-slide .3s ease both;
+}
+.g-delivery b { font-size: 1.375rem; font-weight: 800; line-height: 1; }
+.g-delivery span { color: #c9d6ef; font-size: .8125rem; font-weight: 700; letter-spacing: .04em; }
+@keyframes g-slide { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+
+/* Result callout, upper centre */
+.g-callout {
+  position: absolute;
+  top: 18%;
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  min-width: 220px;
+  padding: 10px 26px 12px;
+  color: #fff;
+  background: var(--g-navy);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, .35);
+  font-family: var(--g-display);
+  text-align: center;
+  text-transform: uppercase;
+  transform: translateX(-50%);
+}
+.g-callout.is-in { animation: g-pop .35s cubic-bezier(.2, .9, .3, 1.2) both; }
+.g-callout b { font-size: 2.5rem; font-weight: 800; line-height: 1; letter-spacing: .02em; }
+.g-callout span { color: #c9d6ef; font-size: .9375rem; font-weight: 700; letter-spacing: .06em; }
+.g-callout.is-boundary { background: var(--g-green); }
+.g-callout.is-boundary span { color: #dcf7e8; }
+.g-callout.is-out { background: #c8102e; }
+.g-callout.is-out span { color: #ffd9de; }
+@keyframes g-pop { from { opacity: 0; transform: translateX(-50%) scale(.8); } to { opacity: 1; transform: translateX(-50%) scale(1); } }
+
+/* Timing meter, bottom centre */
+.g-timing {
+  position: absolute;
+  bottom: max(70px, calc(env(safe-area-inset-bottom) + 56px));
+  left: 50%;
+  width: min(360px, 60vw);
+  transform: translateX(-50%);
+  animation: g-fade .25s ease both;
+}
+.g-timing-bar { position: relative; display: grid; grid-template-columns: 10% 18% 12% 20% 12% 18% 10%; height: 12px; box-shadow: 0 0 0 2px rgba(255, 255, 255, .9); }
+.g-timing-bar .z-miss { background: #c8102e; }
+.g-timing-bar i { display: block; }
+.g-timing-bar .z-early, .g-timing-bar .z-late { background: #e9a23b; }
+.g-timing-bar .z-good { background: #9fd36b; }
+.g-timing-bar .z-perfect { background: #24b36b; }
+.g-timing-bar em {
+  position: absolute;
+  top: -6px;
+  width: 4px;
+  height: 24px;
+  margin-left: -2px;
+  background: #fff;
+  box-shadow: 0 0 0 2px var(--g-ink);
+  transition: left .25s ease;
+}
+.g-timing-labels { display: flex; justify-content: space-between; margin-top: 6px; color: #fff; font-family: var(--g-display); font-size: .8125rem; font-weight: 700; letter-spacing: .06em; text-shadow: 0 1px 3px rgba(0, 0, 0, .6); text-transform: uppercase; }
+@keyframes g-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* Control hints, bottom left */
+.g-hints {
+  position: absolute;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  left: max(16px, env(safe-area-inset-left));
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  max-width: 70vw;
+  color: #fff;
+  font-size: .8125rem;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .7);
+}
+.g-hints span { display: flex; align-items: center; gap: 6px; }
+.g-hints kbd, .g-howto kbd {
+  min-width: 24px;
+  padding: 2px 6px;
+  color: var(--g-ink);
+  background: #fff;
+  font-family: var(--g-display);
+  font-size: .75rem;
+  font-weight: 800;
+  text-align: center;
+  text-shadow: none;
+  text-transform: uppercase;
+}
+.g-root[data-device="touch"] .g-hints { display: none; }
+
+/* Pause button, top right */
+.g-pause-btn {
+  position: absolute;
+  top: max(14px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
+  display: flex;
+  width: 44px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 0;
+  background: rgba(255, 255, 255, .92);
+  cursor: pointer;
+}
+.g-pause-btn span { width: 5px; height: 16px; background: var(--g-navy); }
+.g-pause-btn:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+
+/* Touch controls */
+.g-touch { display: none; }
+.g-root[data-device="touch"] .g-touch { display: block; }
+.g-aimpad {
+  position: absolute;
+  left: max(28px, env(safe-area-inset-left));
+  bottom: max(28px, env(safe-area-inset-bottom));
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  touch-action: none;
+}
+.g-aim-ring { position: absolute; inset: 0; border: 2px solid rgba(255, 255, 255, .7); border-radius: 50%; background: rgba(12, 37, 88, .35); }
+.g-aim-knob { position: absolute; top: 50%; left: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: rgba(255, 255, 255, .92); box-shadow: 0 4px 12px rgba(0, 0, 0, .3); }
+.g-shots {
+  position: absolute;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: repeat(3, 76px);
+  gap: 8px;
+}
+.g-shots button {
+  height: 64px;
+  border: 0;
+  color: #fff;
+  background: rgba(12, 37, 88, .9);
+  font-family: var(--g-display);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  touch-action: none;
+}
+.g-shots button[data-shot="ground"] { background: var(--g-green); }
+.g-shots button:active { transform: scale(.96); filter: brightness(1.15); }
+
+/* Panels: intro, pause, summary */
+.g-panel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  padding: 22px 24px 24px;
+  background: #fff;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
+  transform: translate(-50%, -50%);
+  animation: g-panel .3s ease both;
+}
+.g-panel[hidden] { display: none; }
+.g-panel::before { position: absolute; top: 0; bottom: 0; left: 0; width: 5px; background: var(--g-navy); content: ""; }
+@keyframes g-panel { from { opacity: 0; transform: translate(-50%, -46%); } to { opacity: 1; transform: translate(-50%, -50%); } }
+.g-kicker { margin: 0 0 4px; color: var(--g-green); font-family: var(--g-display); font-size: .875rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.g-panel h2 { margin: 0; font-family: var(--g-display); font-size: 2.25rem; font-weight: 800; line-height: 1; text-transform: uppercase; }
+.g-panel h2 small { color: var(--g-muted); font-size: 1.125rem; font-weight: 700; }
+.g-sub { margin: 6px 0 0; color: var(--g-muted); font-weight: 600; }
+.g-best { display: inline-block; margin: 8px 0 0; padding: 3px 8px; color: #fff; background: var(--g-green); font-family: var(--g-display); font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.g-howto { display: grid; gap: 8px; margin: 16px 0 0; padding: 0; list-style: none; color: #33435c; font-size: .9375rem; line-height: 1.4; }
+.g-howto li { padding-left: 14px; border-left: 3px solid #d6dde9; }
+.g-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+.g-actions-stack { display: grid; }
+.g-btn {
+  min-height: 46px;
+  padding: 0 22px;
+  border: 1px solid #b9c4d6;
+  color: var(--g-ink);
+  background: #fff;
+  cursor: pointer;
+  font-family: var(--g-display);
+  font-size: 1.0625rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.g-btn-primary { border-color: var(--g-navy); color: #fff; background: var(--g-navy); }
+.g-btn:focus-visible { outline: 3px solid var(--g-green); outline-offset: 2px; }
+@media (hover: hover) and (pointer: fine) {
+  .g-btn:hover { border-color: var(--g-navy); color: #fff; background: var(--g-navy); }
+  .g-btn-primary:hover { background: var(--g-navy-2); }
+}
+
+.g-summary { width: min(680px, calc(100vw - 32px)); }
+.g-summary-grid { display: grid; grid-template-columns: 1fr 200px; gap: 18px; margin-top: 16px; align-items: center; }
+.g-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin: 0; }
+.g-stats div { display: flex; justify-content: space-between; padding: 8px 10px; background: #f1f4f9; }
+.g-stats dt { color: var(--g-muted); font-size: .875rem; font-weight: 600; }
+.g-stats dd { margin: 0; font-family: var(--g-display); font-size: 1.125rem; font-weight: 800; }
+.g-wagon { margin: 0; text-align: center; }
+.g-wagon svg { width: 100%; max-width: 200px; }
+.g-wagon figcaption { color: var(--g-muted); font-size: .75rem; font-weight: 600; }
+.w-field { fill: #3f8a3a; stroke: #fff; stroke-width: 1.2; }
+.w-pitch { fill: #cdb989; }
+.g-wagon line { stroke-width: 1.6; stroke-linecap: round; }
+.w-dot { stroke: rgba(255, 255, 255, .5); }
+.w-run { stroke: #ffffff; }
+.w-four { stroke: #ffe14d; }
+.w-six { stroke: #ff5a6e; stroke-width: 2.2 !important; }
+
+/* Short landscape phones */
+@media (max-height: 520px) {
+  .g-scorebug { height: 34px; }
+  .g-bug-score b { font-size: 1.25rem; }
+  .g-callout { top: 12%; padding: 6px 18px 8px; }
+  .g-callout b { font-size: 1.75rem; }
+  .g-panel { padding: 16px 18px 18px; }
+  .g-panel h2 { font-size: 1.75rem; }
+  .g-howto { gap: 5px; margin-top: 10px; font-size: .8125rem; }
+  .g-actions { margin-top: 12px; }
+  .g-summary-grid { grid-template-columns: 1fr 150px; margin-top: 10px; }
+  .g-stats div { padding: 5px 8px; }
+  .g-aimpad { width: 104px; height: 104px; left: max(20px, env(safe-area-inset-left)); bottom: max(16px, env(safe-area-inset-bottom)); }
+  .g-shots { grid-template-columns: repeat(3, 68px); }
+  .g-shots button { height: 56px; }
+  .g-timing { bottom: 90px; }
+}
+@media (max-width: 560px) {
+  .g-bug-drill { display: none !important; }
+  .g-summary-grid { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .g-callout.is-in, .g-panel, .g-delivery, .g-timing { animation: none; }
+}

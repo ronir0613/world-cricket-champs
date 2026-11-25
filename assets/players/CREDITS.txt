@@ -1,0 +1,12 @@
+Third-party 3D assets
+
+assets/players/player.gltf, hair, beard, body textures
+  Universal Base Characters by Quaternius - CC0 1.0 - https://quaternius.com
+assets/players/anims.glb (trimmed)
+  Universal Animation Library by Quaternius - CC0 1.0 - https://quaternius.com
+assets/players/bat.glb
+  "CricketBat" by MiniPoly - CC BY (Creative Commons Attribution) - via Poly Pizza https://poly.pizza/m/vyq1I4lrfr
+
+assets/players/cricketer/ (bowler model, textures and bowling animations)
+  "Cricket Bowling Animations Pack - 8 Cricket Bowling Animations" by HK (Hamza Khan) - Unity Asset Store, Standard Unity Asset Store EULA
+  https://assetstore.unity.com/packages/3d/animations/cricket-bowling-animations-pack-8-cricket-bowling-animations-281523

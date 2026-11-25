@@ -428,6 +428,7 @@ document.querySelector("#qmVenuePreview").addEventListener("click", (event) => {
 renderQmVenuePreview();
 
 /* ---------- Practice nets ---------- */
+const PLAYABLE_DRILLS = { pace: "pace", spin: "spin" };
 const DRILLS = [
   { id: "pace", title: "Facing pace", skill: "Batting", copy: "Leave, defend and punish short balls from a fast bowler.", photo: "assets/photos/nets.jpg", position: "30% 60%" },
   { id: "spin", title: "Facing spin", skill: "Batting", copy: "Use your feet and play with the turn on a dusty surface.", photo: "assets/photos/nets.jpg", position: "70% 55%" },
@@ -442,15 +443,40 @@ function renderDrills() {
         <span class="hub-tile-kicker">${drill.skill}</span>
         <h2>${drill.title}</h2>
         <p>${drill.copy}</p>
-        <button class="cwc-primary" type="button" data-drill="${drill.title}">Start drill <span aria-hidden="true">→</span></button>
+        <button class="cwc-primary" type="button" data-drill="${drill.title}" data-drill-id="${drill.id}">${PLAYABLE_DRILLS[drill.id] ? "Play drill" : "Coming soon"} <span aria-hidden="true">→</span></button>
       </div>
     </article>`).join("");
+}
+let netsModule = null;
+async function launchDrill(drillId, level, button) {
+  const favourite = FEATURE_TEAMS.find((team) => team.code === storeGet(FAVOURITE_KEY, ""));
+  button.disabled = true;
+  try {
+    netsModule = netsModule || await import("./game/nets.js?v=11");
+    netsModule.startNets({
+      drill: drillId,
+      level,
+      batterKit: favourite ? favourite.code : "IND",
+      onExit() {
+        showPage(document.querySelector("#netsPage"), "Practice Nets | World Cricket Champs");
+        const again = document.querySelector(`[data-drill-id="${drillId}"]`);
+        if (again) again.focus();
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    showToast("The 3D nets couldn't start on this device.");
+  } finally {
+    button.disabled = false;
+  }
 }
 document.querySelector("#drillGrid").addEventListener("click", (event) => {
   const button = event.target.closest("[data-drill]");
   if (!button) return;
   const level = document.querySelector("input[name=netsDifficulty]:checked").value;
-  showToast(`${button.dataset.drill} (${level}) opens when the match engine arrives.`);
+  const playable = PLAYABLE_DRILLS[button.dataset.drillId];
+  if (playable) { launchDrill(playable, level, button); return; }
+  showToast(`${button.dataset.drill} (${level}) is coming soon.`);
 });
 renderDrills();
 
