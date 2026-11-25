@@ -1,0 +1,387 @@
+{
+  "fps": 30,
+  "outfits": {
+    "batter": [
+      "body",
+      "helmet",
+      "bat_pads",
+      "bat_gloves"
+    ],
+    "bowler": [
+      "body"
+    ],
+    "fielder": [
+      "body",
+      "cap"
+    ],
+    "keeper": [
+      "body",
+      "helmet",
+      "keeper_pads",
+      "keeper_gloves"
+    ],
+    "umpire": [
+      "body",
+      "umpire_hat"
+    ]
+  },
+  "lods": "each piece is <piece>_LOD0/1/2; merge one outfit's meshes per LOD into one SkinnedMesh",
+  "palette": {
+    "size": [
+      32,
+      16
+    ],
+    "cell": 4,
+    "columns": 8,
+    "regions": [
+      "skin",
+      "shirt",
+      "trousers",
+      "white",
+      "helmet",
+      "steel",
+      "shoe",
+      "sole",
+      "wood",
+      "grip",
+      "dark",
+      "trim",
+      "strap",
+      "hair",
+      "sticker",
+      "badge",
+      "sleeve",
+      "cap",
+      "hat",
+      "kglove",
+      "kweb",
+      "kpad",
+      "ball",
+      "seam",
+      "stump",
+      "bail",
+      "logo",
+      "spare1",
+      "spare2",
+      "spare3",
+      "spare4",
+      "spare5"
+    ],
+    "note": "cell i sits at column i % 8, row floor(i / 8) counted from the bottom of the image"
+  },
+  "props": {
+    "bat": "origin at the top-hand grip; attach to bone 'bat' using that bone's bind pose",
+    "ball": "origin at centre; hold in bone 'prop_R' (palm socket)",
+    "stumps": "origin at the foot of the middle stump; nodes stump_off/middle/leg (off side is -X / three.js -X)",
+    "bails": "same origin as stumps; nodes bail_off, bail_leg"
+  },
+  "clips": {
+    "stance": {
+      "group": "batting",
+      "file": "anim_batting.glb",
+      "frames": 60,
+      "duration": 2.0,
+      "loop": true,
+      "outfit": "batter",
+      "events": {},
+      "notes": ""
+    },
+    "cover_drive": {
+      "group": "batting",
+      "file": "anim_batting.glb",
+      "frames": 49,
+      "duration": 1.633,
+      "loop": false,
+      "outfit": "batter",
+      "events": {
+        "contact": 0.9
+      },
+      "notes": ""
+    },
+    "straight_drive": {
+      "group": "batting",
+      "file": "anim_batting.glb",
+      "frames": 49,
+      "duration": 1.633,
+      "loop": false,
+      "outfit": "batter",
+      "events": {
+        "contact": 0.9
+      },
+      "notes": ""
+    },
+    "forward_defence": {
+      "group": "batting",
+      "file": "anim_batting.glb",
+      "frames": 56,
+      "duration": 1.867,
+      "loop": false,
+      "outfit": "batter",
+      "events": {
+        "contact": 0.633
+      },
+      "notes": ""
+    },
+    "back_defence": {
+      "group": "batting",
+      "file": "anim_batting.glb",
+      "frames": 54,
+      "duration": 1.8,
+      "loop": false,
+      "outfit": "batter",
+      "events": {
+        "contact": 0.633
+      },
+      "notes": ""
+    },
+    "pull": {
+      "group": "batting",
+      "file": "anim_batting.glb",
+      "frames": 48,
+      "duration": 1.6,
+      "loop": false,
+      "outfit": "batter",
+      "events": {
+        "contact": 0.833
+      },
+      "notes": ""
+    },
+    "cut": {
+      "group": "batting",
+      "file": "anim_batting.glb",
+      "frames": 46,
+      "duration": 1.533,
+      "loop": false,
+      "outfit": "batter",
+      "events": {
+        "contact": 0.767
+      },
+      "notes": ""
+    },
+    "leave": {
+      "group": "batting",
+      "file": "anim_batting.glb",
+      "frames": 60,
+      "duration": 2.0,
+      "loop": false,
+      "outfit": "batter",
+      "events": {},
+      "notes": ""
+    },
+    "bat_idle": {
+      "group": "batting",
+      "file": "anim_batting.glb",
+      "frames": 60,
+      "duration": 2.0,
+      "loop": true,
+      "outfit": "batter",
+      "events": {},
+      "notes": "rest between balls"
+    },
+    "batter_run": {
+      "group": "batting",
+      "file": "anim_batting.glb",
+      "frames": 20,
+      "duration": 0.667,
+      "loop": true,
+      "outfit": "batter",
+      "events": {},
+      "notes": "in place; move the root at about 3.2 m/s"
+    },
+    "bowl_fast": {
+      "group": "bowling",
+      "file": "anim_bowling.glb",
+      "frames": 56,
+      "duration": 1.867,
+      "loop": false,
+      "outfit": "bowler",
+      "events": {
+        "release": 0.967
+      },
+      "notes": "root motion: runs towards +Y (three.js -Z); release near the origin"
+    },
+    "bowl_spin": {
+      "group": "bowling",
+      "file": "anim_bowling.glb",
+      "frames": 46,
+      "duration": 1.533,
+      "loop": false,
+      "outfit": "bowler",
+      "events": {
+        "release": 0.867
+      },
+      "notes": "root motion: runs towards +Y (three.js -Z); release near the origin"
+    },
+    "field_idle": {
+      "group": "fielding",
+      "file": "anim_fielding.glb",
+      "frames": 60,
+      "duration": 2.0,
+      "loop": true,
+      "outfit": "fielder",
+      "events": {},
+      "notes": ""
+    },
+    "field_ready": {
+      "group": "fielding",
+      "file": "anim_fielding.glb",
+      "frames": 30,
+      "duration": 1.0,
+      "loop": true,
+      "outfit": "fielder",
+      "events": {},
+      "notes": ""
+    },
+    "walk": {
+      "group": "fielding",
+      "file": "anim_fielding.glb",
+      "frames": 32,
+      "duration": 1.067,
+      "loop": true,
+      "outfit": "fielder",
+      "events": {},
+      "notes": "in place; move the root at about 1.2 m/s"
+    },
+    "run": {
+      "group": "fielding",
+      "file": "anim_fielding.glb",
+      "frames": 20,
+      "duration": 0.667,
+      "loop": true,
+      "outfit": "fielder",
+      "events": {},
+      "notes": "in place; move the root at about 3.2 m/s"
+    },
+    "pickup_throw": {
+      "group": "fielding",
+      "file": "anim_fielding.glb",
+      "frames": 44,
+      "duration": 1.467,
+      "loop": false,
+      "outfit": "fielder",
+      "events": {
+        "pickup": 0.4,
+        "release": 0.967
+      },
+      "notes": ""
+    },
+    "throw": {
+      "group": "fielding",
+      "file": "anim_fielding.glb",
+      "frames": 30,
+      "duration": 1.0,
+      "loop": false,
+      "outfit": "fielder",
+      "events": {
+        "release": 0.467
+      },
+      "notes": ""
+    },
+    "catch_high": {
+      "group": "fielding",
+      "file": "anim_fielding.glb",
+      "frames": 40,
+      "duration": 1.333,
+      "loop": false,
+      "outfit": "fielder",
+      "events": {
+        "catch": 0.467
+      },
+      "notes": ""
+    },
+    "dive_left": {
+      "group": "fielding",
+      "file": "anim_fielding.glb",
+      "frames": 50,
+      "duration": 1.667,
+      "loop": false,
+      "outfit": "fielder",
+      "events": {
+        "catch": 0.6
+      },
+      "notes": "dive_right = play mirrored"
+    },
+    "keeper_crouch": {
+      "group": "fielding",
+      "file": "anim_fielding.glb",
+      "frames": 60,
+      "duration": 2.0,
+      "loop": true,
+      "outfit": "keeper",
+      "events": {},
+      "notes": ""
+    },
+    "keeper_take": {
+      "group": "fielding",
+      "file": "anim_fielding.glb",
+      "frames": 36,
+      "duration": 1.2,
+      "loop": false,
+      "outfit": "keeper",
+      "events": {
+        "catch": 0.4
+      },
+      "notes": ""
+    },
+    "umpire_idle": {
+      "group": "umpire",
+      "file": "anim_umpire.glb",
+      "frames": 60,
+      "duration": 2.0,
+      "loop": true,
+      "outfit": "umpire",
+      "events": {},
+      "notes": ""
+    },
+    "umpire_out": {
+      "group": "umpire",
+      "file": "anim_umpire.glb",
+      "frames": 60,
+      "duration": 2.0,
+      "loop": false,
+      "outfit": "umpire",
+      "events": {},
+      "notes": ""
+    },
+    "umpire_four": {
+      "group": "umpire",
+      "file": "anim_umpire.glb",
+      "frames": 60,
+      "duration": 2.0,
+      "loop": false,
+      "outfit": "umpire",
+      "events": {},
+      "notes": ""
+    },
+    "umpire_six": {
+      "group": "umpire",
+      "file": "anim_umpire.glb",
+      "frames": 54,
+      "duration": 1.8,
+      "loop": false,
+      "outfit": "umpire",
+      "events": {},
+      "notes": ""
+    },
+    "umpire_wide": {
+      "group": "umpire",
+      "file": "anim_umpire.glb",
+      "frames": 54,
+      "duration": 1.8,
+      "loop": false,
+      "outfit": "umpire",
+      "events": {},
+      "notes": ""
+    },
+    "umpire_noball": {
+      "group": "umpire",
+      "file": "anim_umpire.glb",
+      "frames": 50,
+      "duration": 1.667,
+      "loop": false,
+      "outfit": "umpire",
+      "events": {},
+      "notes": ""
+    }
+  }
+}
