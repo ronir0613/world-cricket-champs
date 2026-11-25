@@ -169,7 +169,8 @@ def cycle_feet(phase, stride, duty, lift, width, kick=0.0):
             # behind the body fwd is negative: the heel folds up towards the seat
             fwd -= kick * 0.25 * math.sin(math.pi * min(1.0, t / 0.6)) * (1 - t)
             heel = 55 * (1 - smooth01(t / 0.55)) - 12 * smooth01((t - 0.6) / 0.4)
-        out[S] = ((width * sx, -fwd, h), 0.0, heel)
+        # body space (left, forward, lift): feet="body" turns this into world space with the hips' yaw
+        out[S] = ((width * sx, fwd, h), 0.0, heel)
     return out
 
 
@@ -336,10 +337,11 @@ def pull():
         (17, dict(footL=((0.14, -0.06, 0.0), -30, 0), hips=(0.02, 0.14, 0.89), yaw=-45, pitch=6, chest=(6, -10, 0),
                   bat=BV((-0.05, 0.10, 1.30), (-0.2, 0.7, 0.68), (-0.9, 0.0, 0.2)), look=(-0.2, -4, 1.2))),
         (21, dict(bat=BH((0.15, 0.02, 1.18), 130, 0.1))),
-        (23, dict(bat=BH((0.35, -0.18, 1.12), 175, -0.05))),
-        (25, dict(bat=BH((0.42, -0.30, 1.10), 204, -0.12), hips=(0.02, 0.12, 0.86), yaw=-20, pitch=8, chest=(8, 10, 0),
-                  look=(-0.27, -0.61, 1.01), poleL=(0.10, -0.70, 0.30), poleR=(-0.20, 0.30, -0.30))),
-        (28, dict(bat=BH((0.45, -0.35, 1.12), 255, -0.1))),
+        # contact at waist height, where short balls usually reach a batter in the nets
+        (23, dict(bat=BH((0.35, -0.18, 1.02), 175, -0.12))),
+        (25, dict(bat=BH((0.42, -0.30, 0.96), 204, -0.22), hips=(0.02, 0.12, 0.84), yaw=-20, pitch=10, chest=(10, 10, 0),
+                  look=(-0.27, -0.61, 0.80), poleL=(0.10, -0.70, 0.30), poleR=(-0.20, 0.30, -0.30))),
+        (28, dict(bat=BH((0.45, -0.35, 1.02), 255, -0.12))),
         (32, dict(bat=BH((0.45, -0.20, 1.20), 320, 0.2), yaw=0, chest=(6, 25, 0), footR=((-0.10, 0.30, 0.0), -70, 30),
                   look=(6, -6, 1.0))),
         (38, dict(bat=BH((0.35, 0.05, 1.30), 420, 0.6), yaw=10, chest=(4, 35, 0),
@@ -491,7 +493,12 @@ SPIN = bowl(
         (36, dict(hips=(-0.15, 0.95, 0.92), yaw=205, pitch=10, chest=(4, 0, 0))),
         (46, dict(hips=(-0.35, 1.65, 0.94), yaw=205, pitch=8, handR=(-0.2, 0.05, 0.0), handL=(0.2, 0.05, 0.0))),
     ], base=SPIN_BASE, frames=46, release=26, high=0.3)
-BOWLING = [FAST, SPIN]
+# run-up loop facing the batter (+Y here, -Z in three.js), so it hands straight into a delivery
+BOWLER_RUN_BASE = dict(RUN_BASE, yaw=180, pitch=14)
+BOWLER_RUN = Clip("bowler_run", "bowling", 20, Table(BOWLER_RUN_BASE, [(20, dict(BOWLER_RUN_BASE))]),
+                  dict(mode="free", feet="body"), post=None, loop=True, outfit="bowler",
+                  notes="in place, facing the batter; left foot lands at the start of the loop, like bowl_fast frame 0")
+BOWLING = [FAST, SPIN, BOWLER_RUN]
 
 
 # ================================================================ fielding, keeping, umpiring
@@ -631,4 +638,5 @@ OTHERS = [
     signal("umpire_noball", 50, dict(handR=(-0.73, 0.05, 0.50), poleR=(-0.5, -0.3, 0.0)), (12, 36)),
 ]
 
+BOWLER_RUN.post = loop_post("run", 20)      # loop_post is defined after the bowling section
 CLIPS = BATTING + BOWLING + OTHERS

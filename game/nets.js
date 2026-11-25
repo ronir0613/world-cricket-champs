@@ -7,9 +7,10 @@
 import * as THREE from "three";
 import { PITCH, LEVELS, makeRng, planDelivery, releaseFrom, sampleAt, contactPlan, resolveShot, SWING_LEAD } from "./ball.js?v=4";
 import { buildWorld, buildBall } from "./world.js?v=7";
-import { createBatter } from "./batter.js?v=11";
+import { createBatter } from "./batter.js?v=12";
 import { createBowler } from "./bowler.js?v=7";
-import { buildFigure, applyPose, batterPose, strokeFor, batterStride, bowlerPose, bowlerZ, bowlerWalk, BATTER_SPOT, KITS } from "./figure.js?v=4";
+import { createSquadBatter, createSquadBowler } from "./squad-nets.js?v=1";
+import { buildFigure, applyPose, batterPose, strokeFor, batterStride, batterFeet, blendFeet, bowlerPose, bowlerZ, bowlerWalk, BATTER_SPOT, KITS } from "./figure.js?v=5";
 
 const BALLS = 12;
 const BEST_KEY = "world-cricket-champs-nets";
@@ -205,14 +206,18 @@ function createSession({ drill = "pace", level = "Club", action = "auto", batter
   scene.add(bowler.root);
   const rigs = [];
   const lightSkin = ["AUS", "ENG", "NZL", "SA"].includes(batterKit);
-  /* The real bowler (dressed model + recorded bowling actions). */
-  let realBowler = null;
-  const bowlerReady = createBowler().then((b) => {
-    if (destroyed) return;
-    realBowler = b;
-    scene.add(b.root);
-  }).catch((error) => { console.warn("Bowler model unavailable, using the simple bowler.", error); });
-  const rigsReady = createBatter({ kit: kitFor(batterKit) }).then((batterRig) => {
+  /* The squad rig's batter and bowler (game/squad-nets.js); the older
+     recorded models, then the simple figures, are the fallbacks. */
+  const rigLod = coarse || small ? 1 : 0;
+  let realBowler = null, squadBatter = null;
+  const bowlerReady = createSquadBowler({ kit: KITS.NET, skin: "#c99a76", lod: rigLod })
+    .catch((error) => { console.warn("Squad bowler unavailable, using the recorded bowler.", error); return createBowler(); })
+    .then((b) => {
+      if (destroyed) return;
+      realBowler = b;
+      scene.add(b.root);
+    }).catch((error) => { console.warn("Bowler model unavailable, using the simple bowler.", error); });
+  const legacyBatter = () => createBatter({ kit: kitFor(batterKit) }).then((batterRig) => {
     if (destroyed) return;
     batterRig.driver.root.position.copy(batter.root.position);
     batterRig.driver.root.rotation.copy(batter.root.rotation);
@@ -222,6 +227,13 @@ function createSession({ drill = "pace", level = "Club", action = "auto", batter
     rigs.push(batterRig);
     batter = batterRig.driver;
   }).catch((error) => { console.warn("Realistic batter unavailable, using the simple figure.", error); });
+  const rigsReady = createSquadBatter({ kit: kitFor(batterKit), skin: lightSkin ? "#d9a882" : "#a8774f", lod: rigLod, home: BATTER_SPOT })
+    .then((sb) => {
+      if (destroyed) return;
+      squadBatter = sb;
+      scene.remove(batter.root);
+      scene.add(sb.root);
+    }).catch((error) => { console.warn("Squad batter unavailable, using the recorded batter.", error); return legacyBatter(); });
   /* Start waits for both, but never more than 8 s. */
   const playersReady = Promise.race([Promise.all([rigsReady, bowlerReady]), new Promise((r) => setTimeout(r, 8000))]);
 
@@ -726,8 +738,20 @@ function createSession({ drill = "pace", level = "Club", action = "auto", batter
     if (state === "after" && cam.mode === "follow" && c.calloutShown && now - (c.flightStart || now) > 3.2) cam.mode = "broadcast";
   }
 
-  let strideNow = 0;
+  let strideNow = 0, feetNow = null;
   let lastBatterPose = null;
+  /* Feet follow the footwork exactly while batting; between balls they step
+     back to the stance (the foot with further to go lifts) instead of sliding. */
+  function settleFeet(bat, now) {
+    const want = batterFeet(bat, now);
+    if (!feetNow || !(bat.phase === "stance" || bat.phase === "recover")) { feetNow = want; return feetNow; }
+    feetNow = blendFeet(feetNow, want, 0.08);
+    const left = Math.hypot(feetNow.L.dx - want.L.dx, feetNow.L.dz - want.L.dz);
+    const right = Math.hypot(feetNow.R.dx - want.R.dx, feetNow.R.dz - want.R.dz);
+    const foot = left >= right ? feetNow.L : feetNow.R;
+    foot.lift = Math.max(foot.lift, Math.min(0.06, Math.max(left, right) * 0.5));
+    return feetNow;
+  }
   function updateFigures(now, dt = 0) {
     const c = ballCtx;
     const bat = c ? c.bat : { phase: "stance", t0: 0 };
@@ -736,6 +760,7 @@ function createSession({ drill = "pace", level = "Club", action = "auto", batter
     const stride = batterStride(bat, now);
     strideNow += (stride - strideNow) * (bat.phase === "swing" ? 1 : 0.08);
     batter.root.position.z = BATTER_SPOT.z + strideNow;
+    const feet = settleFeet(bat, now);
     if (c) {
       applyPose(bowler, bowlerPose(c.bowl, now));
       bowler.root.position.z = bowlerZ(c.bowl, now);
@@ -748,7 +773,8 @@ function createSession({ drill = "pace", level = "Club", action = "auto", batter
     }
     if (realBowler) realBowler.update(c ? now - c.releaseAt : -99);
     const bowlLayer = bowlerLayer(c, now, dt);
-    for (const rig of rigs) rig.update(rig.role === "bowler" ? bowlLayer : { dt });
+    for (const rig of rigs) rig.update(rig.role === "bowler" ? bowlLayer : { dt, feet, stride: strideNow });
+    if (squadBatter) squadBatter.update(dt, c, now);
   }
 
   /* Real animation for the bowler's run-up, walk back and idle; the
@@ -877,5 +903,5 @@ function createSession({ drill = "pace", level = "Club", action = "auto", batter
   });
   startButton.focus();
 
-  return { ready: playersReady, destroy, freeze(on) { paused = on; clock.frameReal = performance.now(); }, advance(seconds) { const p = paused; paused = false; for (let t = 0; t < seconds; t += 1 / 60) tick(1 / 60); paused = p; clock.frameReal = performance.now(); }, begin, playShot: (shot) => playShot(shot, pressTimeNow()), shotPerfect(shot, offset = 0, aim) { if (aim) { input.padAim.x = aim.x; input.padAim.y = aim.y; } playShot(shot, ballCtx.releaseAt + ballCtx.plan.t - SWING_LEAD[shot] + offset); input.padAim.x = input.padAim.y = 0; }, debug: { session, get state() { return state; }, get ballCtx() { return ballCtx; }, camera, scene, renderer, get batter() { return batter; }, get bowler() { return bowler; }, get realBowler() { return realBowler; }, rigs } };
+  return { ready: playersReady, destroy, freeze(on) { paused = on; clock.frameReal = performance.now(); }, advance(seconds) { const p = paused; paused = false; for (let t = 0; t < seconds; t += 1 / 60) tick(1 / 60); paused = p; clock.frameReal = performance.now(); }, begin, playShot: (shot) => playShot(shot, pressTimeNow()), shotPerfect(shot, offset = 0, aim) { if (aim) { input.padAim.x = aim.x; input.padAim.y = aim.y; } playShot(shot, ballCtx.releaseAt + ballCtx.plan.t - SWING_LEAD[shot] + offset); input.padAim.x = input.padAim.y = 0; }, debug: { session, get state() { return state; }, get ballCtx() { return ballCtx; }, camera, scene, renderer, get batter() { return batter; }, get bowler() { return bowler; }, get realBowler() { return realBowler; }, get squadBatter() { return squadBatter; }, rigs } };
 }

@@ -170,8 +170,108 @@ export function blend(a, b, t) {
   return out;
 }
 
+/* Elbows and knees never lock straight or bend backwards, even where the
+   spline overshoots a key (a straight joint has no bend plane for the IK). */
+function limbLimits(pose) {
+  for (const j of ["elL", "elR"]) if (pose[j]) pose[j] = [Math.min(-0.08, pose[j][0]), pose[j][1], pose[j][2]];
+  for (const j of ["knL", "knR"]) if (pose[j]) pose[j] = [Math.max(0.06, pose[j][0]), pose[j][1], pose[j][2]];
+  return pose;
+}
+
+/* A smooth path through timed key poses: a Catmull-Rom (Hermite) spline,
+   so speed carries through every key instead of stopping or kinking there.
+   Ends are at rest; a key marked `still` is passed through at rest too. */
+function splinePose(keys, time) {
+  let i = 0;
+  while (i < keys.length - 2 && time > keys[i + 1].t) i++;
+  const a = keys[i], b = keys[i + 1], h = b.t - a.t;
+  const s = Math.max(0, Math.min(1, (time - a.t) / h)), s2 = s * s, s3 = s2 * s;
+  const h00 = 2 * s3 - 3 * s2 + 1, h10 = s3 - 2 * s2 + s, h01 = -2 * s3 + 3 * s2, h11 = s3 - s2;
+  const moving = (j) => j > 0 && j < keys.length - 1 && !keys[j].still;
+  const out = {};
+  for (const key of new Set(keys.flatMap((k) => Object.keys(k.pose)))) {
+    /* a key without this joint holds the nearest key's value */
+    const val = (j, n) => {
+      let v;
+      for (let d = 0; v === undefined && d < keys.length; d++) v = (keys[j - d] && keys[j - d].pose[key]) ?? (keys[j + d] && keys[j + d].pose[key]);
+      return typeof v === "number" ? v : v[n];
+    };
+    const slope = (j, n) => (moving(j) ? (val(j + 1, n) - val(j - 1, n)) / (keys[j + 1].t - keys[j - 1].t) : 0);
+    const at = (n) => h00 * val(i, n) + h10 * h * slope(i, n) + h01 * val(i + 1, n) + h11 * h * slope(i + 1, n);
+    out[key] = typeof (a.pose[key] ?? b.pose[key]) === "number" ? at() : [at(0), at(1), at(2)];
+  }
+  return out;
+}
+
 const ease = (t) => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
 const clamp01 = (t) => Math.max(0, Math.min(1, t));
+
+/* ---------- Arms and bat ----------
+   The arms (shL, elL) and bat at each key of each stroke. Every entry was
+   solved so the hands and the bat land where a coach would put them: hands
+   under the eyes and the handle ahead of the blade at contact, the bat out
+   towards the target after it, and a high finish over the front shoulder.
+   Drives are stored at three aims (cover -0.9, straight 0, on 0.6) and
+   blended for anything in between. */
+const ARMS = {
+  backlift: { at: { shL: [0.44, -0.02, -0.82], elL: [-1.69, 0, 0], bat: [0.26, 0.23, -1.8] } },
+  load: { at: { shL: [0.39, -0.31, -0.84], elL: [-1.74, 0, 0], bat: [0.23, -0.06, -1.6] } },
+  drive: {
+    contact: { shL: [-0.33, 0.57, 0.41], elL: [-1.7, 0, 0], bat: [1.76, 0.61, -0.54] },
+    extend: { shL: [-0.26, 0.69, 0.3], elL: [-1.7, 0, 0], bat: [-0.24, -0.27, 0.86] },
+    finish: { shL: [-0.94, 0.17, 1.43], elL: [-1.18, 0, 0], bat: [-0.46, -0.49, 1.1] }
+  },
+  cover: {
+    contact: { shL: [0.53, 1.26, 0.64], elL: [-1.72, 0, 0], bat: [1.26, 0.77, -1.44] },
+    extend: { shL: [0.26, 1.47, 0.51], elL: [-1.52, 0, 0], bat: [1.6, 2.51, -1.96] },
+    finish: { shL: [1.06, 1.94, 0.65], elL: [-1.7, 0, 0], bat: [1.66, 3.3, -1.41] }
+  },
+  on: {
+    contact: { shL: [-0.32, 0.2, -0.11], elL: [-1.69, 0, 0], bat: [1.49, 0.97, 0.15] },
+    extend: { shL: [-0.34, 0.13, 0.11], elL: [-1.57, 0, 0], bat: [-0.06, -0.39, 1.16] },
+    finish: { shL: [-1.18, 0.01, 0.5], elL: [-1.27, 0, 0], bat: [-0.31, -0.94, 1.04] }
+  },
+  loft: {
+    extend: { shL: [-0.64, 0.79, 0.65], elL: [-1.7, 0, 0], bat: [-0.26, -0.25, 0.65] },
+    finish: { shL: [-1.36, -0.24, 1.5], elL: [-1.19, 0, 0], bat: [-0.53, -0.65, 0.9] }
+  },
+  flick: {
+    contact: { shL: [-0.76, -0.73, -0.23], elL: [-1.27, 0, 0], bat: [-1.66, 0.74, -3.08] },
+    extend: { shL: [-1.06, -1.54, 0.08], elL: [-0.86, 0, 0], bat: [-0.89, 0.43, -3.41] },
+    finish: { shL: [-0.1, -0.39, 0.94], elL: [-1.7, 0, 0], bat: [-0.8, 0.17, -4.11] }
+  },
+  fdef: {
+    contact: { shL: [-0.64, 0.21, 0.92], elL: [-0.83, 0, 0], bat: [1.61, 0.41, -1.03] },
+    finish: { shL: [-0.95, 0.14, 0.97], elL: [-0.51, 0, 0], bat: [1.74, 0.49, -0.94] }
+  },
+  bdef: {
+    contact: { shL: [-0.06, 0.68, -0.14], elL: [-1.7, 0, 0], bat: [1.82, 0.61, -0.3] },
+    finish: { shL: [-0.17, 0.81, -0.19], elL: [-1.7, 0, 0], bat: [1.85, 0.72, -0.13] }
+  },
+  punch: {
+    contact: { shL: [-0.06, 0.55, -0.03], elL: [-1.68, 0, 0], bat: [1.72, 0.73, -0.33] },
+    extend: { shL: [0.3, -0.34, 1.06], elL: [-1.08, 0, 0], bat: [2.46, 2.62, -0.95] },
+    finish: { shL: [0.26, -0.43, 1.28], elL: [-0.47, 0, 0], bat: [2.49, 2.88, -1.07] }
+  },
+  settle: { at: { shL: [-1.72, 1.23, 0.66], elL: [-0.77, 0, 0], bat: [0.34, 0.63, 1.1] } }
+};
+const DRIVE_AIMS = [["cover", -0.9], ["drive", 0], ["on", 0.6]];
+function armsFor(name, key, aim = 0) {
+  if (name === "drive") {
+    const [lo, hi] = aim <= 0 ? [DRIVE_AIMS[0], DRIVE_AIMS[1]] : [DRIVE_AIMS[1], DRIVE_AIMS[2]];
+    const a = ARMS[lo[0]] && ARMS[lo[0]][key], b = ARMS[hi[0]] && ARMS[hi[0]][key];
+    if (!a || !b) return a || b || null;
+    return blend(a, b, clamp01((aim - lo[1]) / (hi[1] - lo[1])));
+  }
+  return (ARMS[name] && ARMS[name][key]) || null;
+}
+const withArms = (pose, arms) => (arms ? { ...pose, ...arms } : pose);
+/* which arms table a swing uses */
+function armsName(front, shot, stroke) {
+  if (stroke === "defend") return front ? "fdef" : "bdef";
+  if (stroke === "drive") return shot === "loft" ? "loft" : "drive";
+  return stroke;
+}
 
 /* ---------- Batter ---------- */
 /* Right-hander standing side-on: local +z faces the off side, local +x
@@ -192,6 +292,7 @@ const BACKLIFT = {
   shR: [-0.8, 0, -0.85], elR: [-0.9, 0, 0],
   bat: [0.2, 0, -1.9]
 };
+const BACKLIFT_POSE = withArms(BACKLIFT, armsFor("backlift", "at"));
 /* Which stroke a swing plays, from the button, the foot, where it's aimed
    (+ leg side, - off side) and how high the ball is at contact. */
 export function strokeFor(shot, front, aim, height = 0.6) {
@@ -206,7 +307,10 @@ export function strokeFor(shot, front, aim, height = 0.6) {
 const BACK_LEGS = { hipL: [-0.15, 0, 0.2], knL: [0.3, 0, 0], anL: [0, 0, 0], hipR: [-0.35, 0, -0.2], knR: [0.35, 0, 0], anR: [-0.2, 0, 0] };
 
 /* Bat meeting the ball. */
-function contactPose(front, aim, stroke = "drive") {
+function contactPose(front, aim, stroke = "drive", shot = "ground") {
+  return withArms(contactBody(front, aim, stroke), armsFor(armsName(front, shot === "loft" ? "ground" : shot, stroke), "contact", aim));
+}
+function contactBody(front, aim, stroke) {
   if (stroke === "pull") {
     /* hips and chest open to the bowler, arms out in front, bat horizontal */
     return { hipY: 0.9, ...BACK_LEGS, hips: [0, 0.6, 0], spine: [0.12, 0, 0], chest: [0, 0.8 + (aim - 0.6) * 0.3, 0], neck: [0.1, 0, 0],
@@ -222,7 +326,7 @@ function contactPose(front, aim, stroke = "drive") {
   const stride = front ? 1 : -1;
   const pose = {
     hipY: front ? 0.82 : 0.9,
-    hips: [0, aim * 0.35, 0], spine: [front ? 0.45 : 0.25, 0, 0], chest: [0.05, aim * 0.6, 0], neck: [0.28, 1.2 - aim * 0.3, 0.05],
+    hips: [0, aim * 0.35, 0], spine: [front ? 0.45 : 0.25, 0, front ? -0.2 : 0], chest: [0.05, aim * 0.6, front ? -0.06 : 0], neck: [0.28, 1.2 - aim * 0.3, front ? 0.2 : 0.05],
     shL: [-0.7, 0, 0.15], elL: [-0.15, 0, 0],
     shR: [-0.65, 0, 0.5], elR: [-0.5, 0, 0],
     bat: [0.1, 0, 0.2],
@@ -236,6 +340,9 @@ function contactPose(front, aim, stroke = "drive") {
   return pose;
 }
 function followPose(front, aim, shot, stroke = "drive") {
+  return withArms(followBody(front, aim, shot, stroke), armsFor(armsName(front, shot, stroke), "finish", aim));
+}
+function followBody(front, aim, shot, stroke) {
   const high = shot === "loft" ? 1 : shot === "defend" ? 0 : 0.7;
   const c = contactPose(front, aim, stroke);
   if (stroke === "defend") return { ...c, bat: [0.35, 0, 0.35], shL: [-0.9, 0, 0.2] };
@@ -274,29 +381,118 @@ export const BATTER_SPOT = { x: 0.42, z: 0.55 };
 
 const easeOut = (t) => 1 - Math.pow(1 - t, 3);
 
-/* How far the batter has moved down (+) or back (-) the pitch:
-   a small trigger step back in the backlift, then the stride. */
+/* ---------- Footwork ----------
+   Each foot is planted unless it is stepping. A foot is described relative
+   to where it stands in the stance: dx down the pitch, dz towards the off
+   side, lift off the turf, heel raised (radians, pivoting on the ball of the
+   foot) and yaw (toe turned towards the bowler). The realistic batter pins
+   its feet to these with leg IK, so nothing slides. */
+const FOOT = { dx: 0, dz: 0, lift: 0, heel: 0, yaw: 0 };
+/* trigger: back foot a little back and across, front foot presses with it */
+const TRIGGER = { L: { ...FOOT, dx: -0.03, dz: 0.02 }, R: { ...FOOT, dx: -0.07, dz: 0.05 } };
+const TRIGGER_TIME = 0.3;
+
+function stepFoot(from, to, k, height) {
+  const e = ease(clamp01(k));
+  return {
+    dx: from.dx + (to.dx - from.dx) * e, dz: from.dz + (to.dz - from.dz) * e,
+    heel: from.heel + (to.heel - from.heel) * e, yaw: from.yaw + (to.yaw - from.yaw) * e,
+    lift: Math.sin(Math.PI * clamp01(k)) * height
+  };
+}
+/* Time for the stepping foot to land: just before the bat arrives. */
+function landSpan(state) { return Math.max(0.1, state.contactAt - state.t0 - 0.03); }
+
+/* Where the front foot lands on a front-foot stroke: towards the line of
+   the ball, toe opening towards where it's hit. */
+function frontStep(aim, stroke) {
+  const reach = stroke === "defend" ? 0.56 : 0.66;
+  return { ...FOOT, dx: TRIGGER.L.dx + reach, dz: 0.06 - aim * 0.12, yaw: 0.62 + aim * 0.22 };
+}
+/* Where the back foot goes on a back-foot stroke: back and across. */
+function backStep(stroke) {
+  if (stroke === "pull") return { ...FOOT, dx: -0.3, dz: 0.2, yaw: 0.35 };
+  if (stroke === "cut") return { ...FOOT, dx: -0.24, dz: 0.3, yaw: 0.1 };
+  return { ...FOOT, dx: -0.3, dz: 0.17, yaw: 0.12 };
+}
+
+export function batterFeet(state, time) {
+  if (state.phase === "stance" || state.phase === "recover") return { L: { ...FOOT }, R: { ...FOOT } };
+  const t = time - state.t0;
+  if (state.phase === "backlift") {
+    const k = t / TRIGGER_TIME;
+    return { L: stepFoot(FOOT, TRIGGER.L, k, 0.015), R: stepFoot(FOOT, TRIGGER.R, k, 0.035) };
+  }
+  if (state.phase === "leave") {
+    /* front pad goes a little forward and across, then stays put */
+    return { L: stepFoot(TRIGGER.L, { ...TRIGGER.L, dx: TRIGGER.L.dx + 0.16, dz: 0.1, yaw: 0.3 }, t / 0.3, 0.05), R: { ...TRIGGER.R } };
+  }
+  const k = t / landSpan(state), after = time - state.contactAt;
+  const stroke = state.stroke || (state.shot === "defend" ? "defend" : "drive");
+  if (state.front) {
+    const L = stepFoot(TRIGGER.L, frontStep(state.aim, stroke), k, 0.09);
+    /* back heel comes up as the weight goes through the shot */
+    const heel = (stroke === "defend" ? 0.18 : state.shot === "loft" ? 0.75 : 0.55) * ease(clamp01((after + 0.05) / 0.35));
+    const R = { ...TRIGGER.R, heel, yaw: TRIGGER.R.yaw + heel * 0.6 };
+    return { L, R };
+  }
+  /* back foot moves first, the front foot follows it back */
+  const R = stepFoot(TRIGGER.R, backStep(stroke), k * 1.15, 0.06);
+  const frontTo = stroke === "pull" ? { ...FOOT, dx: TRIGGER.L.dx - 0.04, dz: -0.1, yaw: 0.5 } : { ...FOOT, dx: TRIGGER.L.dx - 0.13, dz: 0.07, yaw: 0.1 };
+  const L = stepFoot(TRIGGER.L, frontTo, (t - 0.04) / landSpan(state), 0.05);
+  return { L, R };
+}
+
+/* Mix two sets of feet (used to walk back to the stance between balls). */
+export function blendFeet(a, b, k) {
+  const mix = (x, y) => {
+    const out = {};
+    for (const key in FOOT) out[key] = x[key] + (y[key] - x[key]) * k;
+    return out;
+  };
+  return { L: mix(a.L, b.L), R: mix(a.R, b.R) };
+}
+
+/* How far the pelvis has moved down (+) or back (-) the pitch. It carries
+   the weight transfer: about half the front foot's stride, a little behind
+   the back foot on back-foot strokes. */
 export function batterStride(state, time) {
-  const trigger = -0.07;
-  if (state.phase === "backlift" || state.phase === "leave") return trigger * ease(clamp01((time - state.t0) / 0.3));
+  const trigger = -0.05;
+  const t = time - state.t0;
+  if (state.phase === "backlift") return trigger * ease(clamp01(t / TRIGGER_TIME));
+  if (state.phase === "leave") return trigger + 0.06 * ease(clamp01(t / 0.3));
   if (state.phase !== "swing") return 0;
-  const reach = state.front ? 0.72 : -0.3;
-  const span = Math.max(0.08, state.contactAt - state.t0);
-  return trigger + (reach - trigger) * ease(clamp01((time - state.t0 + 0.04) / span));
+  const k = ease(clamp01(t / landSpan(state)));
+  if (!state.front) return trigger - 0.17 * k;
+  const stroke = state.stroke || (state.shot === "defend" ? "defend" : "drive");
+  const reach = frontStep(state.aim, stroke).dx * 0.5;
+  /* weight keeps going forward a touch after contact */
+  const through = stroke === "defend" ? 0 : 0.05 * easeOut(clamp01((time - state.contactAt) / 0.4));
+  return trigger + (reach - trigger) * k + through;
 }
 
 /* Hands still high, but the front shoulder and front leg already lead. */
 function loadPose(front, aim, stroke) {
   const c = contactPose(front, aim, stroke);
   const mid = blend(BACKLIFT, c, 0.45);
-  return { ...mid, shL: [-0.95, 0, -1.35], elL: [-0.55, 0, 0], shR: [-0.9, 0, -0.95], elR: [-0.95, 0, 0], bat: [0.2, 0, -2.05], neck: [0.1, 1.3, 0.05] };
+  return withArms({ ...mid, shL: [-0.95, 0, -1.35], elL: [-0.55, 0, 0], shR: [-0.9, 0, -0.95], elR: [-0.95, 0, 0], bat: [0.2, 0, -2.05], neck: [0.1, 1.3, 0.05] },
+    armsFor("load", "at"));
+}
+/* Just after contact: arms extend and the bat chases the ball towards the target. */
+function extendPose(front, aim, shot, stroke, contact, follow) {
+  return withArms(blend(contact, follow, 0.35), armsFor(armsName(front, shot, stroke), "extend", aim));
 }
 /* After the shot: bat comes down, body relaxes, still watching the ball. */
 function settlePose(front, aim, shot, stroke) {
   const f = followPose(front, aim, shot, stroke);
-  return { ...f, hipY: 0.9, spine: [0.12, 0, 0], chest: [0, aim * 0.4, 0], neck: [0, 1.1 - aim * 0.4, 0],
-    shL: [-0.7, 0, 0.1], elL: [-0.4, 0, 0], shR: [-0.6, 0, 0.35], elR: [-0.6, 0, 0], bat: [0.35, 0, 0.45] };
+  return withArms({ ...f, hipY: 0.9, spine: [0.12, 0, 0], chest: [0, aim * 0.4, 0], neck: [0, 1.1 - aim * 0.4, 0],
+    shL: [-0.7, 0, 0.1], elL: [-0.4, 0, 0], shR: [-0.6, 0, 0.35], elR: [-0.6, 0, 0], bat: [0.35, 0, 0.45] }, armsFor("settle", "at"));
 }
+/* strokes that push the bat out towards the target before it rises */
+const EXTENDS = new Set(["drive", "loft", "flick", "punch"]);
+/* when the extension is reached after contact (s): late enough that the bat
+   keeps the downswing's speed rather than whipping through it */
+const EXT_TIME = 0.105;
 
 export function batterPose(state, time) {
   /* state.phase: stance | backlift | swing | leave | recover */
@@ -310,29 +506,35 @@ export function batterPose(state, time) {
     return blend(state.from || STANCE, STANCE, k);
   }
   if (state.phase === "backlift") {
+    /* start from exactly where the stance sway was, so nothing jumps */
     const k = ease(clamp01((time - state.t0) / 0.38));
-    return blend(STANCE, BACKLIFT, k);
+    return blend(batterPose({ phase: "stance" }, state.t0), BACKLIFT_POSE, k);
   }
   if (state.phase === "leave") {
     const t = time - state.t0;
-    const lift = blend(BACKLIFT, LEAVE, ease(clamp01(t / 0.25)));
+    const lift = blend(BACKLIFT_POSE, LEAVE, ease(clamp01(t / 0.25)));
     return t < 0.9 ? lift : blend(LEAVE, { ...STANCE, hipY: 0.92, spine: [0.15, 0, 0] }, ease(clamp01((t - 0.9) / 0.6)));
   }
-  /* swing: backlift -> load -> downswing -> contact -> follow -> settle */
+  /* swing: backlift -> load -> downswing -> contact -> extend -> follow -> settle,
+     one spline through all of them */
   const stroke = state.stroke || (state.shot === "defend" ? "defend" : "drive");
+  const span = Math.max(0.08, state.contactAt - state.t0);
+  const fspan = stroke === "defend" ? 0.2 : stroke === "cut" || stroke === "punch" ? 0.3 : 0.42;
   const contact = contactPose(state.front, state.aim, stroke);
-  if (time <= state.contactAt) {
-    const span = Math.max(0.08, state.contactAt - state.t0);
-    const k = clamp01((time - state.t0) / span);
-    const load = loadPose(state.front, state.aim, stroke);
-    if (k < 0.4) return blend(BACKLIFT, load, ease(k / 0.4));
-    return blend(load, contact, Math.pow((k - 0.4) / 0.6, 2));
-  }
   const follow = followPose(state.front, state.aim, state.shot, stroke);
   const dt = time - state.contactAt;
-  const span = stroke === "defend" ? 0.2 : stroke === "cut" || stroke === "punch" ? 0.3 : 0.42;
-  if (dt <= span + 0.5) return blend(contact, follow, easeOut(clamp01(dt / span)));
-  return blend(follow, settlePose(state.front, state.aim, state.shot, stroke), ease(clamp01((dt - span - 0.5) / 0.7)));
+  if (dt <= fspan + 0.5) {
+    const keys = [
+      { t: state.t0, pose: BACKLIFT_POSE },
+      { t: state.t0 + 0.4 * span, pose: loadPose(state.front, state.aim, stroke) },
+      /* a defensive block arrives at rest: soft hands */
+      { t: state.contactAt, pose: contact, still: stroke === "defend" }
+    ];
+    if (EXTENDS.has(stroke)) keys.push({ t: state.contactAt + EXT_TIME, pose: extendPose(state.front, state.aim, state.shot, stroke, contact, follow) });
+    keys.push({ t: state.contactAt + fspan, pose: follow });
+    return limbLimits(splinePose(keys, time));
+  }
+  return blend(follow, settlePose(state.front, state.aim, state.shot, stroke), ease(clamp01((dt - fspan - 0.5) / 0.7)));
 }
 
 /* ---------- Bowler ---------- */

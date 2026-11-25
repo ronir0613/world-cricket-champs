@@ -212,6 +212,16 @@
       },
       "notes": "root motion: runs towards +Y (three.js -Z); release near the origin"
     },
+    "bowler_run": {
+      "group": "bowling",
+      "file": "anim_bowling.glb",
+      "frames": 20,
+      "duration": 0.667,
+      "loop": true,
+      "outfit": "bowler",
+      "events": {},
+      "notes": "in place, facing the batter; left foot lands at the start of the loop, like bowl_fast frame 0"
+    },
     "field_idle": {
       "group": "fielding",
       "file": "anim_fielding.glb",

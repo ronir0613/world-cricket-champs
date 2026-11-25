@@ -8,7 +8,7 @@
    every bone takes the driver joint's world rotation plus that offset.
    ========================================================================== */
 import * as THREE from "three";
-import { buildFigure } from "./figure.js?v=4";
+import { buildFigure, applyPose, batterPose } from "./figure.js?v=5";
 import { loadCricketer, dress } from "./bowler.js?v=7";
 
 const MAP = [
@@ -174,11 +174,21 @@ export async function createBatter({ kit }) {
   const armL = armLen("Left"), armR = armLen("Right");
   function rotateWorld(bone, rot) { bone.getWorldQuaternion(wq).premultiply(rot); bone.parent.getWorldQuaternion(qq).invert(); bone.quaternion.copy(qq.multiply(wq)); bone.updateMatrixWorld(true); }
   function setWorldQ(bone, rot) { bone.parent.getWorldQuaternion(qq).invert(); bone.quaternion.copy(qq.multiply(rot)); bone.updateMatrixWorld(true); }
-  function clampTo(point, centre, radius) { const d = point.distanceTo(centre); if (d > radius) point.sub(centre).multiplyScalar(radius / d).add(centre); }
-  function solveArm(upper, lower, hand, target) {
+  /* keep a point within reach of a shoulder; the limit is soft so the arm
+     eases into it instead of snapping when it starts to apply */
+  function clampTo(point, centre, radius) {
+    const d = point.distanceTo(centre), knee = radius * 0.88;
+    if (d <= knee) return;
+    const soft = knee + (radius - knee) * Math.tanh((d - knee) / (radius - knee));
+    point.sub(centre).multiplyScalar(soft / d).add(centre);
+  }
+  /* two-bone IK; with `soft` the limb eases towards full stretch instead of
+     snapping straight when the target goes out of reach */
+  function solveArm(upper, lower, hand, target, soft = false) {
     upper.getWorldPosition(S); lower.getWorldPosition(E); hand.getWorldPosition(H);
-    const a = S.distanceTo(E), b = E.distanceTo(H);
-    const d = Math.min(S.distanceTo(target), (a + b) * 0.995);
+    const a = S.distanceTo(E), b = E.distanceTo(H), full = (a + b) * 0.995, want = S.distanceTo(target);
+    const knee = full * 0.92;
+    const d = soft && want > knee ? knee + (full - knee) * Math.tanh((want - knee) / (full - knee)) : Math.min(want, full);
     v1.subVectors(S, E); v2.subVectors(H, E);
     const wanted = Math.acos(THREE.MathUtils.clamp((a * a + b * b - d * d) / (2 * a * b), -1, 1));
     axis.crossVectors(v1, v2);
@@ -188,17 +198,94 @@ export async function createBatter({ kit }) {
     rotateWorld(upper, rq);
   }
 
-  function update() {
+  /* ---- feet: planted on the turf with two-bone leg IK ---- */
+  const legLen = {}, toeToAnkle = {}, restFootQ = {}, restToeQ = {}, stanceToe = {};
+  const hasToes = !!(bones.LeftToeBase && bones.RightToeBase);
+  for (const [S, side] of [["L", "Left"], ["R", "Right"]]) {
+    legLen[S] = at(side + "UpLeg").distanceTo(at(side + "Leg")) + at(side + "Leg").distanceTo(at(side + "Foot"));
+    if (!hasToes) continue;
+    toeToAnkle[S] = at(side + "Foot").sub(at(side + "ToeBase"));
+    restFootQ[S] = restQ[side + "Foot"].clone();
+    restToeQ[S] = restQ[side + "ToeBase"].clone();
+  }
+  /* the model's rest pose stands on y = 0, so the ball of the foot sits this high */
+  const toeY = hasToes ? (at("LeftToeBase").y + at("RightToeBase").y) / 2 : 0;
+  /* where each foot stands in the stance (root-local), read off the stance pose */
+  if (hasToes) {
+    applyPose(driver, batterPose({ phase: "stance", t0: 0 }, 0));
     retarget();
+    for (const [S, side] of [["L", "Left"], ["R", "Right"]]) {
+      stanceToe[S] = driver.root.worldToLocal(bones[side + "ToeBase"].getWorldPosition(new THREE.Vector3()));
+      stanceToe[S].y = toeY;
+    }
+  }
+  const XV = new THREE.Vector3(1, 0, 0), YV = new THREE.Vector3(0, 1, 0);
+  const rootQ = new THREE.Quaternion(), yawQ = new THREE.Quaternion(), heelQ = new THREE.Quaternion(), footQ = new THREE.Quaternion();
+  const ankle = { L: new THREE.Vector3(), R: new THREE.Vector3() }, hipP = new THREE.Vector3(), off = new THREE.Vector3();
+  const legAxis = new THREE.Vector3(), kneeV = new THREE.Vector3(), poleV = new THREE.Vector3(), crossV = new THREE.Vector3(), twistQ = new THREE.Quaternion();
+  function plantFeet(feet, stride) {
+    driver.root.getWorldQuaternion(rootQ);
+    for (const S of ["L", "R"]) {
+      const f = feet[S];
+      yawQ.setFromAxisAngle(YV, f.yaw);
+      heelQ.setFromAxisAngle(XV, f.heel);
+      /* ball of the foot, then the ankle above and behind it (pivoting on the toe as the heel lifts) */
+      const toe = stanceToe[S].clone().add(off.set(f.dx - stride, f.lift, f.dz));
+      ankle[S].copy(toeToAnkle[S]).applyQuaternion(heelQ).applyQuaternion(yawQ).add(toe);
+      driver.root.localToWorld(ankle[S]);
+    }
+    /* lower the pelvis if either leg can't reach its foot */
+    let drop = 0;
+    for (const [S, side] of [["L", "Left"], ["R", "Right"]]) {
+      bones[side + "UpLeg"].getWorldPosition(hipP);
+      const reach = legLen[S] * 0.985, flat = Math.hypot(hipP.x - ankle[S].x, hipP.z - ankle[S].z);
+      const need = hipP.y - (ankle[S].y + Math.sqrt(Math.max(0, reach * reach - flat * flat)));
+      drop = Math.max(drop, need);
+    }
+    if (drop > 0) {
+      bones.Hips.getWorldPosition(hipP);
+      hipP.y -= drop;
+      bones.Hips.position.copy(bones.Hips.parent.worldToLocal(hipP));
+      bones.Hips.updateMatrixWorld(true);
+    }
+    for (const [S, side] of [["L", "Left"], ["R", "Right"]]) {
+      const f = feet[S];
+      solveArm(bones[side + "UpLeg"], bones[side + "Leg"], bones[side + "Foot"], ankle[S]);
+      yawQ.setFromAxisAngle(YV, f.yaw);
+      /* twist the leg about hip-to-ankle so the knee tracks over the toes */
+      bones[side + "UpLeg"].getWorldPosition(hipP);
+      legAxis.subVectors(ankle[S], hipP).normalize();
+      bones[side + "Leg"].getWorldPosition(kneeV).sub(hipP);
+      kneeV.addScaledVector(legAxis, -kneeV.dot(legAxis));
+      poleV.set(0, 0, 1).applyQuaternion(yawQ).applyQuaternion(rootQ);
+      poleV.addScaledVector(legAxis, -poleV.dot(legAxis));
+      if (kneeV.lengthSq() > 1e-6 && poleV.lengthSq() > 1e-6) {
+        kneeV.normalize(); poleV.normalize();
+        const twist = Math.atan2(crossV.crossVectors(kneeV, poleV).dot(legAxis), kneeV.dot(poleV));
+        rotateWorld(bones[side + "UpLeg"], twistQ.setFromAxisAngle(legAxis, twist));
+      }
+      heelQ.setFromAxisAngle(XV, f.heel);
+      footQ.copy(rootQ).multiply(yawQ).multiply(heelQ).multiply(restFootQ[S]);
+      setWorldQ(bones[side + "Foot"], footQ);
+      footQ.copy(rootQ).multiply(yawQ).multiply(restToeQ[S]);
+      setWorldQ(bones[side + "ToeBase"], footQ);
+    }
+  }
+
+  /* opts.feet (from batterFeet) pins the feet; opts.stride is how far the
+     root has been moved down the pitch, so planted feet stay put. */
+  function update(opts = {}) {
+    retarget();
+    if (opts.feet && hasToes) plantFeet(opts.feet, opts.stride || 0);
     bones.LeftHand.getWorldQuaternion(saveQ);
     bones.LeftHand.getWorldPosition(G);
     bones.LeftArm.getWorldPosition(SL);
     bones.RightArm.getWorldPosition(SR);
     for (let i = 0; i < 3; i++) { clampTo(G, SR, armR * 0.86); clampTo(G, SL, armL * 0.98); }
-    solveArm(bones.LeftArm, bones.LeftForeArm, bones.LeftHand, G);
+    solveArm(bones.LeftArm, bones.LeftForeArm, bones.LeftHand, G, true);
     setWorldQ(bones.LeftHand, saveQ);
     driver.batHandle.getWorldPosition(T);
-    solveArm(bones.RightArm, bones.RightForeArm, bones.RightHand, T);
+    solveArm(bones.RightArm, bones.RightForeArm, bones.RightHand, T, true);
   }
 
   /* fingers wrap the handle */
