@@ -1,6 +1,6 @@
 /* Offline support. Network first, so updates always show when online;
    the cache is only used when the network is unavailable. */
-const CACHE = "wcc-v14";
+const CACHE = "wcc-v18";
 const CORE = [
   "./",
   "index.html",
@@ -38,6 +38,8 @@ const CORE = [
   "assets/players/bat.glb",
   "game/bowler.js",
   "game/batter.js",
+  "game/venue-preview.js",
+  "game/movement-lab.js",
   "vendor/three/addons/loaders/FBXLoader.js",
   "vendor/three/addons/libs/fflate.module.js",
   "vendor/three/addons/curves/NURBSCurve.js",

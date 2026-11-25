@@ -9,7 +9,7 @@
    ========================================================================== */
 import * as THREE from "three";
 import { buildFigure } from "./figure.js?v=4";
-import { loadCricketer, dress } from "./bowler.js?v=2";
+import { loadCricketer, dress } from "./bowler.js?v=7";
 
 const MAP = [
   ["hips", "Hips"], ["spine", "Spine"], ["spine", "Spine1"], ["chest", "Spine2"],

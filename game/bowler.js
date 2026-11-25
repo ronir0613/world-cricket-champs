@@ -12,6 +12,8 @@ import * as THREE from "three";
 import { FBXLoader } from "three/addons/loaders/FBXLoader.js";
 
 const BASE = new URL("../assets/players/cricketer/", import.meta.url).href;
+/* the bowler's popping crease, 1.22 m in front of the stumps at z = 20.12 */
+const POPPING_Z = 20.12 - 1.22;
 
 /* Measured from the clips (centimetres in the model's own space): clip time
    of release, and where the bowling hand is at that moment. */
@@ -126,12 +128,21 @@ export async function createBowler() {
   (bones.RightHandMiddle1 || bones.RightHand).add(ballHold);
 
   let current = null, info = null;
+  const up = new THREE.Vector3(0, 1, 0);
+  let yaw = 0;
 
-  /* Pick and place the clip for a delivery. */
+  /* Right-arm over the wicket: the bowler runs in to the left of the
+     stumps, so the hand comes over about half a metre wide of middle
+     stump. The run-up comes in on a slight angle. */
+  const RELEASE_X = { fast: -0.34, medium: -0.34, off: -0.62, leg: -0.46 };
+  const RUN_ANGLE = { fast: -0.035, medium: -0.04, off: -0.07, leg: -0.06 };
+  const handLocal = new THREE.Vector3(), pivot = new THREE.Vector3(), turned = new THREE.Vector3();
+
+  /* Pick and place the clip for a delivery. Returns where the hand will
+     release the ball, so the flight can be solved from there. */
   function prepare(delivery, level) {
-    let kind;
-    if (delivery.spin) kind = delivery.style === "Leg-spin" ? "leg" : "off";
-    else kind = level === "International" ? "fast" : "medium";
+    let kind = CLIPS[delivery.action] ? delivery.action : null;
+    if (!kind) kind = delivery.spin ? (delivery.style === "Leg-spin" ? "leg" : "off") : level === "International" ? "fast" : "medium";
     info = CLIPS[kind];
     const action = actions[info.name];
     if (current && current !== action) current.stop();
@@ -139,17 +150,36 @@ export async function createBowler() {
     current.reset().play();
     current.paused = true;
     /* hand at the release point when the clip reaches the release frame */
-    root.position.set(delivery.release.x + info.handX * 0.01, 0, delivery.release.z + info.handZ * 0.01);
+    yaw = RUN_ANGLE[kind];
+    root.rotation.y = Math.PI + yaw;
+    handLocal.set(info.handX * 0.01, 0, info.handZ * 0.01);
+    pivot.set(RELEASE_X[kind], 0, delivery.release.z);
+    update(0);
+    /* slide along the pitch so the front foot lands just behind the popping
+       crease at release (a legal delivery, clear of the stumps) */
+    root.updateMatrixWorld(true);
+    const foot = new THREE.Vector3();
+    (bones.LeftToeBase || bones.LeftFoot).getWorldPosition(foot);
+    pivot.z += POPPING_Z + 0.1 - foot.z;
+    update(0);
     return info;
   }
 
-  /* tau: seconds relative to release (negative before). */
+  /* tau: seconds relative to release (negative before). After release the
+     bowler peels away to his left, off the pitch. */
   function update(tau) {
     if (!current || !info) return;
     const clip = current.getClip();
     const t = THREE.MathUtils.clamp(info.release + tau, 0, Math.min(clip.duration - 0.12, info.release + 1.6));
     current.time = t;
     mixer.update(0);
+    /* turn about the release point, not the clip's origin far back up the run */
+    const k = THREE.MathUtils.smoothstep(tau, 0.1, 1.0);
+    const heading = Math.PI + yaw + k * 0.55;
+    turned.copy(handLocal).applyAxisAngle(up, heading);
+    root.position.copy(pivot).sub(turned);
+    root.position.x -= k * 0.6;
+    root.rotation.y = heading;
   }
 
   return { root, ballHold, prepare, update, clips: CLIPS };

@@ -5,10 +5,10 @@
    Loaded on demand from features.js, so the menus never pay for Three.js.
    ========================================================================== */
 import * as THREE from "three";
-import { PITCH, LEVELS, makeRng, planDelivery, releaseFrom, sampleAt, contactPlan, resolveShot, SWING_LEAD } from "./ball.js?v=3";
-import { buildWorld, buildBall } from "./world.js?v=3";
-import { createBatter } from "./batter.js?v=6";
-import { createBowler } from "./bowler.js?v=2";
+import { PITCH, LEVELS, makeRng, planDelivery, releaseFrom, sampleAt, contactPlan, resolveShot, SWING_LEAD } from "./ball.js?v=4";
+import { buildWorld, buildBall } from "./world.js?v=7";
+import { createBatter } from "./batter.js?v=11";
+import { createBowler } from "./bowler.js?v=7";
 import { buildFigure, applyPose, batterPose, strokeFor, batterStride, bowlerPose, bowlerZ, bowlerWalk, BATTER_SPOT, KITS } from "./figure.js?v=4";
 
 const BALLS = 12;
@@ -122,7 +122,7 @@ function el(html) {
   return t.content.firstElementChild;
 }
 
-function createSession({ drill = "pace", level = "Club", batterKit = "IND", batterName = "You", onExit = () => {} }) {
+function createSession({ drill = "pace", level = "Club", action = "auto", batterKit = "IND", batterName = "You", onExit = () => {} }) {
   const settings = readSettings();
   const audio = makeAudio(settings);
   const levelCfg = LEVELS[level] || LEVELS.Club;
@@ -191,7 +191,7 @@ function createSession({ drill = "pace", level = "Club", batterKit = "IND", batt
   renderer.shadowMap.enabled = quality.shadows;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-  const { scene, strikerStumps } = buildWorld(renderer, quality);
+  const { scene, strikerStumps, update: updateWorld, cheer: crowdCheer } = buildWorld(renderer, quality);
   const ball = buildBall(scene);
 
   const kitFor = (code) => KITS[code] || KITS.IND;
@@ -433,7 +433,7 @@ function createSession({ drill = "pace", level = "Club", batterKit = "IND", batt
     cam.mode = "broadcast";
     resetStumps();
     ball.marker.visible = false;
-    let delivery = planDelivery(drill, level, rng);
+    let delivery = planDelivery(drill, level, rng, action);
     /* Real bowler: place him, then release the ball from his actual hand. */
     if (realBowler) {
       realBowler.prepare(delivery, level);
@@ -549,7 +549,7 @@ function createSession({ drill = "pace", level = "Club", batterKit = "IND", batt
   }
   function restart() {
     destroy(true);
-    active = createSession({ drill, level, batterKit, batterName, onExit });
+    active = createSession({ drill, level, action, batterKit, batterName, onExit });
   }
   function quit() {
     destroy();
@@ -718,7 +718,7 @@ function createSession({ drill = "pace", level = "Club", batterKit = "IND", batt
           c.calloutShown = true;
           showCallout(r);
           showTiming(r);
-          if (r.runs === 6) audio.cheer(true); else if (r.runs === 4) audio.cheer(false);
+          if (r.runs === 6) { audio.cheer(true); crowdCheer(1); } else if (r.runs === 4) { audio.cheer(false); crowdCheer(0.6); }
           finishBall();
         }
       }
@@ -831,6 +831,7 @@ function createSession({ drill = "pace", level = "Club", batterKit = "IND", batt
       updateFigures(now, dt);
       updateBall(now);
       updateFlying(dt);
+      updateWorld(now, dt);
     }
     updateAimArrow(dtReal);
     updateCamera(dtReal, now);

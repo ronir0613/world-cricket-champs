@@ -145,7 +145,15 @@ html.nav-focus .swatch:has(input:focus) { outline: 3px solid var(--gold); outlin
   .venue-card:hover { box-shadow: var(--shadow-2); transform: translateY(-3px); }
   .venue-card:hover .venue-photo img { transform: scale(1.04); }
 }
+.venue-badge { position: absolute; top: 12px; left: 12px; padding: 4px 10px; border-radius: 999px; color: #fff; background: var(--green, #15945e); font-size: var(--text-xs); font-weight: 800; letter-spacing: .08em; }
+.venue-card-arena .venue-photo { background: linear-gradient(160deg, #12357a, #0b1d3f); }
 .venue-detail { display: grid; gap: 16px; }
+.venue-hero-3d { height: clamp(260px, 52vh, 520px); }
+.venue-3d { position: absolute; inset: 0; }
+.venue-3d-canvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+.venue-3d-canvas:active { cursor: grabbing; }
+.venue-hero-3d .venue-hero-copy { pointer-events: none; }
+.venue-3d-hint { color: #dbe3ef; font-size: var(--text-sm); }
 .venue-hero { position: relative; overflow: hidden; border-radius: var(--radius-l); background: var(--navy-deep); box-shadow: var(--shadow-2); }
 .venue-hero img { display: block; width: 100%; height: clamp(220px, 42vh, 420px); object-fit: cover; }
 .venue-hero-copy { position: absolute; inset: auto 0 0; display: grid; gap: 6px; padding: clamp(18px, 3vw, 32px); background: linear-gradient(transparent, rgba(4, 12, 28, .88)); }
@@ -177,6 +185,10 @@ html.nav-focus .swatch:has(input:focus) { outline: 3px solid var(--gold); outlin
 .drill-copy { display: grid; align-content: start; gap: 8px; padding: 18px; }
 .drill-copy h2 { margin: 0; color: var(--ink); font-family: var(--font-display); font-size: var(--text-lg); font-weight: 700; text-transform: uppercase; }
 .drill-copy p { margin: 0 0 6px; color: var(--muted); font-size: var(--text-sm); line-height: 1.5; }
+.drill-action { margin-bottom: 6px; }
+.drill-action legend { margin-bottom: 6px; color: var(--muted); font-size: var(--text-xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.drill-action .segmented { width: 100%; }
+.drill-action .segmented label { flex: 1; text-align: center; }
 .drill-copy .cwc-primary { margin-top: auto; }
 
 /* ---------- CWC27 team pages ---------- */
@@ -493,4 +505,35 @@ a.hub-team { text-decoration: none; transition: border-color .15s ease; }
   .hub-team { grid-column: 3; grid-row: 1; }
   .standings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .standings-optional { display: none; }
+}
+
+/* ---------- Player movement lab ---------- */
+.movement-lab { display: grid; gap: 14px; margin-top: clamp(20px, 3vw, 32px); padding: clamp(16px, 2vw, 22px); border: 1px solid var(--line); border-radius: var(--radius-l); background: var(--surface); box-shadow: var(--shadow-1); }
+.lab-head { display: grid; gap: 6px; }
+.lab-head h2 { margin: 0; color: var(--ink); font-family: var(--font-display); font-size: var(--text-lg); font-weight: 700; text-transform: uppercase; }
+.lab-head p { max-width: 70ch; margin: 0; color: var(--muted); font-size: var(--text-sm); line-height: 1.5; }
+.lab-body { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(260px, 1fr); gap: 16px; align-items: start; }
+.lab-stage { position: relative; display: grid; place-items: center; aspect-ratio: 16 / 10; overflow: hidden; border-radius: var(--radius); background: linear-gradient(160deg, #12357a, #0b1d3f); }
+.lab-canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+.lab-canvas:active { cursor: grabbing; }
+.lab-open { position: relative; z-index: 1; width: auto; margin: 0; }
+.lab-open[hidden] { display: none; }
+.lab-phase { position: absolute; top: 12px; left: 12px; z-index: 1; padding: 6px 12px; border-radius: 999px; color: #fff; background: rgba(8, 20, 44, .72); font-size: var(--text-sm); font-weight: 700; pointer-events: none; }
+.lab-phase[hidden], .lab-controls[hidden] { display: none; }
+.lab-controls { display: grid; gap: 14px; }
+.lab-moves { display: flex; flex-wrap: wrap; gap: 6px; }
+.lab-move input, .lab-controls .segmented input { position: absolute; opacity: 0; pointer-events: none; }
+.lab-move span { display: inline-grid; min-height: 36px; place-items: center; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-2); background: var(--surface-2); font-size: var(--text-sm); font-weight: 600; cursor: pointer; }
+.lab-move:has(input:checked) span { border-color: var(--navy, #12357a); color: #fff; background: var(--navy, #12357a); }
+.lab-move:has(input:focus-visible) span { outline: 2px solid var(--focus, #2f6fd6); outline-offset: 2px; }
+.lab-playback { display: grid; grid-template-columns: auto auto auto minmax(0, 1fr) auto; align-items: center; gap: 8px; }
+.lab-icon-btn, .lab-play { min-height: 40px; border: 1px solid var(--line); border-radius: var(--radius-s); color: var(--ink); background: var(--surface-2); font-weight: 700; cursor: pointer; }
+.lab-icon-btn { width: 40px; font-size: 1.3rem; line-height: 1; }
+.lab-play { min-width: 76px; padding: 0 12px; }
+.lab-playback input[type=range] { width: 100%; accent-color: var(--navy, #12357a); }
+.lab-playback output { min-width: 56px; color: var(--muted); font-size: var(--text-sm); font-variant-numeric: tabular-nums; text-align: right; }
+.lab-row { display: grid; gap: 14px; }
+@media (max-width: 900px) {
+  .lab-body { grid-template-columns: 1fr; }
+  .lab-row { grid-template-columns: 1fr; }
 }

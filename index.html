@@ -18,7 +18,7 @@
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600;700&display=swap">
   <link rel="stylesheet" href="app.css?v=5">
   <link rel="stylesheet" href="cwc27.css?v=v7">
-  <link rel="stylesheet" href="features.css?v=7">
+  <link rel="stylesheet" href="features.css?v=11">
   <link rel="stylesheet" href="shell.css?v=2">
   <!-- Pro look (default). Remove this line to drop it; Settings > Display > Style switches styles. -->
   <link rel="stylesheet" href="pro.css?v=6">
@@ -836,6 +836,57 @@
         </div>
       </section>
       <div id="drillGrid" class="drill-grid"></div>
+      <section class="movement-lab" aria-labelledby="labTitle">
+        <div class="lab-head">
+          <span class="hub-tile-kicker">Player movement</span>
+          <h2 id="labTitle">Movement lab</h2>
+          <p>Play any batting stroke or bowling action on the real players. Slow it down, step through it frame by frame and turn the camera to see every angle.</p>
+        </div>
+        <div class="lab-body">
+          <div class="lab-stage" id="labStage">
+            <button class="cwc-primary lab-open" type="button" id="labOpen">Open movement lab <span aria-hidden="true">→</span></button>
+            <span class="lab-phase" id="labPhase" hidden></span>
+          </div>
+          <div class="lab-controls" id="labControls" hidden>
+            <fieldset class="choice-group">
+              <legend>Player</legend>
+              <div class="segmented">
+                <label><input type="radio" name="labPlayer" value="batter" checked><span>Batter</span></label>
+                <label><input type="radio" name="labPlayer" value="bowler"><span>Bowler</span></label>
+              </div>
+            </fieldset>
+            <fieldset class="choice-group">
+              <legend>Move</legend>
+              <div class="lab-moves" id="labMoves"></div>
+            </fieldset>
+            <div class="lab-playback">
+              <button class="lab-icon-btn" type="button" id="labBack" aria-label="Back one frame">‹</button>
+              <button class="lab-play" type="button" id="labPlay">Pause</button>
+              <button class="lab-icon-btn" type="button" id="labFwd" aria-label="Forward one frame">›</button>
+              <input type="range" id="labScrub" min="0" max="1000" value="0" aria-label="Position in the move">
+              <output id="labTime">0.00 s</output>
+            </div>
+            <div class="lab-row">
+              <fieldset class="choice-group">
+                <legend>Speed</legend>
+                <div class="segmented">
+                  <label><input type="radio" name="labSpeed" value="0.25"><span>¼×</span></label>
+                  <label><input type="radio" name="labSpeed" value="0.5" checked><span>½×</span></label>
+                  <label><input type="radio" name="labSpeed" value="1"><span>1×</span></label>
+                </div>
+              </fieldset>
+              <fieldset class="choice-group">
+                <legend>Camera</legend>
+                <div class="segmented">
+                  <label><input type="radio" name="labView" value="front" checked><span>Front-on</span></label>
+                  <label><input type="radio" name="labView" value="side"><span>Side-on</span></label>
+                  <label><input type="radio" name="labView" value="behind"><span>Behind</span></label>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+        </div>
+      </section>
     </section>
 
     <section id="profileSettingsPage" class="career-flow-page feature-page profile-page" aria-labelledby="profileSettingsTitle" hidden>
@@ -2113,7 +2164,7 @@
     });
 
   </script>
-  <script src="features.js?v=13"></script>
+  <script src="features.js?v=25"></script>
   <script src="shell.js?v=5"></script>
   <script src="presentation.js?v=2"></script>
   <!-- Pro layout behaviour. Remove together with pro.css to drop Pro. -->

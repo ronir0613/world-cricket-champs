@@ -102,13 +102,24 @@ function flyDelivery(release, velocity, opts) {
   return { samples, bounce, stumps, crossed };
 }
 
-/* Plan one delivery for a drill ("pace" or "spin") at a level. */
-export function planDelivery(drill, levelName, rng) {
+/* Bowler actions the player can pick. Pace actions shift the speed band;
+   spin actions fix the way the ball turns. */
+export const ACTIONS = {
+  pace: [{ id: "auto", label: "Auto" }, { id: "fast", label: "Fast" }, { id: "medium", label: "Medium-fast" }],
+  spin: [{ id: "auto", label: "Auto" }, { id: "off", label: "Off-spin" }, { id: "leg", label: "Leg-spin" }]
+};
+const SPEED_SHIFT = { fast: 6, medium: -10 };
+
+/* Plan one delivery for a drill ("pace" or "spin") at a level, with an
+   optional bowler action ("fast", "medium", "off", "leg"; anything else is auto). */
+export function planDelivery(drill, levelName, rng, action = "auto") {
   const level = LEVELS[levelName] || LEVELS.Club;
   const spin = drill === "spin";
   const length = rng.pick(spin ? SPIN_LENGTHS : PACE_LENGTHS);
   const line = rng.pick(LINES);
-  const speedKmh = Math.round(rng.range(...(spin ? level.spin : level.pace)));
+  const paceAction = !spin && SPEED_SHIFT[action] != null ? action : levelName === "International" ? "fast" : "medium";
+  const shift = !spin && SPEED_SHIFT[action] != null ? SPEED_SHIFT[action] : 0;
+  const speedKmh = Math.round(rng.range(...(spin ? level.spin : level.pace)) + shift);
   const speed = speedKmh / 3.6;
   const targetZ = rng.range(...length.z);
   const targetX = rng.range(...line.x);
@@ -118,7 +129,7 @@ export function planDelivery(drill, levelName, rng) {
   const move = level.move;
   let swing = 0, deviation = 0, style = "";
   if (spin) {
-    const offSpin = rng() < 0.5;
+    const offSpin = action === "off" ? true : action === "leg" ? false : rng() < 0.5;
     deviation = (offSpin ? 1 : -1) * rng.range(0.4, 1.4) * move;
     style = offSpin ? "Off-spin" : "Leg-spin";
   } else {
@@ -131,6 +142,7 @@ export function planDelivery(drill, levelName, rng) {
 
   return {
     drill, spin, style, speedKmh,
+    action: spin ? (style === "Off-spin" ? "off" : "leg") : paceAction,
     length: length.label, line: line.label,
     marker: level.marker,
     aim: { speed, targetZ, targetX, swing, opts },

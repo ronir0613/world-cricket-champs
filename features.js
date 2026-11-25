@@ -330,9 +330,74 @@ const venuesPage = document.querySelector("#venuesPage");
 const VISITED_KEY = "world-cricket-champs-venues-visited";
 let venuesReturn = "home";
 
+/* The game's own 3D ground leads the guide: a rendered still on the card,
+   and a live view you can look around on its page. */
+const ARENA = {
+  name: "WCC Arena", city: "Home ground", tag: "3D stadium · Playable in Practice Nets",
+  capacity: "58,000", tiers: "Two, under a full roof", lights: "Four towers",
+  known: "The game's own ground, built for World Cricket Champs. Two packed tiers wrap the field, with an LED ribbon between them, a big screen behind the striker and the scoreboard at the far end. The crowd jumps up for every four and six."
+};
+let arenaView = null;
+const venuePreview = () => import("./game/venue-preview.js?v=3");
+function closeArenaView() { if (arenaView) { arenaView.destroy(); arenaView = null; } }
+
+function arenaCard() {
+  return `
+    <button class="venue-card venue-card-arena" type="button" data-arena>
+      <span class="venue-photo"><img id="arenaStill" alt="" hidden></span>
+      <span class="venue-card-copy">
+        <span class="venue-country">${ARENA.city}</span>
+        <b>${ARENA.name}</b>
+        <span class="venue-pitch">${ARENA.tag}</span>
+      </span>
+      <span class="venue-badge">3D</span>
+    </button>`;
+}
+
+function loadArenaStill() {
+  venuePreview().then((m) => m.stadiumStill()).then((url) => {
+    const img = document.querySelector("#arenaStill");
+    if (!img) return;
+    img.src = url;
+    img.hidden = false;
+  }).catch(() => {});
+}
+
+function showArena() {
+  closeArenaView();
+  const detail = document.querySelector("#venueDetail");
+  detail.innerHTML = `
+    <div class="venue-hero venue-hero-3d">
+      <div class="venue-3d" id="arenaView"></div>
+      <div class="venue-hero-copy">
+        <span class="venue-country">${ARENA.city}</span>
+        <h2>${ARENA.name}</h2>
+        <span class="venue-3d-hint">Drag to look around</span>
+      </div>
+    </div>
+    <div class="venue-facts">
+      <div><dt>Capacity</dt><dd>${ARENA.capacity}</dd></div>
+      <div><dt>Stands</dt><dd>${ARENA.tiers}</dd></div>
+      <div><dt>Floodlights</dt><dd>${ARENA.lights}</dd></div>
+    </div>
+    <p class="venue-known">${ARENA.known}</p>
+    <div class="venue-actions">
+      <button class="btn-back" type="button" data-venue-list><span class="btn-back-icon" aria-hidden="true"></span>All venues</button>
+      <button class="cwc-primary venue-play" type="button" data-arena-nets>Play in the Nets <span aria-hidden="true">→</span></button>
+    </div>`;
+  document.querySelector("#venueGrid").hidden = true;
+  detail.hidden = false;
+  venuesPage.scrollTop = 0;
+  detail.querySelector("[data-venue-list]").focus();
+  venuePreview().then((m) => {
+    const host = document.querySelector("#arenaView");
+    if (host && !detail.hidden) arenaView = m.mountStadiumView(host);
+  }).catch(() => {});
+}
+
 function renderVenueGrid() {
   const visited = storeGet(VISITED_KEY, []);
-  document.querySelector("#venueGrid").innerHTML = VENUES.map((venue) => `
+  document.querySelector("#venueGrid").innerHTML = arenaCard() + VENUES.map((venue) => `
     <button class="venue-card" type="button" data-venue="${venue.id}">
       <span class="venue-photo"><img src="${venue.photo}" alt="" loading="lazy"></span>
       <span class="venue-card-copy">
@@ -342,11 +407,13 @@ function renderVenueGrid() {
       </span>
       ${visited.includes(venue.id) ? '<span class="venue-visited">Visited</span>' : ""}
     </button>`).join("");
+  loadArenaStill();
 }
 
 function showVenue(id) {
   const venue = VENUES.find((item) => item.id === id);
   if (!venue) return;
+  closeArenaView();
   const visited = new Set(storeGet(VISITED_KEY, []));
   visited.add(id);
   storeSet(VISITED_KEY, [...visited]);
@@ -377,6 +444,7 @@ function showVenue(id) {
 }
 
 function showVenueList(focusId) {
+  closeArenaView();
   document.querySelector("#venueDetail").hidden = true;
   renderVenueGrid();
   document.querySelector("#venueGrid").hidden = false;
@@ -394,6 +462,13 @@ function openVenues(from, venueId) {
 }
 
 venuesPage.addEventListener("click", (event) => {
+  if (event.target.closest("[data-arena]")) { showArena(); return; }
+  if (event.target.closest("[data-arena-nets]")) {
+    closeArenaView();
+    showPage(document.querySelector("#netsPage"), "Practice Nets | World Cricket Champs");
+    document.querySelector("#netsPage [data-back-home]").focus();
+    return;
+  }
   const card = event.target.closest("[data-venue]");
   if (card) { showVenue(card.dataset.venue); return; }
   const list = event.target.closest("[data-venue-list]");
@@ -408,6 +483,7 @@ venuesPage.addEventListener("click", (event) => {
 
 document.querySelector("#backFromVenues").addEventListener("click", () => {
   if (!document.querySelector("#venueDetail").hidden && venuesReturn !== "quick-match") { showVenueList(document.querySelector("[data-venue-play]")?.dataset.venuePlay); return; }
+  closeArenaView();
   if (venuesReturn === "cwc") { window.CWC27.open(); return; }
   if (venuesReturn === "quick-match") { showPage(quickMatchPage, "Quick Match | World Cricket Champs"); renderQmStep(); return; }
   showPage(homeMenu, "Home | World Cricket Champs");
@@ -429,6 +505,28 @@ renderQmVenuePreview();
 
 /* ---------- Practice nets ---------- */
 const PLAYABLE_DRILLS = { pace: "pace", spin: "spin" };
+/* Bowler actions per drill (ids match game/ball.js ACTIONS). */
+const DRILL_ACTIONS = {
+  pace: [["auto", "Auto"], ["fast", "Fast"], ["medium", "Medium-fast"]],
+  spin: [["auto", "Auto"], ["off", "Off-spin"], ["leg", "Leg-spin"]]
+};
+const ACTION_KEY = "world-cricket-champs-nets-actions";
+function actionPicker(drillId) {
+  const options = DRILL_ACTIONS[drillId];
+  if (!options) return "";
+  const saved = storeGet(ACTION_KEY, {})[drillId] || "auto";
+  return `
+        <fieldset class="choice-group drill-action">
+          <legend>Bowler action</legend>
+          <div class="segmented">
+            ${options.map(([id, label]) => `<label><input type="radio" name="action-${drillId}" value="${id}"${id === saved ? " checked" : ""}><span>${label}</span></label>`).join("")}
+          </div>
+        </fieldset>`;
+}
+function chosenAction(drillId) {
+  const input = document.querySelector(`input[name="action-${drillId}"]:checked`);
+  return input ? input.value : "auto";
+}
 const DRILLS = [
   { id: "pace", title: "Facing pace", skill: "Batting", copy: "Leave, defend and punish short balls from a fast bowler.", photo: "assets/photos/nets.jpg", position: "30% 60%" },
   { id: "spin", title: "Facing spin", skill: "Batting", copy: "Use your feet and play with the turn on a dusty surface.", photo: "assets/photos/nets.jpg", position: "70% 55%" },
@@ -442,7 +540,7 @@ function renderDrills() {
       <div class="drill-copy">
         <span class="hub-tile-kicker">${drill.skill}</span>
         <h2>${drill.title}</h2>
-        <p>${drill.copy}</p>
+        <p>${drill.copy}</p>${actionPicker(drill.id)}
         <button class="cwc-primary" type="button" data-drill="${drill.title}" data-drill-id="${drill.id}">${PLAYABLE_DRILLS[drill.id] ? "Play drill" : "Coming soon"} <span aria-hidden="true">→</span></button>
       </div>
     </article>`).join("");
@@ -452,10 +550,11 @@ async function launchDrill(drillId, level, button) {
   const favourite = FEATURE_TEAMS.find((team) => team.code === storeGet(FAVOURITE_KEY, ""));
   button.disabled = true;
   try {
-    netsModule = netsModule || await import("./game/nets.js?v=11");
+    netsModule = netsModule || await import("./game/nets.js?v=19");
     netsModule.startNets({
       drill: drillId,
       level,
+      action: chosenAction(drillId),
       batterKit: favourite ? favourite.code : "IND",
       onExit() {
         showPage(document.querySelector("#netsPage"), "Practice Nets | World Cricket Champs");
@@ -470,6 +569,73 @@ async function launchDrill(drillId, level, button) {
     button.disabled = false;
   }
 }
+/* ---------- Player movement lab ---------- */
+let lab = null, labLoading = false;
+const labEl = (id) => document.querySelector("#" + id);
+function renderLabMoves() {
+  if (!lab) return;
+  const player = document.querySelector("input[name=labPlayer]:checked").value;
+  labEl("labMoves").innerHTML = lab.moves[player].map((move, i) =>
+    `<label class="lab-move"><input type="radio" name="labMove" value="${move.id}"${i === (player === "batter" ? 0 : 1) ? " checked" : ""}><span>${move.label}</span></label>`).join("");
+}
+async function openLab() {
+  if (lab || labLoading) return;
+  labLoading = true;
+  const button = labEl("labOpen");
+  button.disabled = true;
+  button.firstChild.textContent = "Loading players… ";
+  try {
+    const module = await import("./game/movement-lab.js?v=2");
+    const favourite = FEATURE_TEAMS.find((team) => team.code === storeGet(FAVOURITE_KEY, ""));
+    lab = await module.startLab(labEl("labStage"), { kit: favourite ? favourite.code : "IND" });
+    button.hidden = true;
+    labEl("labControls").hidden = false;
+    labEl("labPhase").hidden = false;
+    renderLabMoves();
+    lab.onTick(({ t, duration, phase, playing }) => {
+      labEl("labPhase").textContent = phase;
+      labEl("labTime").textContent = t.toFixed(2) + " s";
+      if (document.activeElement !== labEl("labScrub")) labEl("labScrub").value = String(Math.round((t / duration) * 1000));
+      labEl("labPlay").textContent = playing ? "Pause" : "Play";
+    });
+  } catch (error) {
+    console.error(error);
+    showToast("The movement lab couldn't start on this device.");
+    button.disabled = false;
+    button.firstChild.textContent = "Open movement lab ";
+  } finally {
+    labLoading = false;
+  }
+}
+labEl("labOpen").addEventListener("click", openLab);
+labEl("labControls").addEventListener("change", (event) => {
+  if (!lab) return;
+  const input = event.target;
+  if (input.name === "labPlayer") { lab.setPlayer(input.value); renderLabMoves(); }
+  if (input.name === "labMove") lab.setMove(input.value);
+  if (input.name === "labSpeed") lab.setSpeed(Number(input.value));
+  if (input.name === "labView") lab.setView(input.value);
+});
+labEl("labPlay").addEventListener("click", () => {
+  if (!lab) return;
+  if (labEl("labPlay").textContent === "Pause") lab.pause(); else lab.play();
+});
+labEl("labBack").addEventListener("click", () => lab && lab.step(-1));
+labEl("labFwd").addEventListener("click", () => lab && lab.step(1));
+labEl("labScrub").addEventListener("input", (event) => {
+  if (!lab) return;
+  lab.pause();
+  const max = Number(event.target.max);
+  lab.seek((Number(event.target.value) / max) * lab.duration());
+});
+
+document.querySelector("#drillGrid").addEventListener("change", (event) => {
+  const input = event.target.closest("input[name^='action-']");
+  if (!input) return;
+  const saved = storeGet(ACTION_KEY, {});
+  saved[input.name.slice(7)] = input.value;
+  storeSet(ACTION_KEY, saved);
+});
 document.querySelector("#drillGrid").addEventListener("click", (event) => {
   const button = event.target.closest("[data-drill]");
   if (!button) return;
