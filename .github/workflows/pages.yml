@@ -10,15 +10,18 @@ permissions:
   pages: write
   id-token: write
 
+# One deploy at a time; let a running deploy finish rather than cancel it
+# halfway (a cancelled deploy can leave Pages waiting on a missing artifact).
 concurrency:
   group: github-pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  # Build and upload in their own job. The deploy job only starts once this
+  # job has finished, by which time the artifact is listed for the run.
+  # (With both steps in one job, deploy-pages could ask for the artifact a
+  # fraction of a second after upload and find none.)
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Check out site
@@ -29,6 +32,14 @@ jobs:
         uses: actions/upload-pages-artifact@v4
         with:
           path: .
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy site
         id: deployment
         uses: actions/deploy-pages@v5
