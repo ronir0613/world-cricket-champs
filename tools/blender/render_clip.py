@@ -42,6 +42,10 @@ os.makedirs(os.path.join(os.path.dirname(out), "_tmp"), exist_ok=True)
 OFFSETS = {"side": (-5.0, 0.6, 0.5), "front": (0.3, -5.0, 0.4), "34": (-2.2, -2.9, 0.7), "back": (0.3, 5.0, 0.6), "top": (-0.5, 0.0, 5.0),
            # close-ups aimed at the hands
            "grip_off": (-1.1, -0.2, 0.15), "grip_bowler": (0.1, -1.1, 0.15), "grip_leg": (1.1, -0.2, 0.2), "grip_top": (-0.3, -0.3, 1.0)}
+# RES=600x600 renders bigger frames; ZOOM=0.5 brings the camera twice as close
+if os.environ.get("RES"):
+    sc.render.resolution_x, sc.render.resolution_y = (int(v) for v in os.environ["RES"].split("x"))
+zoom = float(os.environ.get("ZOOM", "1"))
 paths = []
 for k in frames:
     sc.frame_set(f0 + k)
@@ -50,7 +54,7 @@ for k in frames:
         target = arm.matrix_world @ ((pb["hand_L"].head + pb["hand_L"].tail + pb["hand_R"].head + pb["hand_R"].tail) / 4)
     else:
         target = arm.matrix_world @ pb["hips"].head + Vector((0, 0, 0.1))
-    L.aim(cam, target + Vector(OFFSETS[view]), target)
+    L.aim(cam, target + Vector(OFFSETS[view]) * zoom, target)
     p = os.path.join(os.path.dirname(out), "_tmp", "rc_%d.png" % k)
     sc.render.filepath = p
     bpy.ops.render.render(write_still=True)

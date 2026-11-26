@@ -122,26 +122,16 @@ def apply_palette(obj, mat):
 
 
 # ---------------------------------------------------------------- skeleton
-J = {"pelvis": (0, 0, 0.93), "spine": (0, 0, 1.05), "chest": (0, 0, 1.22), "chest_top": (0, 0, 1.44),
-     "neck": (0, 0.005, 1.46), "head": (0, 0.005, 1.575), "head_top": (0, 0, 1.80)}
-for _S, _sx in (("L", 1), ("R", -1)):
-    J.update({
-        "clav_" + _S: (0.03 * _sx, 0, 1.42), "shoulder_" + _S: (0.18 * _sx, 0, 1.43),
-        # elbows sit slightly back: a rest bend tells the arm IK which way to fold
-        "elbow_" + _S: (0.392 * _sx, 0.025, 1.218),
-        "wrist_" + _S: (0.583 * _sx, 0, 1.027),
-        "hand_" + _S: (0.703 * _sx, 0, 0.907),
-        "hip_" + _S: (0.095 * _sx, 0, 0.92), "knee_" + _S: (0.105 * _sx, -0.03, 0.50),   # forward rest bend: tells the leg IK which way to fold
-        "ankle_" + _S: (0.115 * _sx, 0.015, 0.085), "ball_" + _S: (0.12 * _sx, -0.115, 0.025),
-        "toe_" + _S: (0.12 * _sx, -0.185, 0.02)})
-J = {k: Vector(v) for k, v in J.items()}
+import proportions as PR
+J = PR.joints()
 X_BAT = -0.9
 G0 = Vector((X_BAT, 0, 0.92))      # top-hand grip on the rest bat
-REACH = 0.57 + 0.04                # shoulder to grip with a slightly bent elbow
-# Where the handle runs through a closed hand, in the hand bone's frame (Y = wrist to
-# knuckles, Z = palm normal, X = along the handle). The rig places wrists from this and
-# the batting gloves are modelled as fists around it, so the two always agree.
-GRIP_Y, GRIP_Z = 0.065, 0.022
+# shoulder to grip with a slightly bent elbow
+REACH = 0.97 * (PR.LEN["upper_arm"] + PR.LEN["forearm"]) + 0.05
+ARM_FREE = PR.LEN["upper_arm"] + PR.LEN["forearm"] - 0.02
+# ...and no closer than an elbow bent to about 65 degrees: tighter than that looks crumpled
+MIN_REACH = 0.34
+GRIP_Y, GRIP_Z, GRIP_ANGLE = PR.GRIP_Y, PR.GRIP_Z, rad(PR.GRIP_ANGLE)
 
 
 def build_armature(name="Cricketer"):
@@ -315,71 +305,131 @@ def seg_dist(p, a, b):
     return (p - (a + ab * t)).length, t
 
 
+def add_limb(bm, a, b, prof, seg=16, front=Vector((0, -1, 0))):
+    """Tapered limb lofted from a to b. prof: (t, half width, half depth[, forward bulge]),
+    depth measured along `front` (the limb's front, -Y by default)."""
+    a, b = Vector(a), Vector(b)
+    ax = (b - a).normalized()
+    f = (front - ax * front.dot(ax)).normalized()
+    sd = ax.cross(f)
+    rows = []
+    for row in prof:
+        t, rx, ry = row[:3]
+        fo = row[3] if len(row) > 3 else 0.0
+        c = a.lerp(b, t) + f * fo
+        rows.append([bm.verts.new(c + sd * (rx * math.cos(2 * math.pi * k / seg)) + f * (ry * math.sin(2 * math.pi * k / seg)))
+                     for k in range(seg)])
+    out = [bm.faces.new((rows[i][k], rows[i][(k + 1) % seg], rows[i + 1][(k + 1) % seg], rows[i + 1][k]))
+           for i in range(len(rows) - 1) for k in range(seg)]
+    out.append(bm.faces.new(rows[0][::-1]))
+    out.append(bm.faces.new(rows[-1]))
+    r0, r1 = prof[0][1:3], prof[-1][1:3]
+    out += add_ellipsoid(bm, a, (min(r0), min(r0), min(r0)), seg=seg, rings=8)
+    out += add_ellipsoid(bm, b, (min(r1), min(r1), min(r1)), seg=seg, rings=8)
+    return out
+
+
+def voxel_skin(obj, voxel, smooth_iter, target_tris):
+    m = obj.modifiers.new("remesh", 'REMESH')
+    m.mode, m.voxel_size, m.adaptivity = 'VOXEL', voxel, 0.0
+    apply_mod(obj, m)
+    m = obj.modifiers.new("smooth", 'SMOOTH')
+    m.factor, m.iterations = 0.5, smooth_iter
+    apply_mod(obj, m)
+    m = obj.modifiers.new("dec", 'DECIMATE')
+    m.ratio = min(1.0, target_tris / max(1, tris(obj)))
+    apply_mod(obj, m)
+
+
+# Clean colour borders: the mesh is cut along these planes before regions are assigned,
+# so collars, sleeves, the waistband and the hairline are straight lines, not zigzags.
+SLEEVE_T = 0.72                    # short sleeve ends this far down the upper arm
+HAIR_PLANE = (Vector((0, -0.09, 1.765)), Vector((0, 0.6, 0.8)).normalized())
+COLLAR_Z, WAIST_Z = PR.Z["neck_base"] + 0.022, 0.985
+
+
+def _arm_cut(S):
+    a, b = J["shoulder_" + S], J["elbow_" + S]
+    return a.lerp(b, SLEEVE_T), (b - a).normalized()
+
+
+def cut_borders(obj):
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+
+    def cut(co, no, keep):
+        faces = [f for f in bm.faces if all(keep(v.co) for v in f.verts)]
+        edges = list({e for f in faces for e in f.edges})
+        verts = list({v for f in faces for v in f.verts})
+        bmesh.ops.bisect_plane(bm, geom=faces + edges + verts, plane_co=co, plane_no=no)
+    cut(Vector((0, 0, COLLAR_Z)), Z, lambda c: abs(c.x) < 0.09)
+    cut(Vector((0, 0, COLLAR_Z - 0.022)), Z, lambda c: abs(c.x) < 0.09)
+    cut(Vector((0, 0, WAIST_Z)), Z, lambda c: abs(c.x) < 0.3)
+    cut(HAIR_PLANE[0], HAIR_PLANE[1], lambda c: c.z > 1.58)
+    for S, sx in (("L", 1), ("R", -1)):
+        co, no = _arm_cut(S)
+        cut(co, no, lambda c, sx=sx: c.x * sx > PR.X["shoulder"] + 0.05)
+    bmesh.ops.triangulate(bm, faces=[f for f in bm.faces if len(f.verts) > 4])
+    bm.to_mesh(obj.data)
+    bm.free()
+
+
 def classify_body(obj):
     segs = [("head", J["head"], J["head_top"]), ("neck", J["neck"], J["head"]),
             ("chest", J["chest"], J["chest_top"]), ("spine", J["spine"], J["chest"]),
             ("hips", Vector((0, 0, 0.88)), J["spine"])]
     for S in ("L", "R"):
         segs += [("shoulder", J["clav_" + S], J["shoulder_" + S]), ("upper_arm", J["shoulder_" + S], J["elbow_" + S]),
-                 ("forearm", J["elbow_" + S], J["wrist_" + S]), ("hand", J["wrist_" + S], J["hand_" + S]),
+                 ("forearm", J["elbow_" + S], J["wrist_" + S]),
                  ("thigh", J["hip_" + S], J["knee_" + S]), ("shin", J["knee_" + S], J["ankle_" + S]),
                  ("foot", J["ankle_" + S], J["toe_" + S])]
+    hc, hn = HAIR_PLANE
     regions = []
     for poly in obj.data.polygons:
         c = poly.center
         name, _, t = min(((n,) + seg_dist(c, a, b) for n, a, b in segs), key=lambda x: x[1])
-        if name == "head":
-            reg = "hair" if (c.z > 1.66 and c.y > 0.02) or c.z > 1.765 else "skin"
-        elif name == "neck":
-            reg = "skin" if c.z > 1.49 else "trim"
-        elif name in ("chest", "spine", "shoulder", "upper_arm"):
-            reg = "shirt"
-        elif name == "forearm":
-            reg = "shirt" if t < 0.22 else "sleeve"
-        elif name == "hand":
-            reg = "skin"
-        elif name == "hips":
-            reg = "shirt" if c.z > 0.985 else "trousers"
+        if name == "head" or (name == "neck" and c.z > COLLAR_Z + 0.03):
+            reg = "hair" if (c - hc).dot(hn) > 0 else "skin"
+        elif name == "neck" or (c.z > COLLAR_Z - 0.03 and abs(c.x) < 0.08):
+            reg = "skin" if c.z > COLLAR_Z else ("trim" if c.z > COLLAR_Z - 0.022 else "shirt")
+        elif name in ("upper_arm", "forearm"):
+            co, no = _arm_cut("L" if c.x > 0 else "R")
+            reg = "shirt" if (c - co).dot(no) < 0 else "sleeve"
         else:
-            reg = "trousers"
+            reg = "shirt" if c.z > WAIST_Z else "trousers"
         regions.append(R[reg])
     obj.data.attributes.new("region", 'INT', 'FACE').data.foreach_set("value", regions)
 
 
-def build_body(arm, target_tris=8400):
+def build_body(arm, target_tris=7000):
     p = Piece("body")
     bm = p.bm
-    add_loft(bm, [(0.84, 0.130, 0.095, 0.010), (0.90, 0.160, 0.110, 0.012), (0.97, 0.165, 0.112, 0.010),
-                  (1.04, 0.152, 0.100, 0.000), (1.11, 0.148, 0.098, -0.005), (1.19, 0.158, 0.104, -0.008),
-                  (1.27, 0.170, 0.112, -0.010), (1.34, 0.176, 0.108, -0.005), (1.40, 0.172, 0.095, 0.005),
-                  (1.44, 0.140, 0.080, 0.008), (1.47, 0.072, 0.062, 0.008)])
-    add_capsule(bm, (0, 0.01, 1.42), (0, 0.0, 1.60), 0.056, 0.052)
-    add_ellipsoid(bm, (0, -0.005, 1.68), (0.083, 0.10, 0.115), seg=28, rings=18)
-    add_ellipsoid(bm, (0, -0.028, 1.618), (0.066, 0.072, 0.058))
-    add_ellipsoid(bm, (0, -0.098, 1.665), (0.013, 0.022, 0.024))
+    add_loft(bm, PR.TORSO, seg=28)
+    # chest, shoulder blades and seat give the torso its shape
+    for sx in (1, -1):
+        add_ellipsoid(bm, (0.072 * sx, -0.062, 1.318), (0.088, 0.05, 0.07))           # pecs
+        add_ellipsoid(bm, (0.085 * sx, 0.052, 1.34), (0.085, 0.05, 0.10))            # shoulder blades / lats
+        add_ellipsoid(bm, (0.078 * sx, 0.055, 0.905), (0.088, 0.065, 0.095))         # glutes
+        add_capsule(bm, (0.035 * sx, 0.012, 1.505), (0.16 * sx, 0.008, 1.462), 0.042, 0.04)   # trapezius slope
+    add_capsule(bm, (0, 0.012, 1.43), (0, 0.004, PR.Z["chin"] + 0.04), PR.NECK_R[0], PR.NECK_R[0] * 0.93)
+    # head: cranium plus a jaw, no detailed face
+    add_ellipsoid(bm, (0, 0.010, 1.700), (0.079, 0.098, 0.100), seg=28, rings=18)
+    add_ellipsoid(bm, (0, -0.022, 1.622), (0.064, 0.072, 0.064))
+    add_ellipsoid(bm, (0, -0.092, 1.668), (0.012, 0.018, 0.022))                      # nose
     for S, sx in (("L", 1), ("R", -1)):
-        add_ellipsoid(bm, (0.082 * sx, 0.005, 1.67), (0.012, 0.024, 0.032))
-        add_ellipsoid(bm, J["shoulder_" + S] - Vector((0.01 * sx, 0, 0.01)), (0.062, 0.06, 0.056))
-        add_capsule(bm, J["shoulder_" + S], J["elbow_" + S], 0.056, 0.045)
-        add_capsule(bm, J["elbow_" + S], J["wrist_" + S], 0.046, 0.032)
-        u = (J["hand_" + S] - J["wrist_" + S]).normalized()
-        # bare hand kept short enough to sit inside a closed batting glove
-        add_capsule(bm, J["wrist_" + S], J["wrist_" + S] + u * 0.075, 0.028, 0.020)
-        add_ellipsoid(bm, (0.075 * sx, 0.04, 0.91), (0.085, 0.07, 0.085))
-        add_capsule(bm, J["hip_" + S], J["knee_" + S], 0.088, 0.056)
-        add_capsule(bm, J["knee_" + S], J["ankle_" + S], 0.054, 0.038)
-        add_ellipsoid(bm, (0.11 * sx, 0.025, 0.36), (0.048, 0.05, 0.11))
+        add_ellipsoid(bm, (0.079 * sx, 0.008, 1.672), (0.011, 0.022, 0.03))           # ears
+        sh, el, wr = J["shoulder_" + S], J["elbow_" + S], J["wrist_" + S]
+        u = (el - sh).normalized()
+        add_ellipsoid(bm, sh + u * 0.018 + Vector((-0.006 * sx, 0, 0.006)), (0.058, 0.060, 0.058), basis=Matrix.Rotation(rad(-45 * sx), 3, 'Y'))   # deltoid
+        add_limb(bm, sh, el, PR.UPPER_ARM)
+        add_limb(bm, el, wr, PR.FOREARM)
+        add_limb(bm, J["hip_" + S] + Vector((0, 0.005, 0.02)), J["knee_" + S], PR.THIGH)
+        add_ellipsoid(bm, J["knee_" + S] + Vector((0, -0.012, 0.0)), (0.054, 0.052, 0.06))
+        add_limb(bm, J["knee_" + S], J["ankle_" + S], PR.SHIN)
         add_capsule(bm, J["ankle_" + S], J["ball_" + S], 0.038, 0.032)
     body = p.to_object()
-    m = body.modifiers.new("remesh", 'REMESH')
-    m.mode, m.voxel_size, m.adaptivity = 'VOXEL', 0.008, 0.0
-    apply_mod(body, m)
-    m = body.modifiers.new("smooth", 'SMOOTH')
-    m.factor, m.iterations = 0.5, 5
-    apply_mod(body, m)
-    m = body.modifiers.new("dec", 'DECIMATE')
-    m.ratio = min(1.0, target_tris / max(1, tris(body)))
-    apply_mod(body, m)
+    voxel_skin(body, 0.0075, 6, target_tris)
+    cut_borders(body)
     classify_body(body)
     # heat weights for the skin only; bones that carry no flesh are switched off meanwhile
     off = ["bat", "root", "prop_L", "prop_R"]
@@ -390,30 +440,83 @@ def build_body(arm, target_tris=8400):
     bpy.ops.object.parent_set(type='ARMATURE_AUTO')
     for n, v in saved.items():
         arm.data.bones[n].use_deform = v
-    return join([body] + build_face() + build_shoes(), "body")
+    return join([body] + build_face(body) + build_shoes(), "body")
 
 
-def build_face():
+def build_hands(arm, target_tris=1400):
+    """Bare hands, relaxed and slightly curled. A separate piece so gloved roles drop them."""
+    out = []
+    for S, sx in (("L", 1), ("R", -1)):
+        rot, wrist = bone_frame(arm, "hand_" + S)
+        X, Y, Zh = rot.col[0], rot.col[1], rot.col[2]
+        radial = -X * sx
+        p = Piece("hand_" + S)
+        bm = p.bm
+        add_capsule(bm, wrist - Y * 0.02, wrist + Y * 0.02, 0.029, 0.031, seg=12)
+        add_ellipsoid(bm, wrist + Y * 0.055 + Zh * 0.002, (0.043, 0.056, 0.019), basis=rot, seg=16, rings=10)
+        # four fingers, curled a little towards the palm
+        for i, off in enumerate((0.024, 0.008, -0.008, -0.023)):
+            base = wrist + Y * 0.098 + radial * off
+            ln = (0.040, 0.046, 0.043, 0.034)[i]
+            mid = base + Y * ln * 0.55 + Zh * 0.010
+            tip = mid + (Y * 0.9 + Zh * 0.42).normalized() * ln * 0.55
+            add_capsule(bm, base, mid, 0.0102, 0.0095, seg=8)
+            add_capsule(bm, mid, tip, 0.0095, 0.0085, seg=8)
+        tb = wrist + Y * 0.025 + radial * 0.030 + Zh * 0.010
+        tm = tb + (Y * 0.6 + radial * 0.6 + Zh * 0.45).normalized() * 0.040
+        add_capsule(bm, tb, tm, 0.014, 0.011, seg=8)
+        add_capsule(bm, tm, tm + (Y * 0.8 + Zh * 0.5).normalized() * 0.028, 0.011, 0.009, seg=8)
+        obj = p.to_object()
+        voxel_skin(obj, 0.004, 3, target_tris // 2)
+        obj.data.attributes.new("region", 'INT', 'FACE').data.foreach_set("value", [R["skin"]] * len(obj.data.polygons))
+        out.append(rigid(obj, "hand_" + S))
+    return join(out, "hands")
+
+
+def build_face(body):
+    """A simple, friendly face: eyes, brows and a mouth line pressed onto the head."""
+    deps = bpy.context.evaluated_depsgraph_get()
+
+    def on_face(x, z, sink=0.003):
+        ok, loc, no, _ = body.ray_cast(Vector((x, -0.5, z)), Vector((0, 1, 0)), depsgraph=deps)
+        return (loc - no * sink) if ok else Vector((x, -0.09, z))
     p = Piece("face")
     for sx in (1, -1):
-        p.tag(add_ellipsoid(p.bm, (0.032 * sx, -0.091, 1.692), (0.0095, 0.006, 0.0085), seg=8, rings=6), "dark")
-        p.tag(add_ellipsoid(p.bm, (0.033 * sx, -0.094, 1.713), (0.02, 0.006, 0.0045), seg=8, rings=4), "hair")
-    p.tag(add_ellipsoid(p.bm, (0, -0.094, 1.627), (0.018, 0.004, 0.0028), seg=8, rings=4), "dark")
+        p.tag(add_ellipsoid(p.bm, on_face(0.031 * sx, 1.690), (0.0095, 0.0065, 0.0095), seg=8, rings=6), "dark")
+        p.tag(add_ellipsoid(p.bm, on_face(0.032 * sx, 1.713, 0.002), (0.019, 0.006, 0.0045), seg=8, rings=4), "hair")
+    p.tag(add_ellipsoid(p.bm, on_face(0, 1.618, 0.002), (0.017, 0.005, 0.003), seg=8, rings=4), "dark")
     return [rigid(p.to_object(), "head")]
 
 
+SHOE = [(0.088, 0.034, 0.070), (0.070, 0.043, 0.102), (0.030, 0.047, 0.112), (-0.020, 0.048, 0.092),
+        (-0.080, 0.052, 0.068), (-0.130, 0.051, 0.054), (-0.172, 0.045, 0.043), (-0.198, 0.032, 0.034), (-0.210, 0.012, 0.026)]
+
+
 def build_shoes():
+    """Low-cut cricket shoes lofted heel to toe: (y, half width, top) per section."""
     out = []
     for S, sx in (("L", 1), ("R", -1)):
-        x = 0.12 * sx
         p = Piece("shoe_" + S)
-        p.tag(add_ellipsoid(p.bm, (x, -0.045, 0.05), (0.052, 0.135, 0.055), seg=16, rings=10), "shoe")
-        p.tag(add_ellipsoid(p.bm, (x, 0.03, 0.095), (0.048, 0.058, 0.05), seg=14, rings=8), "shoe")
-        for v in p.bm.verts:
-            v.co.z = max(v.co.z, 0.004)
-        for f in p.bm.faces:
-            if f.calc_center_median().z < 0.018:
-                f[p.reg] = R["sole"]
+        bm = p.bm
+        x0, seg = 0.117 * sx, 16
+        rows = []
+        for y, rx, top in SHOE:
+            ring = []
+            for k in range(seg):
+                a = 2 * math.pi * k / seg
+                ca, sa = math.cos(a), math.sin(a)
+                ex = math.copysign(abs(ca) ** (2 / 2.6), ca)
+                ez = math.copysign(abs(sa) ** (2 / (3.2 if sa < 0 else 2.2)), sa)
+                ring.append(bm.verts.new((x0 + rx * ex - 0.004 * sx * (y < -0.1), y, max(0.003, top / 2 + top / 2 * ez))))
+            rows.append(ring)
+        for i in range(len(rows) - 1):
+            for k in range(seg):
+                bm.faces.new((rows[i][k], rows[i][(k + 1) % seg], rows[i + 1][(k + 1) % seg], rows[i + 1][k]))
+        bm.faces.new(rows[0][::-1])
+        bm.faces.new(rows[-1])
+        for f in bm.faces:
+            c = f.calc_center_median()
+            f[p.reg] = R["sole"] if c.z < 0.016 else (R["trim"] if 0.07 < c.z and c.y > 0.05 else R["shoe"])
         obj = p.to_object()
 
         def w(co, S=S):
@@ -557,34 +660,78 @@ def build_pads(style="bat"):
     return join(out, "keeper_pads" if keeper else "bat_pads")
 
 
+def grip_axes(rot, sx):
+    """Hand-bone axes (X, Y, Zh), the thumb side, the grip point offset and the handle
+    direction (pointing from the little finger to the thumb, i.e. towards the blade)."""
+    X, Y, Zh = rot.col[0], rot.col[1], rot.col[2]
+    radial = -X * sx
+    h = (radial * math.cos(GRIP_ANGLE) + Y * math.sin(GRIP_ANGLE)).normalized()
+    return X, Y, Zh, radial, h
+
+
 def build_gloves(arm, style="bat"):
     keeper = style == "keeper"
     out = []
     for S, sx in (("L", 1), ("R", -1)):
         rot, wrist = bone_frame(arm, "hand_" + S)
-        X, Y, Zh = rot.col[0], rot.col[1], rot.col[2]
-        radial = -X * sx
+        X, Y, Zh, radial, h = grip_axes(rot, sx)
         p = Piece("glove_" + S)
+        bm = p.bm
         if keeper:
-            p.tag(add_ellipsoid(p.bm, wrist + Y * 0.08, (0.068, 0.11, 0.05), basis=rot, seg=14, rings=10), "kglove")
-            p.tag(add_ellipsoid(p.bm, wrist + Y * 0.06 + radial * 0.058 + Zh * 0.01, (0.03, 0.06, 0.03), basis=rot, seg=8, rings=6), "kglove")
-            p.tag(add_ellipsoid(p.bm, wrist + Y * 0.07 + radial * 0.04 + Zh * 0.035, (0.035, 0.05, 0.006), basis=rot, seg=8, rings=4), "kweb")
-            p.tag(add_capsule(p.bm, wrist - Y * 0.08, wrist + Y * 0.01, 0.052, 0.056, seg=12, caps=False), "kglove")
+            p.tag(add_ellipsoid(bm, wrist + Y * 0.085 + Zh * 0.006, (0.07, 0.115, 0.045), basis=rot, seg=16, rings=10), "kglove")
+            p.tag(add_ellipsoid(bm, wrist + Y * 0.06 + radial * 0.06 + Zh * 0.012, (0.03, 0.06, 0.03), basis=rot, seg=10, rings=6), "kglove")
+            p.tag(add_ellipsoid(bm, wrist + Y * 0.075 + radial * 0.042 + Zh * 0.036, (0.036, 0.05, 0.006), basis=rot, seg=8, rings=4), "kweb")
+            p.tag(add_capsule(bm, wrist - Y * 0.085, wrist + Y * 0.01, 0.054, 0.058, seg=14, caps=False), "kglove")
         else:
-            # a closed fist round the handle: the handle runs along X through `grip`
+            # A closed fist round the handle. The handle runs along h through `grip`; the
+            # fingers wrap it from the knuckles, over the far side, into the palm.
             grip = wrist + Y * GRIP_Y + Zh * GRIP_Z
-            p.tag(add_capsule(p.bm, grip - X * 0.032, grip + X * 0.032, 0.034, 0.034, seg=10), "white")      # palm and fingers
-            p.tag(add_ellipsoid(p.bm, wrist + Y * 0.048 - Zh * 0.002, (0.045, 0.056, 0.037), basis=rot, seg=10, rings=6), "white")  # back of hand
-            # padded finger rolls curling over the far side of the handle, from the knuckles round to the palm
-            for ang in (-35, 15, 65, 110):
-                a = rad(ang)
-                c = grip + (Y * math.cos(a) + Zh * math.sin(a)) * 0.034
-                p.tag(add_tube(p.bm, [c - X * 0.036, c + X * 0.036], 0.0115, 5), "white")
-            # thumb wraps the palm side, pointing down the handle (radial = towards the blade)
-            p.tag(add_capsule(p.bm, grip + Zh * 0.036 - Y * 0.012, grip + Zh * 0.040 + radial * 0.040, 0.014, 0.012, seg=6), "white")
-            p.tag(add_capsule(p.bm, wrist - Y * 0.07, wrist + Y * 0.005, 0.047, 0.049, seg=10, caps=False), "white")      # cuff
-        p.tag(add_tube(p.bm, [wrist - Y * 0.035 + X * k * 0.05 for k in (-1, -0.5, 0, 0.5, 1)], 0.006, 4), "strap")
-        out.append(rigid(p.to_object(), "hand_" + S))
+            u1 = (Y - h * Y.dot(h)).normalized()           # from the handle towards the knuckles' far side
+            u2 = h.cross(u1)
+            if u2.dot(Zh) < 0:
+                u2 = -u2                                   # u2 points to the palm
+            # back of the hand and palm, flattened along the palm normal
+            p.tag(add_ellipsoid(bm, wrist + Y * 0.040 - Zh * 0.004, (0.046, 0.052, 0.030), basis=rot, seg=14, rings=8), "white")
+            # fingers: four padded rolls, index (thumb side) to little finger
+            for off, rr, k0 in ((0.031, 0.0125, -58), (0.010, 0.0130, -60), (-0.011, 0.0125, -60), (-0.030, 0.0112, -54)):
+                c0 = grip + h * off
+                ring = 0.0175 + rr + 0.002
+                pts = [c0 + (u1 * math.cos(rad(a)) + u2 * math.sin(rad(a))) * ring for a in range(k0 - 25, 141, 22)]
+                # first point runs back to the knuckle, sitting on the back of the hand
+                pts[0] = c0 - u2 * 0.02 - u1 * 0.004
+                p.tag(add_tube(bm, pts, rr, 7), "white")
+                p.tag(add_ellipsoid(bm, pts[-1], (rr, rr, rr), seg=7, rings=4), "white")
+            # padded sausages on the back of the fingers (the protective rolls)
+            for off in (0.031, 0.010, -0.011, -0.030):
+                c0 = grip + h * off
+                a = rad(-20)
+                q = c0 + (u1 * math.cos(a) + u2 * math.sin(a)) * 0.034
+                p.tag(add_capsule(bm, q - h * 0.0, q + (u1 * 0.6 + u2 * -0.8).normalized() * 0.02, 0.0118, 0.011, seg=8), "white")
+            # thumb: from the heel of the hand round the handle, pressing over the fingers
+            t0 = wrist + Y * 0.025 + radial * 0.034 + Zh * 0.014
+            t1 = grip + h * 0.046 + u2 * 0.022 + u1 * -0.002
+            t2 = grip + h * 0.030 + u2 * 0.034 + u1 * 0.016
+            p.tag(add_capsule(bm, t0, t1, 0.017, 0.0135, seg=8), "white")
+            p.tag(add_capsule(bm, t1, t2, 0.0135, 0.012, seg=8), "white")
+            # side bar protecting the thumb-side of the hand
+            p.tag(add_capsule(bm, wrist + Y * 0.01 + radial * 0.035, wrist + Y * 0.06 + radial * 0.044 - Zh * 0.006, 0.014, 0.013, seg=8), "white")
+            p.tag(add_capsule(bm, wrist - Y * 0.075, wrist + Y * 0.012, 0.045, 0.047, seg=12, caps=False), "white")      # cuff
+            p.tag(add_ellipsoid(bm, wrist - Y * 0.075, (0.045, 0.045, 0.008), basis=rot, seg=12, rings=4), "white")
+        shell = p.to_object()
+        voxel_skin(shell, 0.0038, 2, 900 if keeper else 1300)
+        shell.data.attributes.new("region", 'INT', 'FACE').data.foreach_set(
+            "value", [R["kglove" if keeper else "white"]] * len(shell.data.polygons))
+        if keeper:      # the web between thumb and finger stays dark
+            reg = shell.data.attributes["region"]
+            web = wrist + Y * 0.075 + radial * 0.042 + Zh * 0.036
+            for poly in shell.data.polygons:
+                if (poly.center - web).length < 0.03 and poly.normal.dot(Zh) > 0.3:
+                    reg.data[poly.index].value = R["kweb"]
+        q = Piece("strap_" + S)
+        rs = 0.059 if keeper else 0.049
+        q.tag(add_tube(q.bm, [wrist - Y * 0.03 + (X * math.cos(rad(a)) - Zh * math.sin(rad(a))) * rs for a in range(0, 181, 30)],
+                       0.006, 4), "strap")
+        out += [rigid(shell, "hand_" + S), rigid(q.to_object(), "hand_" + S)]
     return join(out, "keeper_gloves" if keeper else "bat_gloves")
 
 
@@ -606,30 +753,71 @@ def make_lods(obj, ratios, keep_source=False):
 
 
 # ---------------------------------------------------------------- props
+# Bat (standard men's size, Laws limits): 965 mm overall, blade 108 mm wide.
+BAT = dict(toe=0.0, blade_top=0.555, shoulder_top=0.615, handle_top=0.958, width=0.108,
+           face=-0.028, edge=0.040, spine=0.064, spine_at=0.20, handle_r=0.0172)
+
+
+def _bat_section(z):
+    """Blade cross-section at height z: closed loop of (x, y), face towards -Y."""
+    b = BAT
+    w = b["width"] / 2
+    edge = b["edge"] - 0.006 * smooth(z, 0.30, 0.55) - 0.004 * (1 - smooth(z, 0.0, 0.06))
+    spine = b["edge"] + (b["spine"] - b["edge"]) * math.exp(-((z - b["spine_at"]) / 0.17) ** 2)
+    spine = max(spine, edge + 0.008)
+    yf = b["face"]
+    pts = []
+    for t in (-1.0, -0.6, -0.2, 0.2, 0.6, 1.0):            # face, slightly bowed
+        pts.append((t * w * 0.94, yf - 0.002 * (1 - t * t)))
+    pts += [(w, yf + 0.006), (w, yf + edge - 0.007), (w * 0.93, yf + edge)]          # right edge, rounded corners
+    for t in (0.62, 0.30, 0.0, -0.30, -0.62):                # the back: a ridge rising to the spine
+        k = 1 - abs(t)
+        pts.append((t * w, yf + edge + (spine - edge) * (k ** 0.85)))
+    pts += [(-w * 0.93, yf + edge), (-w, yf + edge - 0.007), (-w, yf + 0.006)]
+    return pts
+
+
 def build_bat_mesh():
     p = Piece("bat")
     bm = p.bm
-    sec = [(-0.054, -0.018), (0.054, -0.018), (0.054, 0.016), (0.032, 0.033), (0, 0.040), (-0.032, 0.033), (-0.054, 0.016)]
+    b = BAT
+    zs = [0.0, 0.004, 0.012, 0.04, 0.10, 0.17, 0.24, 0.31, 0.38, 0.45, 0.51, b["blade_top"]]
     rows = []
-    for z in (0.0, 0.015, 0.08, 0.16, 0.25, 0.34, 0.43, 0.52, 0.56, 0.61):
-        hump = 0.75 + 0.25 * math.exp(-((z - 0.2) / 0.16) ** 2)
-        sw, sd = (0.97, 0.9) if z == 0.0 else (1.0, 1.0)
-        if z == 0.61:
-            sw, sd, hump = 0.33, 1.0, 0.55
-        elif z == 0.56:
-            hump = 0.7
-        rows.append([bm.verts.new((X_BAT + x * sw, y * sd * (hump if y > 0 else 1), z)) for x, y in sec])
-    n = len(sec)
+    for z in zs:
+        sec = _bat_section(z)
+        toe = 0.96 + 0.04 * smooth(z, 0.0, 0.012)           # toe corners slightly rounded
+        rows.append([bm.verts.new((X_BAT + x * toe, y * (0.93 + 0.07 * smooth(z, 0.0, 0.012)), z)) for x, y in sec])
+    # shoulders: the blade narrows in a curve into the handle
+    top = _bat_section(b["blade_top"])
+    cy = b["face"] + 0.028
+    for z, k in ((0.575, 0.80), (0.592, 0.55), (0.604, 0.34), (b["shoulder_top"], 0.20)):
+        rows.append([bm.verts.new((X_BAT + x * k, cy + (y - cy) * (0.35 + 0.65 * k), z)) for x, y in top])
+    n = len(rows[0])
+    nface = 6
     for i in range(len(rows) - 1):
-        z = rows[i][0].co.z
+        z = (rows[i][0].co.z + rows[i + 1][0].co.z) / 2
         for k in range(n):
             f = bm.faces.new((rows[i][k], rows[i][(k + 1) % n], rows[i + 1][(k + 1) % n], rows[i + 1][k]))
-            f[p.reg] = R["sticker"] if (k == 0 and 0.40 < z < 0.52) or (k in (3, 4) and 0.25 < z < 0.43) else R["wood"]
+            back = k >= 9 and k <= 13
+            if (k < nface - 1 and 0.40 < z < 0.53 and 0 < k < 4) or (back and 0.22 < z < 0.46):
+                f[p.reg] = R["sticker"]
+            elif (k in (6, 7) or k in (n - 2, n - 1)) and 0.30 < z < 0.42:
+                f[p.reg] = R["sticker"]                       # edge stickers
+            else:
+                f[p.reg] = R["wood"]
     bm.faces.new(rows[0][::-1])[p.reg] = R["wood"]
     bm.faces.new(rows[-1])[p.reg] = R["wood"]
-    p.tag(add_capsule(bm, (X_BAT, 0.002, 0.60), (X_BAT, 0.002, 0.955), 0.0175, 0.0175, seg=8, caps=False), "grip")
-    p.tag(add_ellipsoid(bm, (X_BAT, 0.002, 0.958), (0.019, 0.019, 0.01), seg=8, rings=4), "grip")
-    return p.to_object()
+    # handle: cane under a rubber grip, a little thicker towards the top
+    hy = cy
+    p.tag(add_capsule(bm, (X_BAT, hy, b["shoulder_top"] - 0.03), (X_BAT, hy, 0.66), 0.0158, 0.0158, seg=10, caps=False), "wood")
+    pts = [(X_BAT, hy, z) for z in (0.655, 0.70, 0.80, 0.90, b["handle_top"] - 0.006)]
+    p.tag(add_tube(bm, pts, b["handle_r"], 12), "grip")
+    p.tag(add_ellipsoid(bm, (X_BAT, hy, b["handle_top"] - 0.006), (b["handle_r"], b["handle_r"], 0.008), seg=12, rings=4), "grip")
+    for z in (0.66, 0.952):                                    # grip ends
+        p.tag(add_tube(bm, [(X_BAT, hy, z - 0.004), (X_BAT, hy, z + 0.004)], b["handle_r"] + 0.0012, 12), "dark")
+    obj = p.to_object()
+    obj.data.shade_smooth()
+    return obj
 
 
 def build_ball_mesh():
@@ -716,6 +904,8 @@ class AnimRig:
             c.target, c.track_axis, c.influence = self.ctrl["look"], 'TRACK_Z', inf
         arm.animation_data_create()
         self._prevq = {}
+        self.len_ua = {S: arm.data.bones["upper_arm_" + S].length for S in ("L", "R")}
+        self.len_fa = {S: arm.data.bones["forearm_" + S].length for S in ("L", "R")}
 
     def _key(self, obj, m, f):
         obj.matrix_world = m
@@ -752,12 +942,14 @@ class AnimRig:
         bat = P.get("bat") or P.get("bat1")
         if bat:
             G, d, fa = (v.copy() for v in bat)
-            offs = (("L", 0.0), ("R", 0.105)) if P.get("bat") else (("R", 0.0),)
+            offs = (("L", 0.0), ("R", PR.HAND_GAP)) if P.get("bat") else (("R", 0.0),)
             for _ in range(6):
                 for S, off in offs:
-                    gap = (G + d * off - shoulders[S]).length - REACH
-                    if gap > 0:
-                        G += (shoulders[S] - (G + d * off)).normalized() * gap
+                    v = G + d * off - shoulders[S]
+                    if v.length > REACH:
+                        G -= v.normalized() * (v.length - REACH)
+                    elif v.length < MIN_REACH:
+                        G += v.normalized() * (MIN_REACH - v.length)
             e3 = d.cross(fa)
             F = Matrix((d, fa, e3)).transposed()
             F0 = Matrix((Vector((0, 0, -1)), Vector((0, -1, 0)), Vector((-1, 0, 0)))).transposed()
@@ -769,31 +961,59 @@ class AnimRig:
             self._key(self.ctrl["bat_ctrl"], self.rest["bat"], f)
             d = e3 = None
 
-        def grip_frame(S, ref):
-            """Hand closed round the handle: knuckles continue the line from ref (shoulder,
-            then the solved elbow), thumb pointing down the handle towards the blade."""
-            grip = grips[S]
-            v = grip - ref
-            Y = v - d * v.dot(d)
-            Y = Y.normalized() if Y.length > 1e-4 else e3
-            X = -d if S == "L" else d
+        def hand_at(S, th):
+            """Fist round the handle, turned th degrees about it: (X, Y, Zh, wrist)."""
+            b1 = e3.normalized()
+            b2 = d.cross(b1)
+            Yp = b1 * math.cos(rad(th)) + b2 * math.sin(rad(th))
+            Y = Yp * math.cos(GRIP_ANGLE) + d * math.sin(GRIP_ANGLE)
+            radial = (d - Y * Y.dot(d)).normalized()
+            X = -radial if S == "L" else radial
             Zh = X.cross(Y)
-            return self._frame(X, Y, Zh, grip - Y * GRIP_Y - Zh * GRIP_Z)
+            return X, Y, Zh, grips[S] - Y * GRIP_Y - Zh * GRIP_Z
+
+        def elbow_at(S, W, psi):
+            """Two-bone solve: elbow towards the keyed pole, swivelled psi degrees about
+            the shoulder-wrist line. Returns (elbow, overreach, pole point)."""
+            sh, pole = shoulders[S], P["poles"][S]
+            a, b = self.len_ua[S], self.len_fa[S]
+            v = W - sh
+            dist = min(v.length, a + b - 1e-4)
+            u = v.normalized()
+            x = (a * a - b * b + dist * dist) / (2 * dist)
+            r = math.sqrt(max(0.0, a * a - x * x))
+            pv = (pole - sh) - u * (pole - sh).dot(u)
+            pv = Matrix.Rotation(rad(psi), 3, u) @ pv.normalized()
+            return sh + u * x + pv * r, v.length - (a + b), sh + u * x + pv * 0.6
+
+        def grip_frame(S):
+            """Turn the fist about the handle, and swivel the elbow a little off its pole,
+            until the wrist is as straight as it can be. Returns (hand frame, pole point)."""
+            def cost(th, psi):
+                X, Y, Zh, W = hand_at(S, th)
+                E, over, _ = elbow_at(S, W, psi)
+                return (W - E).angle(Y) + max(0.0, over) * 20 + abs(rad(psi)) * 0.35
+            best = min(((th, psi) for th in range(0, 360, 8) for psi in range(-45, 46, 15)), key=lambda q: cost(*q))
+            best = min(((th, psi) for th in range(best[0] - 8, best[0] + 9, 2) for psi in range(best[1] - 12, best[1] + 13, 4)),
+                       key=lambda q: cost(*q))
+            X, Y, Zh, W = hand_at(S, best[0])
+            return self._frame(X, Y, Zh, W), elbow_at(S, W, best[1])[2]
 
         for S in ("L", "R"):
             if S in grips:
-                m = grip_frame(S, shoulders[S])
+                m, pole = grip_frame(S)
                 self.grip[S].influence = 1.0
             else:
                 wrist = P["hands"][S].copy()
-                gap = (wrist - shoulders[S]).length - 0.565
+                gap = (wrist - shoulders[S]).length - ARM_FREE
                 if gap > 0:
                     wrist += (shoulders[S] - wrist).normalized() * gap
                 m = Matrix.Translation(wrist)
+                pole = P["poles"][S]
                 self.grip[S].influence = 0.0
             self._key(self.ctrl["hand_tgt_" + S], m, f)
             pb["hand_" + S].constraints[self.grip[S].name].keyframe_insert("influence", frame=f)
-            self._key(self.ctrl["elbow_pole_" + S], Matrix.Translation(P["poles"][S]), f)
+            self._key(self.ctrl["elbow_pole_" + S], Matrix.Translation(pole), f)
 
         for S in ("L", "R"):
             ball, yaw, heel = P["feet"][S]
@@ -807,14 +1027,6 @@ class AnimRig:
             toes = Matrix.Rotation(rad(yaw), 3, 'Z') @ Vector((0, -1, 0))
             self._key(self.ctrl["knee_pole_" + S], Matrix.Translation(ankle + Z * 0.45 + toes * 0.7), f)
         self._key(self.ctrl["look"], Matrix.Translation(P["look"]), f)
-
-        # second pass: aim each gripping hand along the forearm the IK actually produced,
-        # so the wrist bends only as much as a real wrist would
-        if grips:
-            scene.frame_set(f)
-            elbows = {S: self.arm.matrix_world @ pb["forearm_" + S].head for S in grips}
-            for S in grips:
-                self._key(self.ctrl["hand_tgt_" + S], grip_frame(S, elbows[S]), f)
 
     def calibrate(self, frame):
         bpy.context.scene.frame_set(frame)
