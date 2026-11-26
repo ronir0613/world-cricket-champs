@@ -4,7 +4,7 @@
    dragged to look around.
    ========================================================================== */
 import * as THREE from "three";
-import { buildWorld } from "./world.js?v=7";
+import { buildWorld } from "./world.js?v=10";
 
 const QUALITY = { pixelRatio: 1, shadows: false, shadowSize: 1024, segments: 64 };
 const CENTRE = new THREE.Vector3(0, 6, 10);

@@ -40,7 +40,7 @@ proHub.querySelectorAll("[data-pro-tab]").forEach((tab) => tab.addEventListener(
 
 /* ---------- Tile actions ---------- */
 const PRO_ACTIONS = {
-  "quick-match": () => { showLoading("Quick Match"); openQuickMatch(); },
+  "quick-match": () => { if (window.startQuickMatch) window.startQuickMatch(); else { showLoading("Quick Match"); openQuickMatch(); } },
   "cwc27": () => { showLoading("CWC27"); window.CWC27.open(); },
   "career": () => { showLoading("Career"); if (readCareer()) openHub(); else showPage(careerModesPage, "Career | World Cricket Champs"); },
   "news": () => document.querySelector("#shellBell").click(),
@@ -76,14 +76,13 @@ function flagTag(src, alt = "") { return src ? `<img src="${src}" alt="${alt}">`
 
 function renderProHub() {
   if (!proHub) return;
-  /* Quick Match: favourite or CWC27 team against a sensible opponent */
-  const favourite = FEATURE_TEAMS.find((team) => team.code === storeGet(FAVOURITE_KEY, ""));
-  const cwcTeam = window.CWC27.savedTeam();
-  const homeTeam = favourite || FEATURE_TEAMS.find((team) => cwcTeam && team.name === cwcTeam.name) || FEATURE_TEAMS[0];
-  const awayTeam = FEATURE_TEAMS.find((team) => team.code !== homeTeam.code && team.code === (homeTeam.code === "AUS" ? "ENG" : "AUS")) || FEATURE_TEAMS[1];
+  /* Quick Match: India v Australia, 5 overs (you play as Australia if they are your favourite) */
+  const userCode = storeGet(FAVOURITE_KEY, "") === "AUS" ? "AUS" : "IND";
+  const homeTeam = FEATURE_TEAMS.find((team) => team.code === userCode) || FEATURE_TEAMS[0];
+  const awayTeam = FEATURE_TEAMS.find((team) => team.code === (userCode === "IND" ? "AUS" : "IND")) || FEATURE_TEAMS[1];
   document.querySelector("#proQmHomeFlag").innerHTML = flagTag(homeTeam.flag);
   document.querySelector("#proQmAwayFlag").innerHTML = flagTag(awayTeam.flag);
-  document.querySelector("#proQmCaption").textContent = `${homeTeam.name} vs ${awayTeam.name}`;
+  document.querySelector("#proQmCaption").textContent = `${homeTeam.name} vs ${awayTeam.name} · 5 overs`;
 
   /* CWC27: next fixture for the saved team */
   const info = window.CWC27.nextFixtureInfo ? window.CWC27.nextFixtureInfo() : null;

@@ -103,7 +103,26 @@ export async function createSquadBatter({ kit, skin, lod = 0, home }) {
     current = s.clip;
   }
 
+  /* manual: the caller moves the root and picks clips (running, waiting at
+     the non-striker's end); off again returns him to his guard */
+  let manual = false;
+  function setManual(on) {
+    if (on === manual) return;
+    manual = on;
+    swing = null;
+    lastBat = null;
+    if (!on) {
+      current = "stance";
+      player.play("stance", { fade: 0.2 });
+      player.root.position.set(home.x, 0, home.z);
+      player.root.rotation.y = 0;
+      target.set(home.x, 0, home.z);
+      targetYaw = 0;
+    } else current = null;
+  }
+
   function update(dt, ctx, now) {
+    if (manual) { player.update(dt); return; }
     const bat = ctx ? ctx.bat : { phase: "stance" };
     if (bat !== lastBat) {
       lastBat = bat;
@@ -134,7 +153,7 @@ export async function createSquadBatter({ kit, skin, lod = 0, home }) {
     player.update(dt);
   }
 
-  return { root: player.root, player, update, get clip() { return current; } };
+  return { root: player.root, player, update, setManual, get manual() { return manual; }, get clip() { return current; } };
 }
 
 export async function createSquadBowler({ kit, skin, lod = 0 }) {

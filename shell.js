@@ -203,7 +203,7 @@ function goTab(tab) {
   if (fromCwc) window.CWC27.close();
   if (tab === "home") showPage(homeMenu, "Home | World Cricket Champs");
   if (tab === "career") { if (typeof showLoading === "function") showLoading("Career"); if (readCareer()) openHub(); else showPage(careerModesPage, "Career | World Cricket Champs"); }
-  if (tab === "quick-match") { if (typeof showLoading === "function") showLoading("Quick Match"); openQuickMatch(); }
+  if (tab === "quick-match") { if (window.startQuickMatch) window.startQuickMatch(); else { if (typeof showLoading === "function") showLoading("Quick Match"); openQuickMatch(); } }
   if (tab === "store") openFeaturePage("kit");
   if (tab === "trophies") openFeaturePage("trophies");
   const button = shell.querySelector(`[data-tab="${tab}"]`);

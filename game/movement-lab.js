@@ -4,7 +4,7 @@
    look at it from any angle. This is where player movements get worked on.
    ========================================================================== */
 import * as THREE from "three";
-import { buildWorld } from "./world.js?v=7";
+import { buildWorld } from "./world.js?v=10";
 import { applyPose, batterPose, batterStride, batterFeet, BATTER_SPOT, KITS } from "./figure.js?v=5";
 import { createBatter } from "./batter.js?v=12";
 import { createBowler } from "./bowler.js?v=7";

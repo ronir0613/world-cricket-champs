@@ -280,6 +280,145 @@ html.game-on .shell, html.game-on .prompt-bar, html.game-on .pro-logo { visibili
 .w-four { stroke: #ffe14d; }
 .w-six { stroke: #ff5a6e; stroke-width: 2.2 !important; }
 
+/* ---------- Practice match ---------- */
+.m-need {
+  gap: 6px;
+  color: #fff;
+  background: #c8102e;
+  font-size: .9375rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+.m-freehit {
+  position: absolute;
+  top: max(64px, calc(env(safe-area-inset-top) + 50px));
+  left: max(16px, env(safe-area-inset-left));
+  padding: 6px 12px;
+  color: var(--g-ink);
+  background: #ffe14d;
+  font-family: var(--g-display);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+/* running call, bottom centre */
+.m-run {
+  position: absolute;
+  bottom: max(70px, calc(env(safe-area-inset-bottom) + 56px));
+  left: 50%;
+  padding: 8px 18px;
+  color: #fff;
+  background: rgba(12, 37, 88, .92);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .3);
+  font-family: var(--g-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.m-run[data-danger="1"] { background: #c8102e; }
+/* bowling: delivery chip and release meter, bottom centre */
+.m-bowl {
+  position: absolute;
+  bottom: max(64px, calc(env(safe-area-inset-bottom) + 50px));
+  left: 50%;
+  display: grid;
+  gap: 8px;
+  width: min(340px, 70vw);
+  padding: 10px 14px 12px;
+  color: #fff;
+  background: rgba(12, 37, 88, .88);
+  font-family: var(--g-display);
+  text-transform: uppercase;
+  transform: translateX(-50%);
+}
+.m-bowl-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.m-bowl-head b { font-size: 1.25rem; font-weight: 800; letter-spacing: .03em; }
+.m-bowl-head span { color: #c9d6ef; font-size: .9375rem; font-weight: 700; }
+.m-bowl-tip { margin: 0; color: #c9d6ef; font-size: .8125rem; font-weight: 700; letter-spacing: .06em; }
+.m-meter { position: relative; display: grid; grid-template-columns: 22% 18% 20% 18% 22%; height: 12px; box-shadow: 0 0 0 2px rgba(255, 255, 255, .9); }
+.m-meter i { display: block; }
+.m-meter-bad { background: #c8102e; }
+.m-meter-ok { background: #e9a23b; }
+.m-meter-good { background: #24b36b; }
+.m-meter em {
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  left: 50%;
+  width: 4px;
+  margin-left: -2px;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .5);
+}
+.m-meter[data-locked="1"] em { background: #ffe14d; }
+.m-root .g-shots { grid-template-columns: repeat(3, 76px); }
+.m-root .m-run-btn { height: 48px; background: rgba(255, 255, 255, .92); color: var(--g-navy); }
+.m-root .m-run-btn[data-run="run"] { grid-column: span 2; }
+/* scorecards */
+.m-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 16px; }
+.m-card { margin-top: 14px; }
+.m-cards .m-card { margin-top: 0; }
+.m-card h3 { margin: 0 0 6px; font-family: var(--g-display); font-size: 1.25rem; font-weight: 800; text-transform: uppercase; }
+.m-card h3 small { color: var(--g-muted); font-size: .875rem; font-weight: 700; }
+.m-card table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+.m-card th, .m-card td { padding: 5px 6px; border-bottom: 1px solid #e3e8f0; text-align: left; }
+.m-card thead th { color: var(--g-muted); font-size: .75rem; font-weight: 700; text-transform: uppercase; }
+.m-card td:nth-child(3), .m-card td:nth-child(4), .m-card thead th:nth-child(3), .m-card thead th:nth-child(4) { width: 34px; text-align: right; }
+.m-card td:nth-child(2) { color: var(--g-muted); }
+.m-bowling { margin: 6px 0 0; color: var(--g-muted); font-size: .875rem; font-weight: 600; }
+.g-best.m-lost { background: #c8102e; }
+.m-result { width: min(760px, calc(100vw - 32px)); }
+
+/* ---------- Quick Match ---------- */
+/* intro: the match title over the stadium sweep */
+.m-cine {
+  position: absolute;
+  left: 50%;
+  bottom: max(48px, calc(env(safe-area-inset-bottom) + 32px));
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 16px 28px 18px;
+  color: #fff;
+  background: rgba(12, 37, 88, .9);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .35);
+  font-family: var(--g-display);
+  text-align: center;
+  text-transform: uppercase;
+  transform: translateX(-50%);
+  animation: g-fade .6s ease both;
+}
+.m-cine .g-kicker { margin: 0; color: #7fe0b0; }
+.m-cine h2 { margin: 0; font-size: 2.75rem; font-weight: 800; line-height: 1; }
+.m-cine h2 small, .m-toss h2 small { color: #c9d6ef; font-size: .55em; }
+.m-toss h2 small { color: var(--g-muted); }
+.m-cine .g-btn { min-height: 40px; color: #fff; border-color: rgba(255, 255, 255, .6); background: transparent; }
+.m-coin-row { display: flex; justify-content: center; margin: 14px 0 4px; }
+.m-toss-status { min-height: 2.6em; text-align: center; }
+.m-toss .g-actions { justify-content: center; }
+.m-root[data-stage="pre"] .g-scorebug, .m-root[data-stage="pre"] .g-hints, .m-root[data-stage="pre"] .g-pause-btn, .m-root[data-stage="pre"] .g-touch { display: none; }
+/* striker and bowler under the scorebug */
+.m-players {
+  position: absolute;
+  top: max(58px, calc(env(safe-area-inset-top) + 44px));
+  left: max(16px, env(safe-area-inset-left));
+  display: flex;
+  gap: 2px;
+  font-family: var(--g-display);
+  font-size: .9375rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+.m-players span { padding: 4px 10px; color: #fff; background: rgba(12, 37, 88, .88); }
+.m-players span:last-child { color: #c9d6ef; }
+.m-players span:empty { display: none; }
+.m-root .m-freehit { top: max(92px, calc(env(safe-area-inset-top) + 78px)); }
+
 /* Short landscape phones */
 @media (max-height: 520px) {
   .g-scorebug { height: 34px; }
@@ -299,6 +438,7 @@ html.game-on .shell, html.game-on .prompt-bar, html.game-on .pro-logo { visibili
 }
 @media (max-width: 560px) {
   .g-bug-drill { display: none !important; }
+  .m-cards { grid-template-columns: 1fr; }
   .g-summary-grid { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) {
