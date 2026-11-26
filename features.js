@@ -338,7 +338,7 @@ const ARENA = {
   known: "The game's own ground, built for World Cricket Champs. Two packed tiers wrap the field, with an LED ribbon between them, a big screen behind the striker and the scoreboard at the far end. The crowd jumps up for every four and six."
 };
 let arenaView = null;
-const venuePreview = () => import("./game/venue-preview.js?v=3");
+const venuePreview = () => import("./game/venue-preview.js?v=5");
 function closeArenaView() { if (arenaView) { arenaView.destroy(); arenaView = null; } }
 
 function arenaCard() {
@@ -504,7 +504,7 @@ document.querySelector("#qmVenuePreview").addEventListener("click", (event) => {
 renderQmVenuePreview();
 
 /* ---------- Practice nets ---------- */
-const PLAYABLE_DRILLS = { pace: "pace", spin: "spin" };
+const PLAYABLE_DRILLS = { pace: "pace", spin: "spin", match: "match" };
 /* Bowler actions per drill (ids match game/ball.js ACTIONS). */
 const DRILL_ACTIONS = {
   pace: [["auto", "Auto"], ["fast", "Fast"], ["medium", "Medium-fast"]],
@@ -530,6 +530,7 @@ function chosenAction(drillId) {
 const DRILLS = [
   { id: "pace", title: "Facing pace", skill: "Batting", copy: "Leave, defend and punish short balls from a fast bowler.", photo: "assets/photos/nets.jpg", position: "30% 60%" },
   { id: "spin", title: "Facing spin", skill: "Batting", copy: "Use your feet and play with the turn on a dusty surface.", photo: "assets/photos/nets.jpg", position: "70% 55%" },
+  { id: "match", title: "Practice match", skill: "Match", copy: "Two overs a side against a CPU team. Bat, bowl your own deliveries, call your runs and watch for run-outs.", photo: "assets/photos/matchday-1.jpg", position: "center" },
   { id: "death", title: "Death bowling", skill: "Bowling", copy: "Hit the blockhole with yorkers in the final overs.", photo: "assets/photos/matchday-1.jpg", position: "center" },
   { id: "catching", title: "Catching practice", skill: "Fielding", copy: "High balls, slip catches and sharp reactions.", photo: "assets/photos/matchday-2.jpg", position: "center" }
 ];
@@ -541,7 +542,7 @@ function renderDrills() {
         <span class="hub-tile-kicker">${drill.skill}</span>
         <h2>${drill.title}</h2>
         <p>${drill.copy}</p>${actionPicker(drill.id)}
-        <button class="cwc-primary" type="button" data-drill="${drill.title}" data-drill-id="${drill.id}">${PLAYABLE_DRILLS[drill.id] ? "Play drill" : "Coming soon"} <span aria-hidden="true">→</span></button>
+        <button class="cwc-primary" type="button" data-drill="${drill.title}" data-drill-id="${drill.id}">${drill.id === "match" ? "Play match" : PLAYABLE_DRILLS[drill.id] ? "Play drill" : "Coming soon"} <span aria-hidden="true">→</span></button>
       </div>
     </article>`).join("");
 }
@@ -549,8 +550,9 @@ let netsModule = null;
 async function launchDrill(drillId, level, button) {
   const favourite = FEATURE_TEAMS.find((team) => team.code === storeGet(FAVOURITE_KEY, ""));
   button.disabled = true;
+  if (drillId === "match") { launchMatch(level, button, favourite); return; }
   try {
-    netsModule = netsModule || await import("./game/nets.js?v=21");
+    netsModule = netsModule || await import("./game/nets.js?v=25");
     netsModule.startNets({
       drill: drillId,
       level,
@@ -569,6 +571,52 @@ async function launchDrill(drillId, level, button) {
     button.disabled = false;
   }
 }
+let matchModule = null;
+async function launchMatch(level, button, favourite) {
+  try {
+    matchModule = matchModule || await import("./game/practice-match.js?v=11");
+    matchModule.startPracticeMatch({
+      level,
+      teamCode: favourite ? favourite.code : "IND",
+      onExit() {
+        showPage(document.querySelector("#netsPage"), "Practice Nets | World Cricket Champs");
+        const again = document.querySelector('[data-drill-id="match"]');
+        if (again) again.focus();
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    showToast("The practice match couldn't start on this device.");
+  } finally {
+    button.disabled = false;
+  }
+}
+/* ---------- Quick Match: India v Australia, 5 overs ---------- */
+const QM_LEVELS = { Easy: "Club", Medium: "Domestic", Hard: "International" };
+window.startQuickMatch = async function startQuickMatch() {
+  const favourite = storeGet(FAVOURITE_KEY, "");
+  const user = favourite === "AUS" ? "AUS" : "IND";
+  const picked = document.querySelector("#quickMatchPage input[name=qmDifficulty]:checked");
+  try {
+    if (typeof showLoading === "function") showLoading("Quick Match");
+    matchModule = matchModule || await import("./game/practice-match.js?v=11");
+    matchModule.startPracticeMatch({
+      mode: "quick",
+      teamCode: user,
+      oppCode: user === "IND" ? "AUS" : "IND",
+      overs: 5,
+      level: QM_LEVELS[picked ? picked.value : "Medium"] || "Domestic",
+      onExit() {
+        showPage(homeMenu, "Home | World Cricket Champs");
+        const tile = document.querySelector('[data-mode="Quick Match"]');
+        if (tile) tile.focus();
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    showToast("Quick Match couldn't start on this device.");
+  }
+};
 /* ---------- Player movement lab ---------- */
 let lab = null, labLoading = false;
 const labEl = (id) => document.querySelector("#" + id);
@@ -585,7 +633,7 @@ async function openLab() {
   button.disabled = true;
   button.firstChild.textContent = "Loading players… ";
   try {
-    const module = await import("./game/movement-lab.js?v=3");
+    const module = await import("./game/movement-lab.js?v=5");
     const favourite = FEATURE_TEAMS.find((team) => team.code === storeGet(FAVOURITE_KEY, ""));
     lab = await module.startLab(labEl("labStage"), { kit: favourite ? favourite.code : "IND" });
     button.hidden = true;

@@ -168,6 +168,51 @@ function solveFlight(release, speed, targetZ, targetX, swing, opts) {
   return { release: { ...release }, ...result };
 }
 
+/* A delivery the player bowls: chosen type, speed and target spot on the
+   pitch (x = line, z = where it pitches). Same shape as planDelivery. */
+export const VARIATIONS = {
+  pace: [
+    { id: "seam", label: "Seam" },
+    { id: "in", label: "Inswinger" },
+    { id: "out", label: "Outswinger" },
+    { id: "slower", label: "Slower ball" }
+  ],
+  spin: [
+    { id: "off", label: "Off-break" },
+    { id: "leg", label: "Leg-break" },
+    { id: "arm", label: "Arm ball" }
+  ]
+};
+export function planCustomDelivery({ spin, variation, speedKmh, targetX, targetZ, levelName, rng }) {
+  const level = LEVELS[levelName] || LEVELS.Club;
+  const release = { x: 0.15, y: spin ? 2.0 : 2.2, z: 18.6 };
+  let swing = 0, deviation = 0, style;
+  if (spin) {
+    const turn = rng.range(0.7, 1.3);
+    if (variation === "leg") { deviation = -turn; style = "Leg-break"; }
+    else if (variation === "arm") { swing = rng.range(0.2, 0.5); deviation = rng.range(-0.08, 0.08); style = "Arm ball"; }
+    else { deviation = turn; style = "Off-break"; }
+  } else {
+    deviation = rng.range(-0.2, 0.2);
+    if (variation === "in") { swing = rng.range(0.9, 1.8); style = "Inswinger"; }
+    else if (variation === "out") { swing = -rng.range(0.9, 1.8); style = "Outswinger"; }
+    else if (variation === "slower") { style = "Slower ball"; }
+    else { style = "Seam up"; }
+  }
+  const opts = { swing, deviation, restitution: spin ? 0.42 : 0.52, grip: spin ? 0.84 : 0.9 };
+  const lengthLabel = spin
+    ? (targetZ < 2.6 ? "Full" : targetZ < 4.5 ? "Good length" : "Short")
+    : (targetZ < 1.2 ? "Yorker" : targetZ < 3.6 ? "Full" : targetZ < 6.5 ? "Good length" : targetZ < 8.4 ? "Back of a length" : "Bouncer");
+  const speed = speedKmh / 3.6;
+  return {
+    drill: spin ? "spin" : "pace", spin, style, speedKmh, action: spin ? (variation === "leg" ? "leg" : "off") : "fast",
+    length: lengthLabel, line: targetX < -0.36 ? "Wide outside off" : targetX < -0.12 ? "Outside off" : targetX < 0.12 ? "On the stumps" : "Down leg",
+    marker: false, custom: true,
+    aim: { speed, targetZ, targetX, swing, opts },
+    ...solveFlight(release, speed, targetZ, targetX, swing, opts)
+  };
+}
+
 /* Same delivery (speed, line, length, movement) released from another
    point: used to match the bowler's hand. */
 export function releaseFrom(delivery, release) {
@@ -275,7 +320,7 @@ export function flyHit(start, speed, launch, angle) {
 
 /* Resolve the batter's input against a delivery.
    input: { pressTime (s from release, or null), shot, aim: {x, y} } */
-export function resolveShot(delivery, input, levelName, rng) {
+export function resolveShot(delivery, input, levelName, rng, { field = false } = {}) {
   const level = LEVELS[levelName] || LEVELS.Club;
   const plan = contactPlan(delivery);
   const base = { plan, delivery };
@@ -309,7 +354,8 @@ export function resolveShot(delivery, input, levelName, rng) {
   if (rng() < edgeChance) {
     const edgeAngle = -Math.PI + rng.range(0.25, 0.9);
     const flight = flyHit(plan.at, rng.range(14, 24), rng.range(0.03, 0.22), edgeAngle);
-    const caught = flight.firstLanding && flight.firstLanding.dist < 26 && rng() < 0.55;
+    /* in a match the real fielders decide catches (field: true) */
+    const caught = !field && flight.firstLanding && flight.firstLanding.dist < 26 && rng() < 0.55;
     const runs = caught ? 0 : runsFor(flight);
     return { ...base, kind: caught ? "caught" : "edge", grade, error, quality, angle: edgeAngle, flight, runs, out: caught, label: caught ? "Caught at slip" : runs >= 4 ? "Four" : "Edged", detail: caught ? "Thick edge, straight to slip" : "Outside edge" };
   }
@@ -331,7 +377,9 @@ export function resolveShot(delivery, input, levelName, rng) {
      have been caught in a match. */
   let out = false, label, detail;
   const land = flight.firstLanding;
-  if (input.shot === "loft" && !(flight.overRope && flight.overRope.inAir) && land && land.dist > 18 && quality < 0.62) {
+  if (field) {
+    /* the match decides catches and runs with its fielders */
+  } else if (input.shot === "loft" && !(flight.overRope && flight.overRope.inAir) && land && land.dist > 18 && quality < 0.62) {
     out = rng() < 0.75;
   } else if (input.shot === "ground" && launch > 0.12 && land && land.dist > 7 && land.dist < 32) {
     out = rng() < 0.4;

@@ -1,0 +1,4 @@
+.claude/
+server.log
+server-error.log
+__pycache__/

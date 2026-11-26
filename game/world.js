@@ -4,7 +4,7 @@
    to load.
    ========================================================================== */
 import * as THREE from "three";
-import { PITCH } from "./ball.js?v=4";
+import { PITCH } from "./ball.js?v=5";
 
 function canvasTexture(width, height, draw, repeat) {
   const canvas = document.createElement("canvas");
@@ -111,9 +111,9 @@ function seatTexture({ rows, cols, seat, seatAlt, fill, seed, bob = false, repea
 }
 
 /* LED ribbon between the tiers: scrolling messages. */
-function ribbonTexture() {
+function ribbonTexture(title = "PRACTICE NETS") {
   return canvasTexture(2048, 64, (ctx, w, h) => {
-    const panels = [["#0b1d3f", "#ffffff", "WORLD CRICKET CHAMPS"], ["#15945e", "#ffffff", "FOUR"], ["#0f1c33", "#f2c230", "PRACTICE NETS"], ["#12357a", "#ffffff", "WORLD CRICKET CHAMPS"], ["#0f1c33", "#f08a3c", "SIX"], ["#e6e9ef", "#0b1d3f", "WCC"]];
+    const panels = [["#0b1d3f", "#ffffff", "WORLD CRICKET CHAMPS"], ["#15945e", "#ffffff", "FOUR"], ["#0f1c33", "#f2c230", title], ["#12357a", "#ffffff", "WORLD CRICKET CHAMPS"], ["#0f1c33", "#f08a3c", "SIX"], ["#e6e9ef", "#0b1d3f", "WCC"]];
     const pw = w / panels.length;
     panels.forEach(([bg, fg, text], i) => {
       ctx.fillStyle = bg; ctx.fillRect(i * pw, 0, pw, h);
@@ -195,7 +195,9 @@ function makeStumps(z, material, bailMaterial) {
    scoreboard. Angles: 0 is +z (the bowler's end), PI is -z (behind the
    striker). */
 const BOWL = { inner: 88, wall: 2.2, lowTop: 104, lowH: 14, ribbonH: 2.4, upTop: 126, upH: 38, roofIn: 106, roofH: 46 };
-function stadium(quality) {
+/* labels: what the LED ribbon and the big screens show (nets by default) */
+function stadium(quality, labels = {}) {
+  const title = labels.title || "PRACTICE NETS";
   const group = new THREE.Group();
   const seg = quality.segments * 2;
   const B = BOWL;
@@ -215,7 +217,7 @@ function stadium(quality) {
 
   /* concourse slab, and the LED ribbon on the front of the upper tier */
   group.add(new THREE.Mesh(new THREE.RingGeometry(B.lowTop, B.lowTop + 3, seg).rotateX(-Math.PI / 2).translate(0, B.lowH, 0), concrete));
-  const ribbon = ribbonTexture();
+  const ribbon = ribbonTexture(title);
   const ribbonMesh = new THREE.Mesh(new THREE.CylinderGeometry(B.lowTop + 0.3, B.lowTop + 0.3, B.ribbonH, seg, 1, true),
     new THREE.MeshStandardMaterial({ map: ribbon, emissive: "#ffffff", emissiveMap: ribbon, emissiveIntensity: 0.55, roughness: 0.5, side: THREE.BackSide }));
   ribbonMesh.position.y = B.lowH + B.ribbonH / 2 + 0.3;
@@ -265,8 +267,8 @@ function stadium(quality) {
 
   /* big screen behind the striker, scoreboard at the bowler's end */
   const boards = [
-    [Math.PI, screenTexture([["WORLD CRICKET CHAMPS", 64, "#ffffff", 0.28], ["PRACTICE NETS", 92, "#f2c230", 0.55], ["LIVE", 46, "#ffffff", 0.93]])],
-    [0, screenTexture([["NETS SESSION", 70, "#ffffff", 0.22], ["0 / 0", 150, "#ffffff", 0.52], ["OVERS 0.0", 46, "#ffffff", 0.93]])]
+    [Math.PI, screenTexture([["WORLD CRICKET CHAMPS", 64, "#ffffff", 0.28], [title, 92, "#f2c230", 0.55], ["LIVE", 46, "#ffffff", 0.93]])],
+    [0, screenTexture((labels.board || [["NETS SESSION", 70, "#ffffff", 0.22], ["0 / 0", 150, "#ffffff", 0.52], ["OVERS 0.0", 46, "#ffffff", 0.93]]))]
   ];
   for (const [a, tex] of boards) {
     const frame = new THREE.Group();
@@ -317,40 +319,7 @@ function stadium(quality) {
   return { group, update, cheer };
 }
 
-/* Practice nets off to the side of the square, for flavour. */
-function practiceNets() {
-  const group = new THREE.Group();
-  const frame = new THREE.MeshStandardMaterial({ color: "#3a3f47", metalness: 0.4, roughness: 0.6 });
-  const net = new THREE.MeshBasicMaterial({
-    map: canvasTexture(64, 64, (ctx, w, h) => {
-      ctx.clearRect(0, 0, w, h);
-      ctx.strokeStyle = "rgba(25,30,38,0.75)"; ctx.lineWidth = 2;
-      for (let i = 0; i <= w; i += 8) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, h); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(w, i); ctx.stroke(); }
-    }, [40, 4]),
-    transparent: true, side: THREE.DoubleSide, depthWrite: false
-  });
-  for (let lane = 0; lane < 3; lane++) {
-    const x = -50 - lane * 3.6;
-    for (const side of [-1.8, 1.8]) {
-      const wall = new THREE.Mesh(new THREE.PlaneGeometry(24, 3.4), net);
-      wall.rotation.y = Math.PI / 2;
-      wall.position.set(x + side, 1.7, 12);
-      group.add(wall);
-    }
-    const strip = new THREE.Mesh(new THREE.PlaneGeometry(3, 24), new THREE.MeshStandardMaterial({ color: "#5d8c4f", roughness: 1 }));
-    strip.rotation.x = -Math.PI / 2;
-    strip.position.set(x, 0.01, 12);
-    group.add(strip);
-    for (const z of [0, 24]) for (const side of [-1.8, 1.8]) {
-      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 3.4, 6), frame);
-      post.position.set(x + side, 1.7, z);
-      group.add(post);
-    }
-  }
-  return group;
-}
-
-export function buildWorld(renderer, quality) {
+export function buildWorld(renderer, quality, labels = {}) {
   const scene = new THREE.Scene();
   scene.fog = new THREE.Fog("#cfdceb", 220, 700);
   scene.add(skyDome());
@@ -401,9 +370,8 @@ export function buildWorld(renderer, quality) {
   boards.position.y = 0.45;
   scene.add(boards);
 
-  const bowl = stadium(quality);
+  const bowl = stadium(quality, labels);
   scene.add(bowl.group);
-  scene.add(practiceNets());
 
   const stumpMat = new THREE.MeshStandardMaterial({ color: "#f3efe6", roughness: 0.5 });
   const bailMat = new THREE.MeshStandardMaterial({ color: "#f0d84a", roughness: 0.5 });

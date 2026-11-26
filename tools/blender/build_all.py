@@ -2,6 +2,9 @@
 
     "C:\\Program Files\\Blender Foundation\\Blender 5.3\\blender.exe" --background --factory-startup --python tools/blender/build_all.py
 
+Body proportions come from proportions.py (see docs/body-proportions.md); render the
+reference sheet with proportions_sheet.py and check arm angles with probe.py.
+
 Environment
     CLIPS=pull,cut     only build these clips (faster iteration; packs then hold just these)
     NO_RENDER=1        skip the preview contact sheets
@@ -29,15 +32,15 @@ PREV = os.path.join(WORK, "previews")
 for d in (OUT, PROPS, WORK, PREV, os.path.join(PREV, "_tmp")):
     os.makedirs(d, exist_ok=True)
 LOD_RATIOS = [1.0, 0.4, 0.14]
-OUTFITS = {"batter": ["body", "helmet", "bat_pads", "bat_gloves"], "bowler": ["body"], "fielder": ["body", "cap"],
-           "keeper": ["body", "helmet", "keeper_pads", "keeper_gloves"], "umpire": ["body", "umpire_hat"]}
+OUTFITS = {"batter": ["body", "helmet", "bat_pads", "bat_gloves"], "bowler": ["body", "hands"], "fielder": ["body", "hands", "cap"],
+           "keeper": ["body", "helmet", "keeper_pads", "keeper_gloves"], "umpire": ["body", "hands", "umpire_hat"]}
 summary = {}
 
 # ---------------------------------------------------------------- character
 L.reset()
 mat = L.make_material(WORK)
 arm = L.build_armature()
-pieces = {"body": L.build_body(arm), "helmet": L.build_helmet(), "cap": L.build_cap(), "umpire_hat": L.build_umpire_hat(),
+pieces = {"body": L.build_body(arm), "hands": L.build_hands(arm), "helmet": L.build_helmet(), "cap": L.build_cap(), "umpire_hat": L.build_umpire_hat(),
           "bat_pads": L.build_pads("bat"), "keeper_pads": L.build_pads("keeper"),
           "bat_gloves": L.build_gloves(arm, "bat"), "keeper_gloves": L.build_gloves(arm, "keeper")}
 lods = {}

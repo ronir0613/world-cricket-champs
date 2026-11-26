@@ -1,6 +1,6 @@
 /* Offline support. Network first, so updates always show when online;
    the cache is only used when the network is unavailable. */
-const CACHE = "wcc-v20";
+const CACHE = "wcc-v28";
 const CORE = [
   "./",
   "index.html",

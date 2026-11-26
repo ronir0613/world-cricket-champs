@@ -301,7 +301,7 @@ def drive(name, s_dir, front, P, follow_G, follow_phi, contact_hips, follow_yaw,
         (36, dict(bat=B(tuple(Vector(follow_G) + Vector((-0.1, -0.1, -0.2))), -140, s_dir))),
         (41, dict(hips=(contact_hips[0] - 0.02, contact_hips[1] - 0.05, 0.80), yaw=follow_yaw, pitch=6, spine=(12, 0, 0),
                   chest=(6, 32, 0), footR=((-0.03, 0.12, 0.0), -68, 38), look=(s_dir[0] * 12, s_dir[1] * 12, 0.6),
-                  poleL=(-0.45, -0.5, 0.9), poleR=(-0.70, -0.20, 0.20))),
+                  poleL=(0.05, -0.75, 1.0), poleR=(-0.65, -0.35, 0.35))),
         (42, dict(bat=B(follow_G, follow_phi, s_dir), _hold=True)),
         (frames, dict(bat=B(tuple(Vector(follow_G) + Vector((0.01, 0.01, 0))), follow_phi - 3, s_dir),
                       hips=(contact_hips[0] - 0.02, contact_hips[1] - 0.05, 0.80), yaw=follow_yaw + 2)),
@@ -412,8 +412,9 @@ RUN_BASE = dict(FREE_STAND, hips=(0, 0, 0.92), pitch=12, spine=(6, 0, 0), chest=
 
 BATTING = [
     Clip("stance", "batting", 60, Table(STANCE_KEY, [(60, dict(STANCE_KEY))]), BAT_FLAGS, post=stance_post, loop=True),
-    drive("cover_drive", COVER, (-0.20, -0.76, -55), (-0.38, -0.82, 0.14), (-0.40, -0.86, 1.55), -215, (-0.06, -0.44, 0.77), -56),
-    drive("straight_drive", STRAIGHT, (-0.06, -0.76, -65), (-0.20, -0.86, 0.13), (-0.30, -0.88, 1.55), -215, (-0.02, -0.44, 0.77), -62),
+    # high finish: hands end above the front (left) shoulder, bat pointing up and back over it
+    drive("cover_drive", COVER, (-0.20, -0.76, -55), (-0.38, -0.82, 0.14), (-0.13, -0.80, 1.64), -212, (-0.06, -0.44, 0.77), -56),
+    drive("straight_drive", STRAIGHT, (-0.06, -0.76, -65), (-0.20, -0.86, 0.13), (-0.08, -0.80, 1.66), -212, (-0.02, -0.44, 0.77), -62),
     defence("forward_defence", False, (-0.28, -0.72, 0.12), 18, 56, 36),
     defence("back_defence", True, (-0.27, -0.10, 0.62), 4, 54, 34),
     pull(), cut(), leave(),

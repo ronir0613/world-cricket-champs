@@ -22,7 +22,7 @@
   <link rel="stylesheet" href="shell.css?v=2">
   <!-- Pro look (default). Remove this line to drop it; Settings > Display > Style switches styles. -->
   <link rel="stylesheet" href="pro.css?v=6">
-  <link rel="stylesheet" href="game/game.css?v=2">
+  <link rel="stylesheet" href="game/game.css?v=5">
   <script type="importmap">{ "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }</script>
 </head>
 <body>
@@ -824,7 +824,7 @@
       <section class="nets-hero">
         <img src="assets/photos/nets.jpg" alt="Cricket practice nets on a sunny day">
         <div class="nets-hero-copy">
-          <p>Pick a drill and a difficulty. The batting drills are playable in 3D; bowling and fielding drills are coming soon.</p>
+          <p>Pick a drill and a difficulty. The batting drills and a two-over practice match are playable in 3D; the bowling and fielding drills are coming soon.</p>
           <fieldset class="choice-group">
             <legend>Difficulty</legend>
             <div class="segmented segmented-dark">
@@ -2150,7 +2150,7 @@
           return;
         }
         if (button.dataset.mode === "Quick Match") {
-          openQuickMatch();
+          if (window.startQuickMatch) window.startQuickMatch(); else openQuickMatch();
           return;
         }
         if (button.dataset.mode === "Career") {
@@ -2164,10 +2164,10 @@
     });
 
   </script>
-  <script src="features.js?v=25"></script>
-  <script src="shell.js?v=5"></script>
+  <script src="features.js?v=37"></script>
+  <script src="shell.js?v=6"></script>
   <script src="presentation.js?v=2"></script>
   <!-- Pro layout behaviour. Remove together with pro.css to drop Pro. -->
-  <script src="pro.js?v=2"></script>
+  <script src="pro.js?v=3"></script>
 </body>
 </html>

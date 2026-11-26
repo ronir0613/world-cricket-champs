@@ -5,11 +5,11 @@
    Loaded on demand from features.js, so the menus never pay for Three.js.
    ========================================================================== */
 import * as THREE from "three";
-import { PITCH, LEVELS, makeRng, planDelivery, releaseFrom, sampleAt, contactPlan, resolveShot, SWING_LEAD } from "./ball.js?v=4";
-import { buildWorld, buildBall } from "./world.js?v=7";
+import { PITCH, LEVELS, makeRng, planDelivery, releaseFrom, sampleAt, contactPlan, resolveShot, SWING_LEAD } from "./ball.js?v=5";
+import { buildWorld, buildBall } from "./world.js?v=10";
 import { createBatter } from "./batter.js?v=12";
 import { createBowler } from "./bowler.js?v=7";
-import { createSquadBatter, createSquadBowler } from "./squad-nets.js?v=1";
+import { createSquadBatter, createSquadBowler } from "./squad-nets.js?v=2";
 import { buildFigure, applyPose, batterPose, strokeFor, batterStride, batterFeet, blendFeet, bowlerPose, bowlerZ, bowlerWalk, BATTER_SPOT, KITS } from "./figure.js?v=5";
 
 const BALLS = 12;
@@ -24,7 +24,7 @@ export function startNets(options) {
   return active;
 }
 
-function readSettings() {
+export function readSettings() {
   try { return { sfx: true, sfxVolume: 0.6, reduceMotion: false, ...JSON.parse(localStorage.getItem("wcc-settings") || "{}") }; }
   catch (_) { return { sfx: true, sfxVolume: 0.6, reduceMotion: false }; }
 }
@@ -37,13 +37,13 @@ function saveBest(all) {
 }
 
 /* ---------- Sound: synthesised, no files ---------- */
-function makeAudio(settings) {
+export function makeAudio(settings) {
   let ctx = null;
   const volume = settings.sfx ? settings.sfxVolume : 0;
   function ensure() {
     if (!volume) return null;
     if (!ctx) { try { ctx = new (window.AudioContext || window.webkitAudioContext)(); } catch (_) { return null; } }
-    if (ctx.state === "suspended") ctx.resume();
+    if (ctx.state === "suspended") ctx.resume().catch(() => {});
     return ctx;
   }
   function noiseBurst(duration, freq, q, gainValue, when = 0) {
@@ -117,7 +117,7 @@ function makeAudio(settings) {
   };
 }
 
-function el(html) {
+export function el(html) {
   const t = document.createElement("template");
   t.innerHTML = html.trim();
   return t.content.firstElementChild;
